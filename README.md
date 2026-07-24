@@ -222,3 +222,4 @@ message, or private message me. I am very responsive.
 
 ### TODO
 - [ ] fix the use of literal true and false for bool default value.
+- [ ] verifying embedded objects expects the object to exist and fails

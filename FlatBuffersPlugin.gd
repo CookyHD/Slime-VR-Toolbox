@@ -18,7 +18,7 @@ const ICON_BW_TINY = preload("uid://d32jh3dw5nypp")
 const author:String = "enetheru"
 const PluginName:String = "FlatBuffers"
 const plugin_name:String = "flatbuffers"
-#const plugin_path:String = "res://addons/" + author + "." + plugin_name + '-addon'
+# plugin_path is derived from get_script().resource_path at runtime — never hard-code.
 # we can get the plugin path using its resource_path.get_base_dir() anytime.
 
 # Tired of a miss-spelling Maybe using Constants will reduce the off by one errors
