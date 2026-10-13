@@ -74,8 +74,10 @@ var new_index_chunk:Array[bool]
 
 # flags that influence parsing behaviour / highlighting
 # NOTE: if error or warning is set, do not to save the stack to the next line
+# error_flag is cleared at the start of each line. issues keeps every row.
 var error_flag : bool = false
 var warning_flag : bool = false
+var issues:Array[Dictionary] = []
 
 var is_quick_scan_in_progress: bool = false # re-entrancy guard + "behave in discovery mode"
 var has_performed_quick_scan: bool = false  # "can I trust struct_types/table_types etc.?"
@@ -181,6 +183,7 @@ func clear_cache() -> void:
 	has_performed_quick_scan = false
 	error_flag = false
 	warning_flag = false
+	issues.clear()
 	included_files.clear()
 	scanned_files.clear()
 	struct_types.clear()
@@ -268,6 +271,65 @@ func syntax_error(token: Token, reason: String = "") -> void:
 	var colour:String = _opts.get_colour(LogLevel.ERROR).to_html()
 	Print.slog(LogLevel.TRACE, "[color=%s]%s[/color]" % [colour, Print.get_call_site(3)]  )
 	active_highlighter.syntax_error(token, reason)
+
+
+## Record one diagnose row. Line and column match the editor gutter.
+func add_issue( kind:StringName, token:Token, reason:String ) -> void:
+	var frame:String = "#"
+	if not stack.is_empty():
+		frame = str( StackFrame.Type.find_key( stack.top().type ) )
+	issues.append( {
+		&"kind": kind,
+		&"line": token.line + 1,
+		&"col": token.col + 1,
+		&"text": token.t,
+		&"reason": reason,
+		&"frame": frame,
+	} )
+
+
+func issue_count() -> int:
+	return issues.size()
+
+
+## Drop rows for one 0-based source line. The next parse of that line replaces them.
+func drop_line_issues( line_num:int ) -> void:
+	var display_line:int = line_num + 1
+	var kept:Array[Dictionary] = []
+	for row:Dictionary in issues:
+		@warning_ignore("unsafe_call_argument")
+		var display_stored:int = int( row.get( &"line", 0 ) )
+		if display_stored == display_line:
+			continue
+		kept.append( row )
+	issues = kept
+
+
+## Drop rows whose gutter line is no longer in the buffer.
+func prune_issues( line_count:int ) -> void:
+	var kept:Array[Dictionary] = []
+	for row:Dictionary in issues:
+		@warning_ignore("unsafe_call_argument")
+		var display_line:int = int( row.get( &"line", 0 ) )
+		if display_line < 1 or display_line > line_count:
+			continue
+		kept.append( row )
+	issues = kept
+
+
+func format_issues() -> String:
+	var lines:PackedStringArray = PackedStringArray()
+	for row:Dictionary in issues:
+		@warning_ignore("return_value_discarded")
+		lines.append( "%s line=%s col=%s frame=%s text=%s reason=%s" % [
+			str( row.get( &"kind", &"error" ) ),
+			str( row.get( &"line", 0 ) ),
+			str( row.get( &"col", 0 ) ),
+			str( row.get( &"frame", "#" ) ),
+			str( row.get( &"text", "" ) ),
+			str( row.get( &"reason", "" ) ),
+		] )
+	return "\n".join( lines )
 
 
 # ███████ ██████  █████   █████ ██   ██      ██   ██ ██████ ██ ██     ███████  #
@@ -584,6 +646,7 @@ func is_comment( p_token:Token ) -> bool:
 ## Main entry point for highlighting one line.
 ## Called from highlighter._get_line_syntax_highlighting()
 func parse_line(line_num: int, line_text: String) -> Dictionary:
+	drop_line_issues( line_num )
 	error_flag = false
 	warning_flag = false
 

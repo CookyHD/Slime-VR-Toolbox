@@ -139,6 +139,7 @@ func _get_line_syntax_highlighting(line_num: int) -> Dictionary:
 
 	var line:String = text_edit.get_line(line_num)
 	if line.is_empty():
+		parser.drop_line_issues( line_num )
 		return {}
 
 	line_dict = {}
@@ -269,6 +270,7 @@ func highlight_colour( token:Token, colour:Color ) -> void:
 ## Highlight the line [param token] is on with the warning colour, and print to console.
 func syntax_warning( token:Token, reason:String = "" ) -> void:
 	parser.warning_flag = true
+	parser.add_issue( &"warning", token, reason )
 	if is_cursor_in_token(token):
 		return
 	var colour:Color = _opts.get_colour(plugin.LogLevel.WARNING)
@@ -286,6 +288,7 @@ func syntax_warning( token:Token, reason:String = "" ) -> void:
 ## Highlight the line [param token] is on with the error colour, and print to console.
 func syntax_error( token:Token, reason:String = "" ) -> void:
 	parser.error_flag = true
+	parser.add_issue( &"error", token, reason )
 	if is_cursor_in_token(token):
 		return
 	var colour:Color = _opts.get_colour(plugin.LogLevel.ERROR)
