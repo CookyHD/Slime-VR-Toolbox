@@ -122,6 +122,7 @@ var attribute_map:Dictionary[StringName, Callable] = {
 	&'id': attribute_unsupported,
 	&'key': attribute_key,
 	&'bit_flags': attribute_unsupported,
+	&'nested_flatbuffer': attribute_nested_flatbuffer,
 }
 
 
@@ -1193,6 +1194,9 @@ func parse_field_decl( p_token:Token ) -> void:
 			var element_type:StringName = return_dict.get(&"element_type", &"")
 			if element_type != &"":
 				frame.data[&"element_type"] = element_type
+			var type_name:StringName = return_dict.get(&"type_name", &"")
+			if type_name != &"":
+				frame.data[&"type_name"] = type_name
 		if p_token.t == &"=":
 			reader.adv_token(p_token) # consume '='
 			var token:Token = reader.get_token()
@@ -1335,6 +1339,7 @@ func parse_type( p_token:Token ) -> void:
 		return_val[&"field_type"] = &"table"
 	elif token.t in union_types:
 		return_val[&"field_type"] = &"union"
+	return_val[&"type_name"] = token.t
 
 	if decl_type == &"struct":
 		if not token.t in scalar_types + struct_types + enum_types.keys():
@@ -1837,6 +1842,41 @@ func _type_decl_under_metadata() -> StackFrame:
 			return frame
 		idx -= 1
 	return null
+
+## flatc: nested_flatbuffer is a string naming the root table, and the field
+## must be a vector of ubyte. An unknown root uses flatc's end-of-parse string.
+func attribute_nested_flatbuffer(token:Token) -> void:
+	var field:StackFrame = _field_under_metadata()
+	var nxt:Token = reader.peek_token()
+	var value:Token = token
+	var is_string:bool = false
+	var root_name:String = ""
+	if nxt.t == &":":
+		var colon:Token = reader.get_token()
+		if colon.t != &":":
+			syntax_error(token, "nested_flatbuffer attribute must be a string (the root type)")
+			return
+		value = reader.get_token()
+		if value.type == Token.Type.STRING and value.t.length() >= 2:
+			is_string = true
+			root_name = value.t.substr(1, value.t.length() - 2)
+	if not is_string:
+		syntax_error(token, "nested_flatbuffer attribute must be a string (the root type)")
+		return
+	var field_type:StringName = &""
+	var type_name:StringName = &""
+	if field != null:
+		field_type = field.data.get(&"field_type", &"")
+		type_name = field.data.get(&"type_name", &"")
+	if field_type != &"vector" or not (type_name == &"ubyte" or type_name == &"uint8"):
+		syntax_error(token, "nested_flatbuffer attribute may only apply to a vector of ubyte")
+		return
+	var bare:String = root_name
+	var dot:int = bare.rfind(".")
+	if dot != -1:
+		bare = bare.substr(dot + 1)
+	if not StringName(bare) in table_types:
+		syntax_error(value, "type referenced but not defined (check namespace): " + root_name)
 
 func attribute_deprecated(_token:Token) -> void:
 	#TODO test that the circumstances in which this attribute appeared is valid.
