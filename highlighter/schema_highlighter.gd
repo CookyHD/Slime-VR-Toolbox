@@ -130,9 +130,9 @@ func _get_line_syntax_highlighting(line_num: int) -> Dictionary:
 	# Reset line highlighting for this line
 	text_edit.set_line_background_color(line_num, Color(0,0,0,0))
 
-	# Quick scan once
+	# Quick scan once. quick_scan follows include files; quick_scan_text only queues them.
 	if not parser.has_performed_quick_scan:
-		parser.quick_scan_text(text_edit.text)
+		parser.quick_scan(text_edit.text)
 
 	var line:String = text_edit.get_line(line_num)
 	if line.is_empty():

@@ -132,9 +132,15 @@ func adv( dist:int = 1 ) -> void:
 		break
 
 
-## Advance the the reader until we reach a line break.
+## Advance to the next line.
+## A cursor already on a newline steps one character past it.
+## Otherwise stop on the next newline. Stopping on a newline and then
+## scanning the rest of the buffer skips the following line.
 func adv_line() -> void:
-	adv( text.length() ) # adv automatically stops on a line break.
+	if peek_char() == '\n':
+		adv()
+		return
+	adv( text.length() )
 
 
 ## Advance the the reader while we are detecting whitespace
