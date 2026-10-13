@@ -1585,9 +1585,19 @@ func parse_file_extension_decl( p_token:Token ) -> void:
 # │|_| |_|_\___| |___\__,_\___|_||_\__|_|_| |_\___|_|   |___/\___\__|_|
 # ╰─────────────────────────────────────────────────────────────────────
 #region File Identifier Decl
-func parse_file_identifier_decl( p_token:Token ) -> void:
-	syntax_warning( p_token, &"Unimplemented" )
-	reader.adv_line()
+func parse_file_identifier_decl( _p_token:Token ) -> void:
+	# FILE_IDENTIFIER_DECL = file_identifier string_constant ;
+	var token:Token = reader.get_token()
+	want_token_t(token, &'file_identifier')
+
+	token = reader.get_token()
+	if check_token_type(token, Token.Type.STRING):
+		var ident:String = token.t.substr(1, token.t.length() - 2)
+		if ident.length() != 4:
+			syntax_error(token, "file_identifier must be exactly 4 characters")
+
+	token = reader.get_token()
+	want_token_t(token, &";")
 	return end_frame()
 #endregion File Identifier Decl
 
