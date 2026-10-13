@@ -18,6 +18,7 @@ const ICON_BW_TINY = preload("uid://d32jh3dw5nypp")
 const author:String = "enetheru"
 const PluginName:String = "FlatBuffers"
 const plugin_name:String = "flatbuffers"
+const CS_OWNER:String = "enetheru.flatbuffers-addon"
 # plugin_path is derived from get_script().resource_path at runtime — never hard-code.
 # we can get the plugin path using its resource_path.get_base_dir() anytime.
 
@@ -48,6 +49,9 @@ var opts:FlatBuffersOpts
 var highlighter:SchemaHighlighter
 
 var context_menus:Dictionary[EditorContextMenuPlugin.ContextMenuSlot,EditorContextMenuPlugin]
+
+var _cs_plugin:EditorPlugin
+var _cs_reloaded_cb:Callable = Callable()
 
 
 #             ███████ ██    ██ ███████ ███    ██ ████████ ███████              #
@@ -120,9 +124,12 @@ func _enter_tree() -> void:
 	if opts.experimental:
 		enable_experimental_features()
 
+	_register_with_command_server.call_deferred()
+
 
 func _exit_tree() -> void:
 	Print.plog( LogLevel.TRACE, "%s._exit_tree()" % name )
+	_unregister_from_command_server()
 
 	if opts.experimental:
 		disable_experimental_features()
@@ -170,6 +177,77 @@ func _disable_plugin() -> void:
 #         ██  ██  ██ ██         ██    ██   ██ ██    ██ ██   ██      ██         #
 #         ██      ██ ███████    ██    ██   ██  ██████  ██████  ███████         #
 func                        _________METHODS_________              ()->void:pass
+
+func _register_with_command_server() -> void:
+	_unregister_from_command_server()
+	var cs:EditorPlugin = _find_command_server()
+	if not is_instance_valid( cs ):
+		Print.plog( LogLevel.NOTICE, "FlatBuffers: Command Server not found; FBS_DIAGNOSE is not registered" )
+		return
+	if not cs.has_method( &"register_commands_from_path" ):
+		Print.plog( LogLevel.NOTICE, "FlatBuffers: Command Server missing register_commands_from_path" )
+		return
+
+	var plugin_script:GDScript = get_script()
+	var cmd_dir:String = plugin_script.resource_path.get_base_dir().path_join( "command_server" )
+	var added:int = cs.call( &"register_commands_from_path", cmd_dir, CS_OWNER )
+	_cs_plugin = cs
+	if cs.has_signal( &"commands_reloaded" ):
+		_cs_reloaded_cb = _on_command_server_reloaded
+		if not cs.is_connected( &"commands_reloaded", _cs_reloaded_cb ):
+			var err:Error = cs.connect( &"commands_reloaded", _cs_reloaded_cb )
+			if err != OK:
+				Print.plog( LogLevel.NOTICE, "FlatBuffers: connect commands_reloaded failed: %d" % err )
+	Print.plog( LogLevel.DEBUG, "FlatBuffers: registered %d command(s) with Command Server" % added )
+
+
+func _on_command_server_reloaded() -> void:
+	_register_with_command_server.call_deferred()
+
+
+func _unregister_from_command_server() -> void:
+	if is_instance_valid( _cs_plugin ):
+		if _cs_reloaded_cb.is_valid() \
+				and _cs_plugin.is_connected( &"commands_reloaded", _cs_reloaded_cb ):
+			_cs_plugin.disconnect( &"commands_reloaded", _cs_reloaded_cb )
+		if _cs_plugin.has_method( &"unregister_owner" ):
+			_cs_plugin.call( &"unregister_owner", CS_OWNER )
+	_cs_plugin = null
+	_cs_reloaded_cb = Callable()
+
+
+func _find_command_server() -> EditorPlugin:
+	var helper:Script = load(
+			"res://addons/enetheru.command-server/command_server.gd"
+	) as Script
+	if is_instance_valid( helper ) \
+			and helper.has_method( &"get_command_server_plugin" ):
+		var found:Variant = helper.call( &"get_command_server_plugin" )
+		if found is EditorPlugin:
+			return found
+	var base:Control = EditorInterface.get_base_control()
+	if not is_instance_valid( base ):
+		return null
+	return _find_cs_in_tree( base.get_tree().root )
+
+
+func _find_cs_in_tree( n:Node ) -> EditorPlugin:
+	if not is_instance_valid( n ):
+		return null
+	if n is EditorPlugin:
+		var plugin:EditorPlugin = n
+		var scr:Script = plugin.get_script()
+		if is_instance_valid( scr ):
+			var path:String = scr.resource_path
+			if path.ends_with( "command_server.gd" ) \
+					or path.contains( "enetheru.command-server/command_server.gd" ):
+				return plugin
+	for child:Node in n.get_children():
+		var found:EditorPlugin = _find_cs_in_tree( child )
+		if is_instance_valid( found ):
+			return found
+	return null
+
 
 func enable_experimental_features() -> void:
 	Print.plog( LogLevel.DEBUG, "enable_experimental_features" )
