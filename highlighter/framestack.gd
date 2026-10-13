@@ -31,6 +31,11 @@ func top() -> StackFrame:
 	return _data[_top]
 
 
+func at(index:int) -> StackFrame:
+	assert(index >= 0 and index <= _top, "stack index out of range")
+	return _data[index]
+
+
 ##  returns true if stack is empty else false.
 func is_empty() -> bool:
 	return _top == -1

@@ -118,7 +118,7 @@ var scalar_types: Array[StringName] # integer_types + float_types + boolean_type
 ## in all cases.
 var attribute_map:Dictionary[StringName, Callable] = {
 	&'deprecated': attribute_deprecated,
-	&'required': attribute_unsupported,
+	&'required': attribute_required,
 	&'id': attribute_unsupported,
 	&'key': attribute_unsupported,
 	&'bit_flags': attribute_unsupported,
@@ -1184,6 +1184,12 @@ func parse_field_decl( p_token:Token ) -> void:
 	p_token = reader.peek_token()
 	if frame.data.get(&"next") == &"default":
 		frame.data[&"next"] = &"meta"
+		var returned:Variant = frame.data.get(&"return")
+		if returned is Dictionary:
+			var return_dict:Dictionary = returned
+			var field_type:StringName = return_dict.get(&"field_type", &"")
+			if field_type != &"":
+				frame.data[&"field_type"] = field_type
 		if p_token.t == &"=":
 			reader.adv_token(p_token) # consume '='
 			var token:Token = reader.get_token()
@@ -1739,6 +1745,30 @@ func                        ________ATTRIBUTES_______              ()->void:pass
 
 func attribute_unsupported(token:Token) -> void:
 	syntax_warning( token, "This attribute is unsupported" )
+
+## flatc: only non-scalar table fields may be required.
+## Struct fields are always present, so the attribute is rejected there.
+func attribute_required(token:Token) -> void:
+	var field:StackFrame = _field_under_metadata()
+	if field == null:
+		syntax_error(token, "only non-scalar fields in tables may be 'required'")
+		return
+	var decl_type:StringName = field.bindings.get(&"decl_type", &"")
+	if decl_type == &"struct":
+		syntax_error(token, "struct fields are always required")
+		return
+	var field_type:StringName = field.data.get(&"field_type", &"")
+	if field_type == &"scalar" or field_type == &"enum":
+		syntax_error(token, "only non-scalar fields in tables may be 'required'")
+
+func _field_under_metadata() -> StackFrame:
+	var idx:int = stack.size() - 2
+	while idx >= 0:
+		var frame:StackFrame = stack.at(idx)
+		if frame.type == FrameType.FIELD_DECL:
+			return frame
+		idx -= 1
+	return null
 
 func attribute_deprecated(_token:Token) -> void:
 	#TODO test that the circumstances in which this attribute appeared is valid.
