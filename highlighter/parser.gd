@@ -47,6 +47,11 @@ var struct_types: Array[StringName] = []
 var table_types:  Array[StringName] = []
 var union_types:  Array[StringName] = []
 var enum_types:   Dictionary = {}       # StringName → Array[StringName]
+var _bit_names:Array[String] = []
+var _bit_indexes:Array[int] = []
+var _bit_tokens:Array[Token] = []
+var _bit_seen:int = 0
+var _bit_last:int = 0
 var custom_attr:   Dictionary = {}       # StringName(file_name) → Array[StringName]
 
 # ── Include handling (will be improved later) ────────────────────────────────
@@ -121,7 +126,7 @@ var attribute_map:Dictionary[StringName, Callable] = {
 	&'required': attribute_required,
 	&'id': attribute_unsupported,
 	&'key': attribute_key,
-	&'bit_flags': attribute_unsupported,
+	&'bit_flags': attribute_bit_flags,
 	&'nested_flatbuffer': attribute_nested_flatbuffer,
 }
 
@@ -1002,6 +1007,11 @@ func parse_enum_decl( p_token:Token ) -> void:
 
 	# Handle the branching after ident.
 	if frame.data.get(&"next") == &'post_ident':
+		if frame.data.has(&"return"):
+			var returned_text:String = str(frame.data[&"return"])
+			frame.data[&"underlying"] = StringName(returned_text)
+			if not frame.data.erase(&"return"):
+				Log.err("&'return' was not found in frame data")
 		if p_token.is_eol(): return reader.adv_token(p_token)
 		if is_comment(p_token):return
 		want_token_type(p_token, Token.Type.PUNCT)
@@ -1031,6 +1041,7 @@ func parse_enum_decl( p_token:Token ) -> void:
 
 		# closing brace
 		if p_token.t == &"}":
+			_check_bit_flags(frame)
 			reader.adv_token(p_token) # Consume the '}'
 			return end_frame()
 
@@ -1309,7 +1320,7 @@ func parse_type( p_token:Token ) -> void:
 		if not p_token.t in integer_types:
 			syntax_error( p_token, "Enum types must be an integral")
 		else: highlight_colour(p_token, _opts.get_colour(Token.Type.TYPE))
-		return end_frame()
+		return end_frame(p_token.t)
 
 
 	# compled parsing for structs and tables
@@ -1391,20 +1402,32 @@ func parse_enumval_decl( p_token:Token ) -> void:
 	#var decl_type:String = frame.bindings.get(&"decl_type", StringName())
 
 	var token:Token = reader.get_token()
+	var name_token:Token = token
+	var named:bool = check_token_type(token, Token.Type.IDENT)
 
-	if check_token_type(token, Token.Type.IDENT ):
+	if named:
 		if enum_types.has(decl_name):
 			var enum_vals:Array[StringName] = enum_types.get(decl_name)
 			enum_vals.append( token.t )
 		else:
 			return error_frame( token, "enum_types.has(decl_name) is false")
 
+	var assigned:bool = false
+	var raw:int = 0
+	var value_token:Token = name_token
 	p_token = reader.peek_token()
 	if p_token.t == &"=":
 		token = reader.get_token() # consume '='
 		token = reader.get_token() # get the value
+		value_token = token
 		if not reader.is_integer(token.t):
 			syntax_error(token, "enum values must be integer constants")
+		else:
+			assigned = true
+			raw = _schema_int(token.t)
+
+	if named:
+		_record_bit_index(name_token, value_token, assigned, raw)
 
 	return end_frame()
 #endregion Enumval Decl
@@ -1877,6 +1900,128 @@ func attribute_nested_flatbuffer(token:Token) -> void:
 		bare = bare.substr(dot + 1)
 	if not StringName(bare) in table_types:
 		syntax_error(value, "type referenced but not defined (check namespace): " + root_name)
+
+## flatc: bit_flags sits on the enum. A signed underlying type warns.
+## Each stored number is a bit index, shifted to 1 << index after the enum.
+func attribute_bit_flags(token:Token) -> void:
+	var enum_frame:StackFrame = _enum_under_metadata()
+	if enum_frame == null:
+		return
+	enum_frame.data[&"bit_flags"] = true
+	_bit_names.clear()
+	_bit_indexes.clear()
+	_bit_tokens.clear()
+	var underlying:StringName = enum_frame.data.get(&"underlying", &"")
+	if _signed_width(underlying) >= 0:
+		syntax_warning(token, "underlying type of bit_flags enum must be unsigned")
+
+func _enum_under_metadata() -> StackFrame:
+	var idx:int = stack.size() - 2
+	while idx >= 0:
+		var frame:StackFrame = stack.at(idx)
+		if frame.type == FrameType.ENUM_DECL:
+			return frame
+		idx -= 1
+	return null
+
+func _signed_width(underlying:StringName) -> int:
+	match underlying:
+		&"byte", &"int8": return 8
+		&"short", &"int16": return 16
+		&"int", &"int32": return 32
+		&"long", &"int64": return 64
+	return -1
+
+func _unsigned_width(underlying:StringName) -> int:
+	match underlying:
+		&"ubyte", &"uint8": return 8
+		&"ushort", &"uint16": return 16
+		&"uint", &"uint32": return 32
+		&"ulong", &"uint64": return 64
+	return -1
+
+func _schema_int(text:String) -> int:
+	var body:String = text
+	var polarity:int = 1
+	if body.begins_with("-"):
+		polarity = -1
+		body = body.substr(1)
+	elif body.begins_with("+"):
+		body = body.substr(1)
+	if body.begins_with("0x") or body.begins_with("0X"):
+		return polarity * body.hex_to_int()
+	return polarity * int(body)
+
+func _record_bit_index(name_token:Token, value_token:Token, assigned:bool, raw:int) -> void:
+	var enum_frame:StackFrame = _enum_under_metadata()
+	if enum_frame == null or not enum_frame.data.get(&"bit_flags", false):
+		return
+	var index:int = raw if assigned else 0
+	if _bit_seen > 0 and not assigned:
+		index = _bit_last + 1
+	_bit_last = index
+	_bit_seen += 1
+	var underlying:StringName = enum_frame.data.get(&"underlying", &"")
+	var width:int = _unsigned_width(underlying)
+	var unsigned:bool = width >= 0
+	if not unsigned:
+		width = _signed_width(underlying)
+	if width < 0:
+		return
+	if not unsigned and index == width - 1:
+		syntax_error(value_token, "underlying type of bit_flags enum must be unsigned")
+		return
+	if index < 0 or index >= width:
+		syntax_error(value_token, "bit flag out of range of underlying integral type")
+		return
+	var name:String = String(name_token.t)
+	_insert_bit_row(_bit_names, _bit_indexes, _bit_tokens, name, index, value_token)
+	for i:int in range(1, _bit_indexes.size()):
+		if _bit_indexes[i - 1] != _bit_indexes[i] or _bit_indexes[i] != index:
+			continue
+		syntax_error(_bit_tokens[i], "all enum values must be unique: %s and %s are both %s" % [
+			_bit_names[i - 1], _bit_names[i], _shifted_bit_text(index, unsigned)])
+		return
+
+## The line parser drops a line's stack when that line errors. Report bit
+## problems on the value line so the closing brace can still leave the enum.
+func _check_bit_flags(frame:StackFrame) -> void:
+	if frame.data.get(&"bit_flags", false):
+		_clear_bit_rows()
+
+func _clear_bit_rows() -> void:
+	_bit_names.clear()
+	_bit_indexes.clear()
+	_bit_tokens.clear()
+	_bit_seen = 0
+	_bit_last = 0
+
+func _insert_bit_row(names:Array[String], indexes:Array[int], tokens:Array[Token], name:String, index:int, token:Token) -> void:
+	names.append(name)
+	indexes.append(index)
+	tokens.append(token)
+	var at:int = names.size() - 1
+	while at > 0:
+		var before:bool = index < indexes[at - 1]
+		if index == indexes[at - 1]:
+			before = name < names[at - 1]
+		if not before:
+			break
+		var swap_name:String = names[at - 1]
+		var swap_index:int = indexes[at - 1]
+		var swap_token:Token = tokens[at - 1]
+		names[at - 1] = names[at]
+		indexes[at - 1] = indexes[at]
+		tokens[at - 1] = tokens[at]
+		names[at] = swap_name
+		indexes[at] = swap_index
+		tokens[at] = swap_token
+		at -= 1
+
+func _shifted_bit_text(index:int, unsigned:bool) -> String:
+	if unsigned and index == 63:
+		return "9223372036854775808"
+	return str(1 << index)
 
 func attribute_deprecated(_token:Token) -> void:
 	#TODO test that the circumstances in which this attribute appeared is valid.
