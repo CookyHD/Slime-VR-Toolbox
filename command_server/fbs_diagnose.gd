@@ -1,16 +1,16 @@
 @tool
 extends CommandServerTool
 
-## Open a FlatBuffers schema and read the issues the highlighter already stored.
+## Open a FlatBuffers schema and read the issues the highlighter stored.
 ##
-## ScriptEditor.open_file() is not bound to GDScript. The FileSystem dock's
-## item_activated handler is the path EditorNode uses for text files, including
-## .fbs once it is in docks/filesystem/textfile_extensions.
+## The script-editor tab is closed first. The next open builds a new highlighter,
+## so the issues belong to this pass. ScriptEditor.open_file() is not bound to
+## GDScript. The FileSystem dock's item_activated handler is the path EditorNode
+## uses for text files, including .fbs once it is in
+## docks/filesystem/textfile_extensions.
 ##
-## Highlighting parses a line when Godot draws it. syntax_error records that
-## line, and parse_line drops the previous rows for the line first. A tab that
-## is already showing its schema can be read at once. A tab that was just
-## opened is read after the next paint.
+## Highlighting parses a line when Godot draws it. The new tab is read after
+## the next paint.
 
 const Log = preload( "uid://biv0hwe68jj3s" )
 
@@ -116,7 +116,10 @@ func _prepare( args:String ) -> Dictionary:
 	if not FileAccess.file_exists( file_path ):
 		return { &"error": "ERROR: Schema not found: " + file_path }
 
-	var was_open:bool = _tab_is_open( file_path )
+	var closed:String = _close_tab( file_path )
+	if not closed.is_empty():
+		return { &"error": closed }
+
 	var dock:FileSystemDock = EditorInterface.get_file_system_dock()
 	if not is_instance_valid( dock ):
 		return { &"error": "ERROR: FileSystem dock is not available" }
@@ -129,14 +132,23 @@ func _prepare( args:String ) -> Dictionary:
 	if tab.has( &"error" ):
 		return tab
 	var text_edit:TextEdit = tab[&"text_edit"]
-	var had_schema:bool = _is_schema_highlighter( text_edit.get_syntax_highlighter() )
 	var highlighter:SyntaxHighlighter = _schema_highlighter( text_edit )
 	if highlighter == null:
 		return { &"error": "ERROR: FlatBuffers schema highlighter is not available for " + file_path }
-	var wait:bool = not ( was_open and had_schema and _has_painted( highlighter ) )
-	if wait:
-		text_edit.queue_redraw()
-	return { &"path": file_path, &"wait": wait }
+	text_edit.queue_redraw()
+	return { &"path": file_path, &"wait": true }
+
+
+## Close the script-editor tab so the next open builds a new highlighter.
+## A missing tab is fine. close_file reloads an unsaved buffer from disk, then closes it.
+func _close_tab( file_path:String ) -> String:
+	var script_editor:ScriptEditor = EditorInterface.get_script_editor()
+	if not is_instance_valid( script_editor ) or not script_editor.has_method( &"close_file" ):
+		return "ERROR: No ScriptEditor.close_file"
+	var err:Error = script_editor.close_file( file_path )
+	if err == OK or err == ERR_FILE_NOT_FOUND:
+		return ""
+	return "ERROR: ScriptEditor.close_file failed (%s): %s" % [ error_string( err ), file_path ]
 
 
 func _activate_path( dock:Node, file_path:String ) -> bool:
@@ -314,21 +326,6 @@ func _level_name( level:int ) -> String:
 	return str( key )
 
 
-func _tab_is_open( file_path:String ) -> bool:
-	var script_editor:ScriptEditor = EditorInterface.get_script_editor()
-	if not is_instance_valid( script_editor ) \
-			or not script_editor.has_method( &"get_open_script_editors" ):
-		return false
-	var editors:Array = script_editor.get_open_script_editors()
-	for ed_v:Variant in editors:
-		if not ed_v is Node:
-			continue
-		var ed:Node = ed_v
-		if _edited_path( ed ) == file_path:
-			return true
-	return false
-
-
 func _edited_path( editor:Node ) -> String:
 	if not editor.has_method( &"get_edited_resource" ):
 		return ""
@@ -337,14 +334,6 @@ func _edited_path( editor:Node ) -> String:
 		return ""
 	var res:Resource = res_v
 	return res.resource_path
-
-
-func _has_painted( highlighter:SyntaxHighlighter ) -> bool:
-	var dict_v:Variant = highlighter.get( &"dict" )
-	if not dict_v is Dictionary:
-		return false
-	var colours:Dictionary = dict_v
-	return not colours.is_empty()
 
 
 func _schema_highlighter( text_edit:TextEdit ) -> SyntaxHighlighter:

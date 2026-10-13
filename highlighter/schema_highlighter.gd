@@ -132,7 +132,7 @@ func _get_line_syntax_highlighting(line_num: int) -> Dictionary:
 
 	# Quick scan once. quick_scan follows include files; quick_scan_text only queues them.
 	if not parser.has_performed_quick_scan:
-		parser.quick_scan(text_edit.text)
+		parser.quick_scan( text_edit.text, _schema_path() )
 
 	var line:String = text_edit.get_line(line_num)
 	if line.is_empty():
@@ -161,7 +161,7 @@ func _update_cache() -> void:
 		if err != OK:
 			Log.lvl( Log.Level.ERROR, error_string( err ) )
 
-	parser.quick_scan( text_edit.text )
+	parser.quick_scan( text_edit.text, _schema_path() )
 
 	text_edit.set_tooltip_request_func( func( word:String ) -> String:
 		var tooltip:Variant = Tips.keywords.get(word)
@@ -175,6 +175,37 @@ func _update_cache() -> void:
 #         ██  ██  ██ ██         ██    ██   ██ ██    ██ ██   ██      ██         #
 #         ██      ██ ███████    ██    ██   ██  ██████  ██████  ███████         #
 func                        _________METHODS_________              ()->void:pass
+
+## res:// path of the schema this highlighter is painting.
+## EditorSyntaxHighlighter exposes this as _get_edited_resource.
+func _schema_path() -> String:
+	var own_path:String = _path_of( _edited_resource() )
+	if not own_path.is_empty():
+		return own_path
+
+	var node:Node = get_text_edit()
+	while node != null:
+		if node.has_method( &"get_edited_resource" ):
+			var path:String = _path_of( node.call( &"get_edited_resource" ) )
+			if not path.is_empty():
+				return path
+		node = node.get_parent()
+	return ""
+
+
+func _edited_resource() -> Variant:
+	if has_method( &"_get_edited_resource" ):
+		return call( &"_get_edited_resource" )
+	if has_method( &"get_edited_resource" ):
+		return call( &"get_edited_resource" )
+	return null
+
+
+func _path_of( value:Variant ) -> String:
+	if not value is Resource:
+		return ""
+	var res:Resource = value
+	return res.resource_path
 
 
 # TODO, this function is a little messy and needs a good audit.

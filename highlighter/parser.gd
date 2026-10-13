@@ -53,6 +53,10 @@ var custom_attr:   Dictionary = {}       # StringName(file_name) → Array[Strin
 var included_files: Array[String] = []
 var scanned_files: Array[String] = []
 var scan_pending: Array[String] = []
+## Schema open in the editor. Its directory is searched after the -I list.
+var root_schema_path:String = ""
+## File whose text is being scanned. Its directory is searched first.
+var current_schema_path:String = ""
 
 # ── Incremental parsing state ────────────────────────
 var max_stack_size:int = 100
@@ -212,33 +216,53 @@ func _sync_constants_from_plugin() -> void:
 
 
 # ── File Helper ────────────────────────────────
-func check_include_file(file_path: String) -> String:
-	var plugin_script:Resource = FlatBuffersPlugin
-	var plugin_path:String = plugin_script.resource_path.get_base_dir()
+## Resolve [param include_name] in flatc's order.
+## The including file's directory, then each generator include path, then the root schema's directory.
+func check_include_file( include_name:String ) -> String:
+	var name:String = include_name.replace( "\\", "/" )
+	var found:String = _existing_include( current_schema_path.get_base_dir(), name )
+	if not found.is_empty():
+		return found
 
-	if file_path == "godot.fbs":
-		file_path = plugin_path + "/res/godot.fbs"
+	var include_paths:Array = _generator_include_paths()
+	Log.lvl( Log.Level.TRACE, "Searching Locations: %s" % [include_paths] )
+	for ipath:String in include_paths:
+		found = _existing_include( ipath, name )
+		if not found.is_empty():
+			return found
 
-	if FileAccess.file_exists(file_path):
-		Log.lvl( Log.Level.TRACE, "Located file: '%s'" % file_path)
-		return file_path
-
-	if file_path.is_absolute_path():
-		Log.err( "CheckInclude: Unable to locate file: '%s'" % file_path)
-		return ""
-
-	var main_config:FlatBuffersGeneratorOpts = ProjectSettings.get_setting('flatbuffers/GeneratorConfigs/main', null)
-	if main_config == null: return ""
-
-	var include_paths:Array = main_config.get_include_paths()
-	Log.lvl( Log.Level.TRACE, "Searching Locations: %s" % [include_paths])
-	for ipath: String in include_paths:
-		var try_path:String = ipath.path_join(file_path)
-		if FileAccess.file_exists(try_path):
-			Log.lvl( Log.Level.DEBUG, "Found: '%s'" % try_path)
-			return try_path
+	var root_dir:String = root_schema_path.get_base_dir()
+	if root_dir != current_schema_path.get_base_dir():
+		found = _existing_include( root_dir, name )
+		if not found.is_empty():
+			return found
 
 	return ""
+
+
+func _existing_include( dir:String, include_name:String ) -> String:
+	if dir.is_empty() or include_name.is_empty():
+		return ""
+	var joined:String = dir.path_join( include_name ).simplify_path()
+	if not FileAccess.file_exists( joined ):
+		return ""
+	Log.lvl( Log.Level.TRACE, "Located file: '%s'" % joined )
+	return joined
+
+
+## Include paths flatc receives from the active generator config.
+## Project setting [code]flatbuffers/GeneratorConfigs/main[/code] wins when it is set.
+func _generator_include_paths() -> Array:
+	var config:FlatBuffersGeneratorOpts = null
+	var from_settings:Variant = ProjectSettings.get_setting( "flatbuffers/GeneratorConfigs/main", null )
+	if from_settings is FlatBuffersGeneratorOpts:
+		var settings_config:FlatBuffersGeneratorOpts = from_settings
+		config = settings_config
+	elif FlatBuffersPlugin._prime and FlatBuffersPlugin._prime.opts:
+		config = FlatBuffersPlugin._prime.opts.config_main
+	if config == null:
+		return []
+	return config.get_include_paths()
 
 
 #  ██   ██ ██  █████  ██   ██ ██     ██  █████  ██   ██ ██████ ██████ ██████   #
@@ -469,15 +493,20 @@ func error_frame( token:Token, message:String ) -> void:
 #     ▀▀                                                                       #
 func                       ________QUICK_SCAN_______               ()->void:pass
 
-func quick_scan(full_text: String) -> void:
-	Log.trace({&'full_text': full_text}, self)
+func quick_scan( full_text:String, schema_path:String = "" ) -> void:
+	Log.trace( { &'full_text': full_text, &'schema_path': schema_path }, self )
 
 	if is_quick_scan_in_progress:
 		Log.wrn( "QuickScanText: already in progress — skipping nested call" )
 		return
 	is_quick_scan_in_progress = true
 
-	quick_scan_text(full_text)
+	if not schema_path.is_empty():
+		root_schema_path = schema_path
+		current_schema_path = schema_path
+	var saved_current:String = current_schema_path
+
+	quick_scan_text( full_text )
 
 	while scan_pending.size() > 0:
 		var file_path:String = scan_pending.pop_front()
@@ -488,18 +517,20 @@ func quick_scan(full_text: String) -> void:
 			Log.lvl( Log.Level.TRACE, "File already scanned" )
 			continue
 
-		var file:FileAccess = FileAccess.open(file_path, FileAccess.READ)
+		var file:FileAccess = FileAccess.open( file_path, FileAccess.READ )
 		if not file:
 			Log.err( "QuickScan: Unable to open file for scanning." )
 			continue
 
 		var content:String = file.get_as_text()
-
-		quick_scan_text(content)
-		scanned_files.append(file_path)
+		current_schema_path = file_path
+		quick_scan_text( content )
+		scanned_files.append( file_path )
+		current_schema_path = saved_current
 
 	is_quick_scan_in_progress = false
 	has_performed_quick_scan = true
+	current_schema_path = saved_current
 
 
 # ── Public: reset & scan the whole document for types ────────────────────────
@@ -591,8 +622,11 @@ func quick_scan_file(file_path: String) -> bool:
 		return false
 
 	var content:String = file.get_as_text()
-	scanned_files.append(file_path)
-	quick_scan(content)
+	scanned_files.append( file_path )
+	var saved_current:String = current_schema_path
+	current_schema_path = file_path
+	quick_scan( content )
+	current_schema_path = saved_current
 	return true
 
 

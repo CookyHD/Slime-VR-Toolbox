@@ -195,6 +195,13 @@ providing debug versions to customers that provide more information. When in dou
 
 your cmake command will probably have these two items in it somewhere: `-DCMAKE_BUILD_TYPE=Release`, `-DGODOTCPP_TARGET:STRING=template_debug`
 
+#### Schema Includes
+- Relative include paths only work on Godot 4.7 and later. The highlighter gets the open file from `EditorSyntaxHighlighter._get_edited_resource()`. The plain text editor did not expose that before 4.7, so on older editors a relative include cannot be resolved.
+  - https://github.com/godotengine/godot/pull/96058
+  - Resolved for 4.7 in https://github.com/godotengine/godot/pull/115814
+- flatc also does not recognise res:// or user:// paths, and I will not be changing that.
+- the res:// path is always added to the include list so including files relative to res:// will work fine.
+
 ---
 
 ### Help me help you
