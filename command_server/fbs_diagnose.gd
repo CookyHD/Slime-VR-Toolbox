@@ -12,17 +12,19 @@ extends CommandServerTool
 ## is already showing its schema can be read at once. A tab that was just
 ## opened is read after the next paint.
 
+const Log = preload( "uid://biv0hwe68jj3s" )
+
 
 func get_command_name() -> String:
 	return "FBS_DIAGNOSE"
 
 
 func get_description() -> String:
-	return "Open a .fbs schema and report the syntax issues the highlighter has stored."
+	return "Open a .fbs schema and report the syntax issues the highlighter has stored. An optional inclusive level reparses the file at that ceiling and returns those log lines. DEBUG and TRACE also include the parser stack for each issue."
 
 
 func get_usage() -> String:
-	return "FBS_DIAGNOSE <res://path.fbs>"
+	return "FBS_DIAGNOSE <res://path.fbs> [SILENT|CRITICAL|ERROR|WARNING|NOTICE|INFO|DEBUG|TRACE]"
 
 
 func get_input_schema() -> Dictionary:
@@ -33,6 +35,10 @@ func get_input_schema() -> Dictionary:
 				"type": "string",
 				"description": "res:// or user:// path to a .fbs schema",
 			},
+			"level": {
+				"type": "string",
+				"description": "Inclusive log ceiling. DEBUG and TRACE include the parser stack. Omit for the issue list only.",
+			},
 		},
 		"required": ["path"],
 		"additionalProperties": false,
@@ -40,11 +46,19 @@ func get_input_schema() -> Dictionary:
 
 
 func arguments_from_line( line:String, _tail:String ) -> Dictionary:
-	return {&"path": line.strip_edges()}
+	var text:String = line.strip_edges()
+	var out:Dictionary = { &"path": text }
+	var pieces:PackedStringArray = text.split( " ", false )
+	if pieces.size() >= 2 and _looks_like_level( pieces[pieces.size() - 1] ):
+		out[&"level"] = pieces[pieces.size() - 1]
+		var path_parts:PackedStringArray = pieces.slice( 0, pieces.size() - 1 )
+		out[&"path"] = " ".join( path_parts )
+	return out
 
 
 var _paint_on_done:Callable = Callable()
 var _paint_path:String = ""
+var _paint_level:int = -1
 var _in_flight:bool = false
 
 
@@ -57,6 +71,12 @@ func begin_execute(
 		if on_done.is_valid():
 			on_done.call( result_from_text( "ERROR: FBS_DIAGNOSE busy" ) )
 		return
+	var resolved:Dictionary = _resolve_level( arguments )
+	if resolved.has( &"error" ):
+		if on_done.is_valid():
+			on_done.call( result_from_text( str( resolved[&"error"] ) ) )
+		return
+	var level:int = _narrow_int( resolved[&"level"] )
 	var prepared:Dictionary = _prepare( path_line_from_arguments( arguments ) )
 	if prepared.has( &"error" ):
 		if on_done.is_valid():
@@ -66,17 +86,22 @@ func begin_execute(
 		_in_flight = true
 		_paint_on_done = on_done
 		_paint_path = str( prepared[&"path"] )
+		_paint_level = level
 		_schedule_read()
 		return
 	if on_done.is_valid():
-		on_done.call( result_from_text( _read_issues( str( prepared[&"path"] ) ) ) )
+		on_done.call( result_from_text( _read_issues( str( prepared[&"path"] ), level ) ) )
 
 
 func _execute_line( args:String, _context:Dictionary ) -> String:
-	var prepared:Dictionary = _prepare( args )
+	var arguments:Dictionary = arguments_from_line( args, "" )
+	var resolved:Dictionary = _resolve_level( arguments )
+	if resolved.has( &"error" ):
+		return str( resolved[&"error"] )
+	var prepared:Dictionary = _prepare( str( arguments[&"path"] ) )
 	if prepared.has( &"error" ):
 		return str( prepared[&"error"] )
-	return _read_issues( str( prepared[&"path"] ) )
+	return _read_issues( str( prepared[&"path"] ), _narrow_int( resolved[&"level"] ) )
 
 
 func _prepare( args:String ) -> Dictionary:
@@ -154,7 +179,7 @@ func _current_tab( file_path:String ) -> Dictionary:
 	return { &"text_edit": base as TextEdit }
 
 
-func _read_issues( file_path:String ) -> String:
+func _read_issues( file_path:String, level:int = -1 ) -> String:
 	var tab:Dictionary = _current_tab( file_path )
 	if tab.has( &"error" ):
 		return str( tab[&"error"] )
@@ -165,17 +190,25 @@ func _read_issues( file_path:String ) -> String:
 	var parser:Object = highlighter.get( "parser" )
 	if parser == null or not parser.has_method( &"format_issues" ):
 		return "ERROR: Schema highlighter has no issue list for " + file_path
+	var log_text:String = ""
+	if level >= 0:
+		log_text = "\n".join( _reparse_at( highlighter, text_edit, parser, level ) )
 	parser.call( &"prune_issues", text_edit.get_line_count() )
-	var issue_text:String = str( parser.call( &"format_issues" ) )
-	var issue_count:int = 0 if issue_text.is_empty() else issue_text.split( "\n" ).size()
+	var issue_text:String = str( parser.call( &"format_issues", level ) )
+	var issue_count:int = _narrow_int( parser.call( &"issue_count" ) )
 	var header:String = "OK: FBS_DIAGNOSE %s lines=%d issues=%d" % [
 		file_path,
 		text_edit.get_line_count(),
 		issue_count,
 	]
-	if issue_text.is_empty():
+	if level >= 0:
+		header += " level=%s" % _level_name( level )
+	var body:String = issue_text
+	if not log_text.is_empty():
+		body = log_text if body.is_empty() else body + "\n" + log_text
+	if body.is_empty():
 		return header
-	return header + "\n" + issue_text
+	return header + "\n" + body
 
 
 func _schedule_read() -> void:
@@ -186,16 +219,99 @@ func _schedule_read() -> void:
 
 func _on_painted() -> void:
 	var path:String = _paint_path
-	_finish_paint( _read_issues( path ) )
+	var level:int = _paint_level
+	_finish_paint( _read_issues( path, level ) )
 
 
 func _finish_paint( reply:String ) -> void:
 	var done:Callable = _paint_on_done
 	_paint_on_done = Callable()
 	_paint_path = ""
+	_paint_level = -1
 	_in_flight = false
 	if done.is_valid():
 		done.call( result_from_text( reply ) )
+
+
+## Reparse every line at [param level] and return the lines the logger emitted.
+## The previous backend and ceiling are put back afterwards.
+func _reparse_at(
+		highlighter:SyntaxHighlighter,
+		text_edit:TextEdit,
+		parser:Object,
+		level:int
+) -> PackedStringArray:
+	var capture:LogCapture = LogCapture.new()
+	capture.forward = Log.backend
+	var previous_level:int = Log._session().default_lvl
+	var previous_backend:Object = Log.backend
+	var previous_disabled:bool = Log.is_disabled()
+	Log.set_backend( capture )
+	Log._session().default_lvl = level
+	if parser.has_method( &"clear_cache" ):
+		parser.call( &"clear_cache" )
+	for line_idx:int in text_edit.get_line_count():
+		@warning_ignore("return_value_discarded")
+		highlighter.call( &"_get_line_syntax_highlighting", line_idx )
+	if is_instance_valid( previous_backend ):
+		Log.set_backend( previous_backend )
+	else:
+		Log.clear_backend()
+	Log._session().default_lvl = previous_level
+	if previous_disabled:
+		Log.disable()
+	return capture.lines
+
+
+func _narrow_int( value:Variant ) -> int:
+	if value is int:
+		var number:int = value
+		return number
+	return -1
+
+
+func _resolve_level( arguments:Dictionary ) -> Dictionary:
+	var text:String = _level_text( arguments )
+	if text.is_empty():
+		return { &"level": -1 }
+	var level:int = _parse_level( text )
+	if level < 0:
+		return { &"error": "ERROR: Unknown log level '%s'. Usage: %s" % [text, get_usage()] }
+	return { &"level": level }
+
+
+func _level_text( arguments:Dictionary ) -> String:
+	if arguments.has( &"level" ):
+		return str( arguments[&"level"] ).strip_edges()
+	if arguments.has( "level" ):
+		return str( arguments["level"] ).strip_edges()
+	return ""
+
+
+func _looks_like_level( token:String ) -> bool:
+	return _parse_level( token ) >= 0
+
+
+func _parse_level( token:String ) -> int:
+	match token.strip_edges().to_upper():
+		"SILENT": return Log.Level.SILENT
+		"CRITICAL": return Log.Level.CRITICAL
+		"ERROR": return Log.Level.ERROR
+		"WARNING": return Log.Level.WARNING
+		"NOTICE": return Log.Level.NOTICE
+		"INFO": return Log.Level.INFO
+		"DEBUG": return Log.Level.DEBUG
+		"TRACE": return Log.Level.TRACE
+	if token.is_valid_int():
+		return token.to_int()
+	return -1
+
+
+func _level_name( level:int ) -> String:
+	var key:Variant = Log.Level.find_key( level )
+	if key == null:
+		return str( level )
+	return str( key )
 
 
 func _tab_is_open( file_path:String ) -> bool:
@@ -271,3 +387,37 @@ func _find_item_list( node:Node ) -> ItemList:
 		if is_instance_valid( found ):
 			return found
 	return null
+
+
+## Records logger lines for one diagnose reparse, and forwards them when a
+## backend was already bound.
+class LogCapture extends RefCounted:
+	var lines:PackedStringArray = PackedStringArray()
+	var forward:Object = null
+
+
+	func lvl( p_lvl:int, content:Variant, object:Object, stack:Array ) -> void:
+		_keep( content )
+		if _can_forward( &"lvl" ):
+			forward.call( &"lvl", p_lvl, content, object, stack )
+
+
+	func rich( p_lvl:int, content:Variant, object:Object, stack:Array ) -> void:
+		_keep( content )
+		if _can_forward( &"rich" ):
+			forward.call( &"rich", p_lvl, content, object, stack )
+
+
+	func trace( args:Dictionary, object:Object, stack:Array ) -> void:
+		_keep( args )
+		if _can_forward( &"trace" ):
+			forward.call( &"trace", args, object, stack )
+
+
+	func _can_forward( method:StringName ) -> bool:
+		return is_instance_valid( forward ) and forward.has_method( method )
+
+
+	func _keep( content:Variant ) -> void:
+		@warning_ignore("return_value_discarded")
+		lines.append( str( content ) )

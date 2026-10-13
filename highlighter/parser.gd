@@ -272,8 +272,10 @@ func syntax_error(token: Token, reason: String = "") -> void:
 ## Record one diagnose row. Line and column match the editor gutter.
 func add_issue( kind:StringName, token:Token, reason:String ) -> void:
 	var frame:String = "#"
+	var stack_text:String = ""
 	if not stack.is_empty():
 		frame = str( StackFrame.Type.find_key( stack.top().type ) )
+		stack_text = str( stack )
 	issues.append( {
 		&"kind": kind,
 		&"line": token.line + 1,
@@ -281,6 +283,7 @@ func add_issue( kind:StringName, token:Token, reason:String ) -> void:
 		&"text": token.t,
 		&"reason": reason,
 		&"frame": frame,
+		&"stack": stack_text,
 	} )
 
 
@@ -313,7 +316,10 @@ func prune_issues( line_count:int ) -> void:
 	issues = kept
 
 
-func format_issues() -> String:
+## [param level] is an inclusive ceiling. [constant Log.Level.DEBUG] and
+## above append the parser stack that was current when the issue was recorded.
+func format_issues( level:int = -1 ) -> String:
+	var show_stack:bool = level >= 0 and ( level & Log.Level.EXCLUSIVE_DEBUG ) != 0
 	var lines:PackedStringArray = PackedStringArray()
 	for row:Dictionary in issues:
 		@warning_ignore("return_value_discarded")
@@ -325,6 +331,14 @@ func format_issues() -> String:
 			str( row.get( &"text", "" ) ),
 			str( row.get( &"reason", "" ) ),
 		] )
+		if not show_stack:
+			continue
+		var stack_text:String = str( row.get( &"stack", "" ) )
+		if stack_text.is_empty():
+			continue
+		for stack_line:String in stack_text.split( "\n" ):
+			@warning_ignore("return_value_discarded")
+			lines.append( "\t" + stack_line )
 	return "\n".join( lines )
 
 
