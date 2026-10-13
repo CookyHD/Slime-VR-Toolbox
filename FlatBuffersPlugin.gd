@@ -2,8 +2,7 @@
 class_name FlatBuffersPlugin
 extends EditorPlugin
 
-const Print = preload("uid://cbluyr4ifn8g3")
-const LogLevel = Print.LogLevel
+const Log = preload("uid://biv0hwe68jj3s")
 
 const SettingsHelper = preload('uid://bqe6tk0yrwq8u')
 var settings_mgr:SettingsHelper
@@ -59,11 +58,19 @@ var _cs_reloaded_cb:Callable = Callable()
 #             █████   ██    ██ █████   ██ ██  ██    ██    ███████              #
 #             ██       ██  ██  ██      ██  ██ ██    ██         ██              #
 #             ███████   ████   ███████ ██   ████    ██    ███████              #
+
+## Use [param verbosity] as the logger ceiling. It is an inclusive [enum Log.Level].
+func _apply_log_verbosity( verbosity:int ) -> void:
+	Log._session().default_lvl = verbosity
+
+
 func                        __________EVENTS_________              ()->void:pass
 
-func _on_project_settings_changed(
-			setting_name:String, setting_value:Variant ) -> void:
-	Print.plog(LogLevel.TRACE, ''.join([setting_name, ':', setting_value]))
+func _on_project_settings_changed( setting_name:String, setting_value:Variant ) -> void:
+	Log.trace({setting_name: setting_value}, self)
+	if setting_name == "editorlog_verbosity" and setting_value is int:
+		var verbosity:int = setting_value
+		_apply_log_verbosity( verbosity )
 	match setting_name:
 		"experimental" when setting_value == true: enable_experimental_features()
 		"experimental": disable_experimental_features()
@@ -88,11 +95,13 @@ func _init() -> void:
 	@warning_ignore("return_value_discarded")
 	settings_mgr.settings_changed.connect(_on_project_settings_changed)
 
-	Print.plog( LogLevel.DEBUG, "%s._init() - Completed" % name )
+	_apply_log_verbosity( opts.editorlog_verbosity )
+
+	Log.lvl( Log.Level.DEBUG, "%s._init() - Completed" % name)
 
 
 func _enter_tree() -> void:
-	Print.plog( LogLevel.TRACE, "%s._enter_tree()" % name )
+	Log.trace( {}, self )
 
 	highlighter = SchemaHighlighter.new(self)
 	EditorInterface.get_script_editor().register_syntax_highlighter( highlighter )
@@ -109,17 +118,17 @@ func _enter_tree() -> void:
 	var textfile_extensions:String = editor_settings.get_setting(setting_string)
 	var ext_list:Array = textfile_extensions.split(",")
 	if not 'fbs' in ext_list:
-		Print.plog( LogLevel.TRACE, "Adding fbs to EditorSetting: docks/filesystem/textfile_extensions" )
+		Log.lvl( Log.Level.TRACE, "Adding fbs to EditorSetting: docks/filesystem/textfile_extensions")
 		ext_list.append('fbs')
 		editor_settings.set_setting(setting_string, ','.join(ext_list))
-		Print.plog( LogLevel.NOTICE, ' '.join(["[b]FlatBuffersAddon.Note[/b]:",
+		Log.lvl( Log.Level.NOTICE, ' '.join(["[b]FlatBuffersAddon.Note[/b]:",
 			"the 'fbs' extension has been added to EditorSettings:",
 			"`docks/filesystem/textfile_extensions`",
 			"I have noticed that while the",
 			"fbs files do show up after this change, editing them brings up a",
 			"resource error rather than opening the editor. The only way I've",
 			"Found so far to resolve this is to manually change the EditorSetting",
-			"to trigger the editor to perform whatever it needs."]) )
+			"to trigger the editor to perform whatever it needs."]))
 
 	if opts.experimental:
 		enable_experimental_features()
@@ -128,7 +137,7 @@ func _enter_tree() -> void:
 
 
 func _exit_tree() -> void:
-	Print.plog( LogLevel.TRACE, "%s._exit_tree()" % name )
+	Log.trace( {}, self )
 	_unregister_from_command_server()
 
 	if opts.experimental:
@@ -146,7 +155,7 @@ func _exit_tree() -> void:
 	var textfile_extensions:String = editor_settings.get_setting(setting_string)
 	var ext_list:Array = textfile_extensions.split(",")
 	if 'fbs' in ext_list:
-		Print.plog( LogLevel.TRACE, "Removing fbs from EditorSetting: docks/filesystem/textfile_extensions" )
+		Log.lvl( Log.Level.TRACE, "Removing fbs from EditorSetting: docks/filesystem/textfile_extensions")
 		ext_list.erase('fbs')
 		editor_settings.set_setting(setting_string, ','.join(ext_list))
 		# Force filesystem scan to refresh the dock
@@ -154,21 +163,21 @@ func _exit_tree() -> void:
 
 
 func _get_plugin_name() -> String:
-	Print.plog( LogLevel.TRACE, "%s._get_plugin_name()" % name )
+	Log.trace( {}, self )
 	return plugin_name
 
 
 func _get_plugin_icon() -> Texture2D:
-	Print.plog( LogLevel.TRACE, "%s._get_plugin_icon()" % name )
+	Log.trace( {}, self )
 	return ICON_BW_TINY
 
 
 func _enable_plugin() -> void:
-	Print.plog( LogLevel.TRACE, "%s._enable_plugin()" % name )
+	Log.trace( {}, self )
 
 
 func _disable_plugin() -> void:
-	Print.plog( LogLevel.TRACE, "%s._disable_plugin()" % name )
+	Log.trace( {}, self )
 
 
 #         ███    ███ ███████ ████████ ██   ██  ██████  ██████  ███████         #
@@ -182,10 +191,10 @@ func _register_with_command_server() -> void:
 	_unregister_from_command_server()
 	var cs:EditorPlugin = _find_command_server()
 	if not is_instance_valid( cs ):
-		Print.plog( LogLevel.NOTICE, "FlatBuffers: Command Server not found; FBS_DIAGNOSE is not registered" )
+		Log.lvl( Log.Level.NOTICE, "FlatBuffers: Command Server not found; FBS_DIAGNOSE is not registered")
 		return
 	if not cs.has_method( &"register_commands_from_path" ):
-		Print.plog( LogLevel.NOTICE, "FlatBuffers: Command Server missing register_commands_from_path" )
+		Log.lvl( Log.Level.NOTICE, "FlatBuffers: Command Server missing register_commands_from_path")
 		return
 
 	var plugin_script:GDScript = get_script()
@@ -197,8 +206,8 @@ func _register_with_command_server() -> void:
 		if not cs.is_connected( &"commands_reloaded", _cs_reloaded_cb ):
 			var err:Error = cs.connect( &"commands_reloaded", _cs_reloaded_cb )
 			if err != OK:
-				Print.plog( LogLevel.NOTICE, "FlatBuffers: connect commands_reloaded failed: %d" % err )
-	Print.plog( LogLevel.DEBUG, "FlatBuffers: registered %d command(s) with Command Server" % added )
+				Log.lvl( Log.Level.NOTICE, "FlatBuffers: connect commands_reloaded failed: %d" % err)
+	Log.lvl( Log.Level.DEBUG, "FlatBuffers: registered %d command(s) with Command Server" % added)
 
 
 func _on_command_server_reloaded() -> void:
@@ -250,7 +259,7 @@ func _find_cs_in_tree( n:Node ) -> EditorPlugin:
 
 
 func enable_experimental_features() -> void:
-	Print.plog( LogLevel.DEBUG, "enable_experimental_features" )
+	Log.trace( {}, self )
 
 	## FileSystem Dock Create Menu and Main Context Menu when empty space is clicked?
 	var cm_slot := EditorContextMenuPlugin.ContextMenuSlot.CONTEXT_SLOT_FILESYSTEM_CREATE
@@ -266,7 +275,7 @@ func enable_experimental_features() -> void:
 
 
 func disable_experimental_features() -> void:
-	Print.plog( LogLevel.DEBUG, "disable_experimental_features" )
+	Log.trace( {}, self )
 
 	# Right Click Context Menu's
 	for cm_slot:EditorContextMenuPlugin.ContextMenuSlot in [
@@ -286,7 +295,7 @@ func disable_experimental_features() -> void:
 func                        ________FLATC_EXE________              ()->void:pass
 
 func flatc_multi( paths:Array, config:FlatBuffersGeneratorOpts ) -> Array:
-	Print.plog( LogLevel.TRACE, "%s.flatc_multi(%s, %s)" % [name, paths, config.name] )
+	Log.trace({&'paths': paths, &'config': config}, self)
 	var results:Array
 	for path:String in paths:
 		if path.get_extension() == 'fbs':
@@ -295,7 +304,7 @@ func flatc_multi( paths:Array, config:FlatBuffersGeneratorOpts ) -> Array:
 
 
 func flatc_generate( schema_path:String, config:FlatBuffersGeneratorOpts ) -> Dictionary:
-	Print.plog( LogLevel.TRACE, "%s.flatc_generate(%s, %s)" % [name, schema_path, config.name] )
+	Log.trace({&'schema_path': schema_path, &'config': config}, self)
 	var report:Dictionary = {
 		REPORT_SCHEMA  : schema_path,
 		REPORT_CONFIG  : config.name,
@@ -311,14 +320,14 @@ func flatc_generate( schema_path:String, config:FlatBuffersGeneratorOpts ) -> Di
 	if not FileAccess.file_exists(flatc_exe):
 		report[REPORT_MSG] = "flatc compiler is not found at '%s'" % flatc_exe
 		report[REPORT_RETCODE] = ERR_FILE_BAD_PATH
-		printerr(Print.get_call_site(), ":\n\t| ", report[REPORT_MSG])
+		Log.err( report[REPORT_MSG])
 		return report
 
 	# Make sure we have the schema file
 	if not FileAccess.file_exists(schema_path):
 		report[REPORT_MSG] = "Missing Schema File: '%s'" % schema_path
 		report[REPORT_RETCODE] = ERR_FILE_BAD_PATH
-		printerr(Print.get_call_site(), ":\n\t| ", report[REPORT_MSG])
+		Log.err( report[REPORT_MSG])
 		return report
 
 	# Get the set of options from the config
@@ -334,10 +343,7 @@ func flatc_generate( schema_path:String, config:FlatBuffersGeneratorOpts ) -> Di
 	# Lastly add the schema file path
 	args.append( schema_path.replace('res://', './') )
 
-	Print.plog(LogLevel.DEBUG,
-		report[REPORT_FLATC] + '\n',
-		'\t'+ ' '.join(args) + '\n',
-		'\t'+ report[REPORT_SCHEMA])
+	Log.lvl( Log.Level.DEBUG, [report[REPORT_FLATC] + '\n', '\t'+ ' '.join(args) + '\n', '\t'+ report[REPORT_SCHEMA]])
 
 	var stdout:Array = []
 	var retcode:int = OS.execute( flatc_exe, args, stdout, true )
@@ -350,15 +356,9 @@ func flatc_generate( schema_path:String, config:FlatBuffersGeneratorOpts ) -> Di
 
 	report[REPORT_STDOUT] = '\n'.join(output)
 
-	Print.plog(LogLevel.ERROR if retcode else LogLevel.DEBUG,
-		"retcode: '", report[REPORT_RETCODE],"'\n",
-		"output : '", report[REPORT_STDOUT], "'")
+	Log.lvl( Log.Level.ERROR if retcode else Log.Level.DEBUG, ["retcode: '", report[REPORT_RETCODE], "'\n", "output : '", report[REPORT_STDOUT], "'"])
 
-	Print.plog(LogLevel.NOTICE, "[b]FlatBuffersPlugin.Note[/b]: scripts",
-		"that are being regenerated will not update in the editor until the",
-		"window focus has changed. I have no idea why, or how to fix it, so",
-		"change to another window away from Godot, and back again to",
-		"refresh the scripts in the editor")
+	Log.lvl( Log.Level.NOTICE, ["[b]FlatBuffersPlugin.Note[/b]: scripts", "that are being regenerated will not update in the editor until the", "window focus has changed. I have no idea why, or how to fix it, so", "change to another window away from Godot, and back again to", "refresh the scripts in the editor"])
 
 	if retcode: return report
 
@@ -414,7 +414,7 @@ static func is_fbs_in_path_list(path_list:PackedStringArray) -> bool:
 class FSDockCM extends EditorContextMenuPlugin:
 
 	func _init() -> void:
-		Print.plog( LogLevel.TRACE, "FSDockCM._init()" )
+		Log.trace( {}, self )
 
 	# _popup_menu() and option callback will be called with list of paths of the
 	# currently selected files.
@@ -441,7 +441,7 @@ class FSDockCM extends EditorContextMenuPlugin:
 class FSCreateCM extends EditorContextMenuPlugin:
 
 	func _init() -> void:
-		Print.plog( LogLevel.TRACE, "FSCreateCM._init()" )
+		Log.trace( {}, self )
 
 	# _popup_menu() and option callback will be called with list of paths of the
 	# currently selected files.
@@ -460,7 +460,7 @@ class FSCreateCM extends EditorContextMenuPlugin:
 class ScriptEditTabCM extends EditorContextMenuPlugin:
 
 	func _init() -> void:
-		Print.plog( LogLevel.TRACE, "ScriptEditTabCM._init()" )
+		Log.trace( {}, self )
 
 	# _popup_menu() will be called with the path to the currently edited script,
 	# while option callback will receive reference to that script.

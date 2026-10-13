@@ -125,12 +125,10 @@ class Bound extends RefCounted:
 
 
 	## Prints [param args]. [param object] is prefixed when set.
-	func _fallback_trace( args:Dictionary, object:Object, _stack:Array ) -> void:
-		var msg:String = ""
-		if is_instance_valid( object ):
-			msg = str( object )
-		msg = ( msg + " " if not msg.is_empty() else "" ) + str( args )
-		print( msg )
+	func _fallback_trace( args:Dictionary, _object:Object, stack:Array ) -> void:
+		var frame:Dictionary = stack[-1] if not stack.is_empty() else Shim.get_stack_popped(0)[-1]
+		var _args:String = "()" if args.is_empty() else "(%s)" % str( args )
+		print_rich( Shim.link("{source}:{line}".format(frame), str(frame.function)) + _args )
 
 
 	## Prints [param content]. The event bit chooses [method push_error],
@@ -153,17 +151,22 @@ class Bound extends RefCounted:
 
 		var bit:int = Shim.event_bit( p_lvl )
 		if bit & (Level.EXCLUSIVE_CRITICAL | Level.EXCLUSIVE_ERROR):
-			push_error( msg )
+			if Engine.is_editor_hint():
+				printerr( msg )
+			else:
+				push_error( msg )
 		elif bit & Level.EXCLUSIVE_WARNING:
-			push_warning( msg )
-
-		if not Engine.is_editor_hint():
-			print( msg )
+			if Engine.is_editor_hint():
+				print( msg )
+			else:
+				push_warning( msg )
+		else:
+			print_rich( msg )
 
 
 	## Level already passed. Print [param text] as BBCode, with no object prefix.
-	func _fallback_rich( _p_lvl:int, text:String, _object:Object, _stack:Array ) -> void:
-		print_rich( text )
+	func _fallback_rich( _p_lvl:int, content:Variant, _object:Object, _stack:Array ) -> void:
+		print_rich( str(content) )
 
 
 ## Active [Bound]. Created on first use.
@@ -223,7 +226,7 @@ static func event_bit( what_lvl:int ) -> int:
 
 ## Returns a BBCode URL link string.
 static func link( url:String, text:String = "" ) -> String:
-	return "[url='{url}']{text}[/url]".format({
+	return "[url='{url}'][color=57b3ff]{text}[/color][/url]".format({
 		&'url':url, &'text':(url if text.is_empty() else text) })
 
 
@@ -255,10 +258,10 @@ static func lvl( p_lvl:int, content:Variant, object:Object = null, stack:Array =
 ## [param object] is the identity. [param stack] is passed through and not
 ## filled here. A backend [code]rich[/code] is used when it exists; otherwise
 ## the line is printed as BBCode with no extra prefix.
-static func rich( p_lvl:int, text:String, object:Object = null, stack:Array = [] ) -> void:
+static func rich( p_lvl:int, content:Variant, object:Object = null, stack:Array = [] ) -> void:
 	var bound:Bound = _session()
 	if bound.can_log( p_lvl, object ):
-		bound.fn_rich.call( p_lvl, text, object, stack )
+		bound.fn_rich.call( p_lvl, content, object, stack )
 
 
 ## ERROR message. [param object] is the identity.

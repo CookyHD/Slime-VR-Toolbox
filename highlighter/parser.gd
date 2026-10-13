@@ -13,8 +13,7 @@ const StackFrame = preload('uid://c0ub8clj4bhhv')
 const FrameType = StackFrame.Type
 const FlatBuffersHighlighter = preload('uid://ddcfjoxe7i5jo')
 
-const Print = preload("uid://cbluyr4ifn8g3")
-const LogLevel = Print.LogLevel
+const Log = preload("uid://biv0hwe68jj3s")
 
 static var _opts:FlatBuffersOpts:
 	get():
@@ -154,7 +153,7 @@ func _init(plugin_ref: FlatBuffersPlugin = null) -> void:
 		_sync_constants_from_plugin()
 
 	var err:int =  new_index_chunk.resize(10)
-	if err != OK: Print.plog(LogLevel.ERROR, error_string(err))
+	if err != OK: Log.err( error_string(err))
 
 	new_index_chunk.fill(false)
 
@@ -163,13 +162,13 @@ func _init(plugin_ref: FlatBuffersPlugin = null) -> void:
 
 	# This saves us from having to highlight everything manually.
 	err = reader.new_token.connect(highlight)
-	if err != OK: Print.plog(LogLevel.ERROR, error_string(err))
+	if err != OK: Log.err( error_string(err))
 
 	err = reader.newline.connect(
 		func(l:int,_p:int) -> void:
 			if error_flag: return
 			save_stack(l, 0))
-	if err != OK: Print.plog(LogLevel.ERROR, error_string(err))
+	if err != OK: Log.err( error_string(err))
 
 
 #         ███    ███ ███████ ████████ ██   ██  ██████  ██████  ███████         #
@@ -195,7 +194,7 @@ func clear_cache() -> void:
 
 func resize_stack_index( size:int ) -> void:
 	var err:int = stack_index.resize( size )
-	if err != OK: Print.plog(LogLevel.ERROR, error_string(err))
+	if err != OK: Log.err( error_string(err))
 	stack_index.fill(false)
 
 
@@ -221,22 +220,22 @@ func check_include_file(file_path: String) -> String:
 		file_path = plugin_path + "/res/godot.fbs"
 
 	if FileAccess.file_exists(file_path):
-		Print.plog(LogLevel.TRACE, "Located file: '%s'" % file_path)
+		Log.lvl( Log.Level.TRACE, "Located file: '%s'" % file_path)
 		return file_path
 
 	if file_path.is_absolute_path():
-		Print.plog(LogLevel.ERROR, "CheckInclude: Unable to locate file: '%s'" % file_path)
+		Log.err( "CheckInclude: Unable to locate file: '%s'" % file_path)
 		return ""
 
 	var main_config:FlatBuffersGeneratorOpts = ProjectSettings.get_setting('flatbuffers/GeneratorConfigs/main', null)
 	if main_config == null: return ""
 
 	var include_paths:Array = main_config.get_include_paths()
-	Print.plog( LogLevel.TRACE, "Searching Locations: %s" % [include_paths])
+	Log.lvl( Log.Level.TRACE, "Searching Locations: %s" % [include_paths])
 	for ipath: String in include_paths:
 		var try_path:String = ipath.path_join(file_path)
 		if FileAccess.file_exists(try_path):
-			Print.plog(LogLevel.DEBUG, "Found: '%s'" % try_path)
+			Log.lvl( Log.Level.DEBUG, "Found: '%s'" % try_path)
 			return try_path
 
 	return ""
@@ -252,9 +251,8 @@ func                        _______HIGHLIGHTER_______              ()->void:pass
 
 func highlight(token: Token) -> void:
 	active_highlighter.highlight(token)
-	if Print.lvl(LogLevel.TRACE):
-		var colour:String = _opts.get_colour(token.type).to_html()
-		print_rich( lpad() + "\t[color=%s]%s[/color]" % [colour, token] )
+	var colour:String = _opts.get_colour(token.type).to_html()
+	Log.lvl( Log.Level.TRACE, lpad() + "\t[color=%s]%s[/color]" % [colour, token])
 
 
 func highlight_colour(token: Token, colour:Color) -> void:
@@ -262,14 +260,12 @@ func highlight_colour(token: Token, colour:Color) -> void:
 
 
 func syntax_warning(token: Token, reason: String = "") -> void:
-	var colour:String = _opts.get_colour(LogLevel.WARNING).to_html()
-	Print.slog(LogLevel.TRACE, "[color=%s]%s[/color]" % [colour, Print.get_call_site(3)]  )
+	Log.trace({&'token': token, &'reason': reason}, self)
 	active_highlighter.syntax_warning(token, reason)
 
 
 func syntax_error(token: Token, reason: String = "") -> void:
-	var colour:String = _opts.get_colour(LogLevel.ERROR).to_html()
-	Print.slog(LogLevel.TRACE, "[color=%s]%s[/color]" % [colour, Print.get_call_site(3)]  )
+	Log.trace({&'token': token, &'reason': reason}, self)
 	active_highlighter.syntax_error(token, reason)
 
 
@@ -352,8 +348,8 @@ func save_stack(line_num: int, force: bool = false) -> void:
 	stack_list[line_num] = stack.duplicate()  # deep copy
 	stack_index[line_num] = true
 	prev_idx = line_num
-	Print.plog( LogLevel.TRACE, "Stack saved to line %s" % [line_num+1] )
-	Print.plog( LogLevel.TRACE, "Saved: %s" % [stack_list[line_num]] )
+	Log.lvl( Log.Level.TRACE, "Stack saved to line %s" % [line_num+1] )
+	Log.lvl( Log.Level.TRACE, "Saved: %s" % [stack_list[line_num]] )
 
 
 # Get the stack to restore from for this line
@@ -364,8 +360,8 @@ func get_prev_stack(line_num: int) -> FrameStack:
 			prev_idx = i
 			var saved:FrameStack = stack_list.get(i)
 			if not saved: continue
-			Print.plog(LogLevel.DEBUG,
-					"restoring stack from line", i+1, saved.top())
+			FlatBuffersHighlighter.hlog(Log.Level.DEBUG," ".join(["restoring stack from line", i+1]))
+			FlatBuffersHighlighter.hlog(Log.Level.DEBUG, saved.top())
 			return saved.duplicate()  # return a copy to avoid mutation issues
 	# No previous state → fresh stack
 	return FrameStack.new(20)
@@ -431,17 +427,16 @@ func                        __________FRAMES_________              ()->void:pass
 
 ## start_frame() runs the appropriate stack frame function
 func start_frame( frame:StackFrame, token:Token ) -> void:
-	if Print.lvl( LogLevel.TRACE ):
-		var resume:String = "" if frame.data.is_empty() else "--- Continue ---\n" #⮱
-		Print.slog( LogLevel.TRACE, resume + lpad() + str(frame))
-		Print.slog( LogLevel.TRACE, lpad(1) + str(token))
+	var resume:String = "" if frame.data.is_empty() else "--- Continue ---\n"
+	Log.lvl( Log.Level.TRACE, resume + lpad() + str(frame) )
+	Log.lvl( Log.Level.TRACE, lpad(1) + str(token) )
 	_dispatch(frame, token)
 
 
 ## end_frame() pops the last stackframe from the stack
 ## if retval is not null, the top stack frame will have 'return' = retval added
 func end_frame(retval:Variant = null) -> void:
-	Print.plog( LogLevel.TRACE, lpad() + "⮶Return%s" % [" '%s'" % retval if retval else ""] )
+	Log.lvl( Log.Level.TRACE, lpad() + "⮶Return%s" % [" '%s'" % retval if retval else ""] )
 	var _sf:StackFrame = stack.pop()
 	if not stack.is_empty() and retval != null:
 		stack.top().data["return"] = retval
@@ -461,10 +456,10 @@ func error_frame( token:Token, message:String ) -> void:
 func                       ________QUICK_SCAN_______               ()->void:pass
 
 func quick_scan(full_text: String) -> void:
-	Print.plog( LogLevel.TRACE, "quick_scan()")
+	Log.trace({&'full_text': full_text}, self)
 
 	if is_quick_scan_in_progress:
-		Print.plog( LogLevel.WARNING, "QuickScanText: already in progress — skipping nested call")
+		Log.wrn( "QuickScanText: already in progress — skipping nested call" )
 		return
 	is_quick_scan_in_progress = true
 
@@ -472,16 +467,16 @@ func quick_scan(full_text: String) -> void:
 
 	while scan_pending.size() > 0:
 		var file_path:String = scan_pending.pop_front()
-		Print.plog( LogLevel.DEBUG, "Scanning: '%s'" % file_path)
+		Log.lvl( Log.Level.DEBUG, "Scanning: '%s'" % file_path )
 
 		# Dont create a loop
 		if file_path in scanned_files:
-			Print.plog( LogLevel.TRACE, "File already scanned" )
+			Log.lvl( Log.Level.TRACE, "File already scanned" )
 			continue
 
 		var file:FileAccess = FileAccess.open(file_path, FileAccess.READ)
 		if not file:
-			Print.plog( LogLevel.ERROR, "QuickScan: Unable to open file for scanning.")
+			Log.err( "QuickScan: Unable to open file for scanning." )
 			continue
 
 		var content:String = file.get_as_text()
@@ -511,19 +506,19 @@ func quick_scan_text(full_text: String) -> void:
 			token = qreader.get_token()
 			qreader.adv_line()
 			if token.type != Token.Type.STRING: continue
-			Print.plog(LogLevel.TRACE, "include %s" % token.t)
+			Log.lvl( Log.Level.TRACE, "include %s" % token.t )
 			# Strip quotes from token
 			var file_path:String = token.t.substr(1, token.t.length() - 2)
 			var checked_path:String = check_include_file(file_path)
 
 			if checked_path.is_empty():
-				Print.plog( LogLevel.ERROR, "QuickScanText: Unable to locate file: '%s'" % file_path )
+				Log.err( "QuickScanText: Unable to locate file: '%s'" % file_path )
 				reader.adv_token(token)
 			elif checked_path in included_files:
-				Print.plog( LogLevel.TRACE, "File already included: '%s'" % checked_path )
+				Log.lvl( Log.Level.TRACE, "File already included: '%s'" % checked_path )
 			else:
 				# Scan the file if we havent already
-				Print.plog( LogLevel.DEBUG, "Including file: %s" % checked_path )
+				Log.lvl( Log.Level.DEBUG, "Including file: %s" % checked_path )
 				included_files.append(checked_path)
 				scan_pending.append(checked_path)
 			continue
@@ -534,7 +529,7 @@ func quick_scan_text(full_text: String) -> void:
 			if ident.type != Token.Type.IDENT:
 				qreader.adv_line()
 				continue
-			Print.plog(LogLevel.TRACE, "%s %s" % [token.t, ident.t])
+			Log.lvl( Log.Level.TRACE, ["%s %s" % [token.t, ident.t]])
 			match token.t:
 				&"struct": struct_types.append(ident.t)
 				&"table":  table_types.append(ident.t)
@@ -547,7 +542,7 @@ func quick_scan_text(full_text: String) -> void:
 			if ident.type != Token.Type.IDENT:
 				qreader.adv_line()
 				continue
-			Print.plog(LogLevel.TRACE, "%s %s" % [token.t, ident.t])
+			Log.lvl( Log.Level.TRACE, ["%s %s" % [token.t, ident.t]])
 
 			var enum_vals:Array[StringName] = enum_types.get_or_add(ident.t,
 					Array([], TYPE_STRING_NAME, "", null))
@@ -555,21 +550,21 @@ func quick_scan_text(full_text: String) -> void:
 				token = qreader.get_token()
 				if token.type == Token.Type.IDENT:
 					enum_vals.append( token.t )
-			Print.plog(LogLevel.TRACE, "enum %s %s" % [ident.t, enum_vals])
+			Log.lvl( Log.Level.TRACE, ["enum %s %s" % [ident.t, enum_vals]])
 
 		qreader.adv_line()
 
 ## Returns true on success, and false on failure.
 func quick_scan_file(file_path: String) -> bool:
-	Print.plog( LogLevel.DEBUG, "[b]quick_scan_file: '%s'[/b]" % file_path)
+	Log.trace({&'file_path': file_path}, self)
 
 	if not FileAccess.file_exists( file_path ):
-		Print.plog( LogLevel.ERROR,"QuickScan: Unable to locate file for inclusion: %s" % file_path)
+		Log.err( "QuickScan: Unable to locate file for inclusion: %s" % file_path)
 		return false
 
 	# Dont create a loop
 	if file_path in scanned_files:
-		Print.plog( LogLevel.TRACE, "File already scanned" )
+		Log.lvl( Log.Level.TRACE, "File already scanned")
 		return true
 
 	if is_quick_scan_in_progress:
@@ -578,7 +573,7 @@ func quick_scan_file(file_path: String) -> bool:
 
 	var file:FileAccess = FileAccess.open(file_path, FileAccess.READ)
 	if not file:
-		Print.plog( LogLevel.ERROR, "QuickScan: Unable to open file for scanning.")
+		Log.err( "QuickScan: Unable to open file for scanning.")
 		return false
 
 	var content:String = file.get_as_text()
@@ -598,21 +593,21 @@ func                        __________PARSER_________              ()->void:pass
 func want_token_tl(token: Token, tl: Array[StringName], msg: String = "") -> void:
 	if token.t in tl: return
 	syntax_error(token, "'%s' not in '%s'" % [token.t, tl])
-	if not msg.is_empty(): Print.plog(LogLevel.ERROR, msg)
+	if not msg.is_empty(): Log.err( msg)
 
 
 ## test the token against the name, and highlight if error.
 func want_token_t(token: Token, t: StringName, msg: String = "") -> void:
 	if token.t == t: return
 	syntax_error(token, "'%s' != '%s'" % [token.t, t])
-	if not msg.is_empty(): Print.plog(LogLevel.ERROR, msg)
+	if not msg.is_empty(): Log.err( msg)
 
 
 ## returns true if token.t == t
 func check_token_t(token: Token, t: StringName, msg: String = "") -> bool:
 	if token.t == t: return true
 	syntax_error(token, "'%s' != '%s'" % [token.t, t])
-	if not msg.is_empty(): Print.plog(LogLevel.ERROR, msg)
+	if not msg.is_empty(): Log.err( msg)
 	return false
 
 
@@ -621,7 +616,7 @@ func want_token_type(token: Token, typ: Token.Type, msg: String = "") -> void:
 	if token.type == typ: return
 	syntax_error(token, "'%s' != '%s'" % [
 		Token.Type.find_key(token.type), Token.Type.find_key(typ)])
-	if not msg.is_empty(): Print.plog(LogLevel.ERROR, msg)
+	if not msg.is_empty(): Log.err( msg)
 
 
 ## returns true if token.type == type
@@ -629,7 +624,7 @@ func check_token_type(token: Token, typ: Token.Type, msg: String = "") -> bool:
 	if token.type == typ: return true
 	syntax_error(token, "'%s' != '%s'" % [
 		Token.Type.find_key(token.type), Token.Type.find_key(typ)])
-	if not msg.is_empty(): Print.plog(LogLevel.ERROR, msg)
+	if not msg.is_empty(): Log.err( msg)
 	return false
 
 
@@ -767,9 +762,9 @@ func parse_include( _p_token:Token ) -> void:
 		if checked_path.is_empty():
 			syntax_error( token, "ParseInclude: Unable to locate file: '%s'" % file_path)
 		elif checked_path in included_files:
-			Print.plog( LogLevel.TRACE, "File already included: '%s'" % checked_path )
+			Log.lvl( Log.Level.TRACE, "File already included: '%s'" % checked_path)
 		else:
-			Print.plog( LogLevel.WARNING, "File was not picked up in quick_scan: '%s'" % checked_path )
+			Log.wrn( "File was not picked up in quick_scan: '%s'" % checked_path)
 			# Scan the file
 			included_files.append(checked_path)
 			if not quick_scan_file(checked_path):
@@ -1146,7 +1141,7 @@ func parse_field_decl( p_token:Token ) -> void:
 			var token:Token = reader.get_token()
 			var return_val:Dictionary = frame.data.get(&"return")
 			if not frame.data.erase(&"return"):
-				Print.plog(LogLevel.ERROR, "&'return' was not found in frame data")
+				Log.err( "&'return' was not found in frame data")
 			if return_val.get(&"field_type") == &"enum":
 				var enum_vals:Array[StringName] = enum_types.get(return_val.get(&"field_name"))
 				if not token.t in enum_vals:
@@ -1503,10 +1498,10 @@ func parse_commasep( p_token:Token ) -> void:
 	if frame.data.get(&"next") == &",":
 		var token:Token = reader.get_token()
 		if not frame.data.erase(&"return"):
-			Print.plog(LogLevel.ERROR, "Unable to erase &'return' from frame.data")
+			Log.err( "Unable to erase &'return' from frame.data")
 		if token.t != &",": return end_frame()
 		if not frame.data.erase(&"next"):
-			Print.plog(LogLevel.ERROR, "Unable to erase &'next' from frame.data")
+			Log.err( "Unable to erase &'next' from frame.data")
 		return
 
 	syntax_error(p_token, "Reached the end of parse_commasep(...)")

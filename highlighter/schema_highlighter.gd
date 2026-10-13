@@ -19,8 +19,7 @@ extends EditorSyntaxHighlighter
 ## Debounce highlight actions, though its not expensive, i havent really run
 ## into trouble with it yet.
 
-const Print = preload("uid://cbluyr4ifn8g3")
-const LogLevel = Print.LogLevel
+const Log = preload("uid://biv0hwe68jj3s")
 
 # Supporting Scripts
 const Token = preload('uid://cvcd6kyaa4f1a')
@@ -89,7 +88,7 @@ func _init( plugin_ref:FlatBuffersPlugin ) -> void:
 	parser = Parser.new(plugin)
 	parser._sync_constants_from_plugin()
 
-	Print.plog(LogLevel.TRACE, "[b]FlatBuffersHighlighter._init() - Completed[/b]")
+	Log.lvl( Log.Level.TRACE, "[b]FlatBuffersHighlighter._init() - Completed[/b]" )
 
 
 func _create() -> EditorSyntaxHighlighter:
@@ -106,12 +105,12 @@ func _get_supported_languages() -> PackedStringArray:
 
 
 func _clear_highlighting_cache() -> void:
+	Log.trace()
 	#resource = get_edited_resource()
 	# file_location = resource.resource_path.get_base_dir() + "/"
 	# FIXME: This ^^ relies on a patch https://github.com/godotengine/godot/pull/96058
 	# RESOLVED for 4.7 in https://github.com/godotengine/godot/pull/115814
 
-	Print.plog(LogLevel.TRACE, "[b]_clear_highlighting_cache( )[/b]")
 	var text_edit:TextEdit = get_text_edit()
 
 	dict.clear()
@@ -124,9 +123,7 @@ func _clear_highlighting_cache() -> void:
 
 
 func _get_line_syntax_highlighting(line_num: int) -> Dictionary:
-	if Print.lvl(LogLevel.TRACE):
-		print()
-		Print.plog(LogLevel.TRACE, "[b]_get_line_syntax_highlighting( line_num:%d )[/b]" % [line_num+1])
+	Log.trace({&'line_num': line_num+1}, self)
 
 	var text_edit:TextEdit = get_text_edit()
 
@@ -150,19 +147,19 @@ func _get_line_syntax_highlighting(line_num: int) -> Dictionary:
 	var result: Dictionary = parser.parse_line(line_num, line)
 	parser.active_highlighter = null
 
-	Print.plog(Print.LogLevel.DEBUG, line_num+1, result.keys().map(str))
+	Log.lvl( Log.Level.DEBUG, "%s %s" % [line_num + 1, result.keys().map( str )] )
 	return result
 
 
 func _update_cache() -> void:
+	Log.trace({}, self)
 	# Get settings
-	Print.plog(LogLevel.TRACE, "[b]_update_cache( )[/b]")
 	var text_edit:TextEdit = get_text_edit()
 
 	if not text_edit.lines_edited_from.is_connected( _on_lines_edited_from ):
 		var err:int = text_edit.lines_edited_from.connect( _on_lines_edited_from )
 		if err != OK:
-			Print.plog(LogLevel.ERROR, error_string(err))
+			Log.lvl( Log.Level.ERROR, error_string( err ) )
 
 	parser.quick_scan( text_edit.text )
 
@@ -184,9 +181,7 @@ func                        _________METHODS_________              ()->void:pass
 # Still doesnt solve the problem it needs to solve.
 ## Account for added and removed lines
 func _on_lines_edited_from(from_line: int, to_line: int) -> void:
-	Print.plog( LogLevel.TRACE,
-		"FlatBuffersHighlighter._on_lines_edited_from(from_line%d, to_line:%d)"%
-		[from_line, to_line])
+	Log.trace({&'from_line': from_line, &'to_line': to_line}, self)
 	if from_line == to_line: return
 
 	#var text_edit:TextEdit = get_text_edit()
@@ -273,16 +268,15 @@ func syntax_warning( token:Token, reason:String = "" ) -> void:
 	parser.add_issue( &"warning", token, reason )
 	if is_cursor_in_token(token):
 		return
-	var colour:Color = _opts.get_colour(plugin.LogLevel.WARNING)
+	var colour:Color = _opts.color_notice_warning
 	if _opts.highlight_warning:
 		get_text_edit().set_line_background_color(token.line, colour.blend(Color(0,0,0,.5)) )
 	else: line_dict[token.col] = { 'color':colour }
 	# TODO, if the token being warned about is on the line we are editing perhaps
 	# we should not print any warnings at all, or change the loglevel
-	if Print.lvl(LogLevel.WARNING):
-		var frame_type:String = '#' if parser.stack.is_empty() else StackFrame.Type.find_key(parser.stack.top().type)
-		Print.plog( LogLevel.WARNING, "%s:Warning in: %s - %s" % [frame_type, token, reason] )
-		Print.plog( LogLevel.DEBUG, str(parser.stack) )
+	var frame_type:String = '#' if parser.stack.is_empty() else StackFrame.Type.find_key(parser.stack.top().type)
+	Log.wrn( "%s:Warning in: %s - %s" % [frame_type, token, reason] )
+	Log.lvl( Log.Level.DEBUG, str( parser.stack ) )
 
 
 ## Highlight the line [param token] is on with the error colour, and print to console.
@@ -291,13 +285,21 @@ func syntax_error( token:Token, reason:String = "" ) -> void:
 	parser.add_issue( &"error", token, reason )
 	if is_cursor_in_token(token):
 		return
-	var colour:Color = _opts.get_colour(plugin.LogLevel.ERROR)
+	var colour:Color = _opts.color_notice_error
 	if _opts.highlight_error:
 		get_text_edit().set_line_background_color(token.line, colour.blend(Color(0,0,0,.5)) )
 	else: line_dict[token.col] = { 'color':colour }
 	# TODO, if the token being warned about is on the line we are editing perhaps
 	# we should not print any warnings at all, or change the loglevel
-	if Print.lvl(LogLevel.ERROR):
-		var frame_type:String = '#' if parser.stack.is_empty() else StackFrame.Type.find_key(parser.stack.top().type)
-		Print.plog( LogLevel.ERROR, "%s:Error in: %s - %s" % [frame_type, token, reason] )
-		Print.plog( LogLevel.DEBUG, str(parser.stack) )
+	var frame_type:String = '#' if parser.stack.is_empty() else StackFrame.Type.find_key(parser.stack.top().type)
+	Log.err( "%s:Error in: %s - %s" % [frame_type, token, reason] )
+	Log.lvl( Log.Level.DEBUG, str( parser.stack ) )
+
+
+## Print to the output console padding + [param message], where padding is set by
+## the size of the GDScript stack.
+static func hlog( lvl:int, ...message:Array ) -> void:
+	var colour:String = _opts.get_colour(lvl).to_html()
+	var padding:String = "".lpad(get_stack().size()-1, '\t') if lvl == Log.Level.TRACE else ""
+	var msg:String = "".join([padding, "[color=%s]" % colour] + message + ["[/color]"])
+	Log.rich( lvl, msg )

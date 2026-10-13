@@ -5,7 +5,7 @@
 [resource]
 resource_name = "Default Flatbuffers Plugin Options"
 script = ExtResource("1_e4pq5")
-editorlog_verbosity = 3
+editorlog_verbosity = 127
 color_syntax_unknown = Color(0.8025, 0.81, 0.8225, 1)
 color_syntax_comment = Color(0.8025, 0.81, 0.8225, 0.5)
 color_syntax_comment_doc = Color(0.6, 0.7, 0.8, 0.8)

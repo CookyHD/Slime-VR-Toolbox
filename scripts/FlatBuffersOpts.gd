@@ -2,9 +2,8 @@
 class_name FlatBuffersOpts
 extends Resource
 
-const Print = preload("uid://cbluyr4ifn8g3")
-const LogLevel = Print.LogLevel
 const Token = preload("uid://cvcd6kyaa4f1a")
+const Log = preload( "logging.gd" )
 
 ## Used to fetch default colours from the editor configuration.
 var _editor_settings := EditorInterface.get_editor_settings()
@@ -33,7 +32,8 @@ var config_list:Array[FlatBuffersGeneratorOpts] = [preload("uid://b8vn3e2cuhqy3"
 # ╰─────────────────────────────────|___/──
 @export_group("EditorLog", "editorlog_")
 @export_custom( PROPERTY_HINT_ENUM,
-	"SILENT:0,CRITICAL:1,ERROR:2,WARNING:3,NOTICE:4,DEBUG:5,TRACE:6")
+	"SILENT:0,CRITICAL:1,ERROR:3,WARNING:7,NOTICE:15,INFO:31,DEBUG:63,TRACE:127" )
+## Inclusive ceiling. DEBUG shows debug and everything above it.
 var editorlog_verbosity:int = 0
 
 
@@ -102,13 +102,6 @@ var color_notice_trace:Color = _editor_settings.get_setting("text_editor/theme/h
 
 func get_colour(type:int) -> Color:
 	match type:
-		LogLevel.CRITICAL:return color_notice_critical
-		LogLevel.ERROR:return color_notice_error
-		LogLevel.WARNING:return color_notice_warning
-		LogLevel.NOTICE:return color_notice_notice
-		LogLevel.DEBUG:return color_notice_debug
-		LogLevel.TRACE:return color_notice_trace
-		# Token.Type starts at color_10
 		Token.Type.NULL:return color_syntax_unknown
 		Token.Type.COMMENT:return color_syntax_comment
 		Token.Type.COMMENT_DOC:return color_syntax_comment
@@ -122,4 +115,12 @@ func get_colour(type:int) -> Color:
 		Token.Type.UNKNOWN:return color_syntax_unknown
 		Token.Type.EOL:return color_syntax_unknown
 		Token.Type.EOF:return color_syntax_unknown
+	# Highest set bit, so an inclusive level still picks one notice colour.
+	match Log.event_bit( type ):
+		Log.Level.EXCLUSIVE_CRITICAL:return color_notice_critical
+		Log.Level.EXCLUSIVE_ERROR:return color_notice_error
+		Log.Level.EXCLUSIVE_WARNING:return color_notice_warning
+		Log.Level.EXCLUSIVE_NOTICE, Log.Level.EXCLUSIVE_INFO:return color_notice_notice
+		Log.Level.EXCLUSIVE_DEBUG:return color_notice_debug
+		Log.Level.EXCLUSIVE_TRACE:return color_notice_trace
 	return Color.DEEP_PINK

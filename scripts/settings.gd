@@ -47,11 +47,93 @@
 ##
 ## Tooltip idea (brute force):[br]
 ## https://github.com/PiCode9560/Godot-Editor-Settings-Description/blob/main/editor_settings_description.gd
+##[br][color=goldenrod]TODO[/color]: have a URL we can point to and verify we
+## have the latest version.
 
-# Host logger: sequential LogLevel + HintEnum + bitmask helpers (printy).
-# FIXME: prefer autoload EneLog once levels are unified.
-const Print = preload("uid://cbluyr4ifn8g3")
-const LogLevel = Print.LogLevel
+const Log = preload( "logging.gd" )
+
+## [enum PropertyHint] value to its global constant name.
+## This build keeps global enums off ClassDB.
+const _HINT_NAMES:Dictionary = {
+	PROPERTY_HINT_NONE: &"PROPERTY_HINT_NONE",
+	PROPERTY_HINT_RANGE: &"PROPERTY_HINT_RANGE",
+	PROPERTY_HINT_ENUM: &"PROPERTY_HINT_ENUM",
+	PROPERTY_HINT_ENUM_SUGGESTION: &"PROPERTY_HINT_ENUM_SUGGESTION",
+	PROPERTY_HINT_EXP_EASING: &"PROPERTY_HINT_EXP_EASING",
+	PROPERTY_HINT_LINK: &"PROPERTY_HINT_LINK",
+	PROPERTY_HINT_FLAGS: &"PROPERTY_HINT_FLAGS",
+	PROPERTY_HINT_LAYERS_2D_RENDER: &"PROPERTY_HINT_LAYERS_2D_RENDER",
+	PROPERTY_HINT_LAYERS_2D_PHYSICS: &"PROPERTY_HINT_LAYERS_2D_PHYSICS",
+	PROPERTY_HINT_LAYERS_2D_NAVIGATION: &"PROPERTY_HINT_LAYERS_2D_NAVIGATION",
+	PROPERTY_HINT_LAYERS_3D_RENDER: &"PROPERTY_HINT_LAYERS_3D_RENDER",
+	PROPERTY_HINT_LAYERS_3D_PHYSICS: &"PROPERTY_HINT_LAYERS_3D_PHYSICS",
+	PROPERTY_HINT_LAYERS_3D_NAVIGATION: &"PROPERTY_HINT_LAYERS_3D_NAVIGATION",
+	PROPERTY_HINT_FILE: &"PROPERTY_HINT_FILE",
+	PROPERTY_HINT_DIR: &"PROPERTY_HINT_DIR",
+	PROPERTY_HINT_GLOBAL_FILE: &"PROPERTY_HINT_GLOBAL_FILE",
+	PROPERTY_HINT_GLOBAL_DIR: &"PROPERTY_HINT_GLOBAL_DIR",
+	PROPERTY_HINT_RESOURCE_TYPE: &"PROPERTY_HINT_RESOURCE_TYPE",
+	PROPERTY_HINT_MULTILINE_TEXT: &"PROPERTY_HINT_MULTILINE_TEXT",
+	PROPERTY_HINT_EXPRESSION: &"PROPERTY_HINT_EXPRESSION",
+	PROPERTY_HINT_PLACEHOLDER_TEXT: &"PROPERTY_HINT_PLACEHOLDER_TEXT",
+	PROPERTY_HINT_COLOR_NO_ALPHA: &"PROPERTY_HINT_COLOR_NO_ALPHA",
+	PROPERTY_HINT_OBJECT_ID: &"PROPERTY_HINT_OBJECT_ID",
+	PROPERTY_HINT_TYPE_STRING: &"PROPERTY_HINT_TYPE_STRING",
+	PROPERTY_HINT_NODE_PATH_TO_EDITED_NODE: &"PROPERTY_HINT_NODE_PATH_TO_EDITED_NODE",
+	PROPERTY_HINT_OBJECT_TOO_BIG: &"PROPERTY_HINT_OBJECT_TOO_BIG",
+	PROPERTY_HINT_NODE_PATH_VALID_TYPES: &"PROPERTY_HINT_NODE_PATH_VALID_TYPES",
+	PROPERTY_HINT_SAVE_FILE: &"PROPERTY_HINT_SAVE_FILE",
+	PROPERTY_HINT_GLOBAL_SAVE_FILE: &"PROPERTY_HINT_GLOBAL_SAVE_FILE",
+	PROPERTY_HINT_INT_IS_OBJECTID: &"PROPERTY_HINT_INT_IS_OBJECTID",
+	PROPERTY_HINT_INT_IS_POINTER: &"PROPERTY_HINT_INT_IS_POINTER",
+	PROPERTY_HINT_ARRAY_TYPE: &"PROPERTY_HINT_ARRAY_TYPE",
+	PROPERTY_HINT_LOCALE_ID: &"PROPERTY_HINT_LOCALE_ID",
+	PROPERTY_HINT_LOCALIZABLE_STRING: &"PROPERTY_HINT_LOCALIZABLE_STRING",
+	PROPERTY_HINT_NODE_TYPE: &"PROPERTY_HINT_NODE_TYPE",
+	PROPERTY_HINT_HIDE_QUATERNION_EDIT: &"PROPERTY_HINT_HIDE_QUATERNION_EDIT",
+	PROPERTY_HINT_PASSWORD: &"PROPERTY_HINT_PASSWORD",
+	PROPERTY_HINT_LAYERS_AVOIDANCE: &"PROPERTY_HINT_LAYERS_AVOIDANCE",
+	PROPERTY_HINT_DICTIONARY_TYPE: &"PROPERTY_HINT_DICTIONARY_TYPE",
+	PROPERTY_HINT_TOOL_BUTTON: &"PROPERTY_HINT_TOOL_BUTTON",
+	PROPERTY_HINT_ONESHOT: &"PROPERTY_HINT_ONESHOT",
+	PROPERTY_HINT_GROUP_ENABLE: &"PROPERTY_HINT_GROUP_ENABLE",
+	PROPERTY_HINT_INPUT_NAME: &"PROPERTY_HINT_INPUT_NAME",
+	PROPERTY_HINT_FILE_PATH: &"PROPERTY_HINT_FILE_PATH",
+}
+
+## Single-bit [enum PropertyUsageFlags] value to its global constant name.
+## Combined flags such as [constant PROPERTY_USAGE_DEFAULT] are left out.
+const _USAGE_BITS:Dictionary = {
+	PROPERTY_USAGE_STORAGE: &"PROPERTY_USAGE_STORAGE",
+	PROPERTY_USAGE_EDITOR: &"PROPERTY_USAGE_EDITOR",
+	PROPERTY_USAGE_INTERNAL: &"PROPERTY_USAGE_INTERNAL",
+	PROPERTY_USAGE_CHECKABLE: &"PROPERTY_USAGE_CHECKABLE",
+	PROPERTY_USAGE_CHECKED: &"PROPERTY_USAGE_CHECKED",
+	PROPERTY_USAGE_GROUP: &"PROPERTY_USAGE_GROUP",
+	PROPERTY_USAGE_CATEGORY: &"PROPERTY_USAGE_CATEGORY",
+	PROPERTY_USAGE_SUBGROUP: &"PROPERTY_USAGE_SUBGROUP",
+	PROPERTY_USAGE_CLASS_IS_BITFIELD: &"PROPERTY_USAGE_CLASS_IS_BITFIELD",
+	PROPERTY_USAGE_NO_INSTANCE_STATE: &"PROPERTY_USAGE_NO_INSTANCE_STATE",
+	PROPERTY_USAGE_RESTART_IF_CHANGED: &"PROPERTY_USAGE_RESTART_IF_CHANGED",
+	PROPERTY_USAGE_SCRIPT_VARIABLE: &"PROPERTY_USAGE_SCRIPT_VARIABLE",
+	PROPERTY_USAGE_STORE_IF_NULL: &"PROPERTY_USAGE_STORE_IF_NULL",
+	PROPERTY_USAGE_UPDATE_ALL_IF_MODIFIED: &"PROPERTY_USAGE_UPDATE_ALL_IF_MODIFIED",
+	PROPERTY_USAGE_SCRIPT_DEFAULT_VALUE: &"PROPERTY_USAGE_SCRIPT_DEFAULT_VALUE",
+	PROPERTY_USAGE_CLASS_IS_ENUM: &"PROPERTY_USAGE_CLASS_IS_ENUM",
+	PROPERTY_USAGE_NIL_IS_VARIANT: &"PROPERTY_USAGE_NIL_IS_VARIANT",
+	PROPERTY_USAGE_ARRAY: &"PROPERTY_USAGE_ARRAY",
+	PROPERTY_USAGE_ALWAYS_DUPLICATE: &"PROPERTY_USAGE_ALWAYS_DUPLICATE",
+	PROPERTY_USAGE_NEVER_DUPLICATE: &"PROPERTY_USAGE_NEVER_DUPLICATE",
+	PROPERTY_USAGE_HIGH_END_GFX: &"PROPERTY_USAGE_HIGH_END_GFX",
+	PROPERTY_USAGE_NODE_PATH_FROM_SCENE_ROOT: &"PROPERTY_USAGE_NODE_PATH_FROM_SCENE_ROOT",
+	PROPERTY_USAGE_RESOURCE_NOT_PERSISTENT: &"PROPERTY_USAGE_RESOURCE_NOT_PERSISTENT",
+	PROPERTY_USAGE_KEYING_INCREMENTS: &"PROPERTY_USAGE_KEYING_INCREMENTS",
+	PROPERTY_USAGE_DEFERRED_SET_RESOURCE: &"PROPERTY_USAGE_DEFERRED_SET_RESOURCE",
+	PROPERTY_USAGE_EDITOR_INSTANTIATE_OBJECT: &"PROPERTY_USAGE_EDITOR_INSTANTIATE_OBJECT",
+	PROPERTY_USAGE_EDITOR_BASIC_SETTING: &"PROPERTY_USAGE_EDITOR_BASIC_SETTING",
+	PROPERTY_USAGE_READ_ONLY: &"PROPERTY_USAGE_READ_ONLY",
+	PROPERTY_USAGE_SECRET: &"PROPERTY_USAGE_SECRET",
+}
 
 
 # ██████  ██████   ██████  ██████  ███████ ██████  ████████ ██ ███████ ███████ #
@@ -83,7 +165,7 @@ signal settings_changed( setting_name:StringName, value:Variant )
 func                        __________EVENTS_________              ()->void:pass
 
 func _on_project_settings_changed() -> void:
-	Print.plog(LogLevel.TRACE, "_on_project_settings_changed")
+	Log.trace({}, self)
 	update_target.call_deferred()
 
 
@@ -119,9 +201,29 @@ func _init( target:Object, prefix:String = "plugin/un-named" ) -> void:
 #         ██      ██ ███████    ██    ██   ██  ██████  ██████  ███████         #
 func                        _________METHODS_________              ()->void:pass
 
+## Global constant name for [param hint].
+func _hint_name( hint:int ) -> String:
+	# Unknown hints stay as the integer.
+	var key:Variant = _HINT_NAMES.get( hint )
+	if key == null:
+		return str( hint )
+	return str( key )
+
+
+## Single-bit usage names set in [param usage].
+func _usage_names( usage:int ) -> PackedStringArray:
+	# The map holds only powers of two, so a combined flag is never named whole.
+	var names := PackedStringArray()
+	for bit:int in _USAGE_BITS:
+		if usage & bit:
+			if not names.push_back( str( _USAGE_BITS[bit] ) ):
+				break
+	return names
+
+
 ## Register target properties as ProjectSettings under [member _prefix].
 func add_target_properties() -> void:
-	Print.plog(LogLevel.TRACE, "add_target_properties")
+	Log.trace({}, self)
 
 	var category:String
 	var group:String
@@ -133,22 +235,21 @@ func add_target_properties() -> void:
 	# Inspector grouping: unused group/subgroup prefixes reset that level.
 	for property:Dictionary in _target.get_property_list():
 		var property_name:String = property.name
-		Print.plog(LogLevel.TRACE, "\nproperty.name: ", property_name)
+		Log.lvl( Log.Level.TRACE, ["property.name:", property_name])
 		var property_type:int = property.type
-		Print.plog(LogLevel.TRACE, "property.type: ", type_string(property_type))
+		Log.lvl( Log.Level.TRACE, ["property.type:", type_string(property_type)])
 		var property_hint:int = property.hint
-		Print.plog(LogLevel.TRACE, "property.hint: ",
-			Print.HintEnum.find_key(property_hint))
+		Log.lvl( Log.Level.TRACE,
+				["property.hint:", _hint_name( property_hint )])
 		var hint_string:String = property.hint_string
-		Print.plog(LogLevel.TRACE, "property.hint_string: ", hint_string)
+		Log.lvl( Log.Level.TRACE, ["property.hint_string:", hint_string])
 
 		var usage:int = property.usage
-		var usage_bits:PackedByteArray = Print.bitmask_array(usage, 30)
-		var usage_flags:PackedStringArray = Print.get_usage_flags(usage_bits)
-		Print.plog(LogLevel.TRACE, "property.usage: ", usage_flags)
+		Log.lvl( Log.Level.TRACE,
+				["property.usage:", _usage_names( usage )])
 
 		var property_value:Variant = _target.get(property_name)
-		Print.plog(LogLevel.TRACE, "value: ", property_value)
+		Log.lvl( Log.Level.TRACE, ["value:", property_value])
 
 		if property.usage & PROPERTY_USAGE_CATEGORY:
 			if property_name == _target_file:
@@ -188,7 +289,7 @@ func add_target_properties() -> void:
 
 		if subgroup and subgroup_prefix:
 			if property_name.begins_with(subgroup_prefix):
-				Print.plog(LogLevel.TRACE, "matched subgroup_prefix")
+				Log.lvl( Log.Level.TRACE, "matched subgroup_prefix")
 				setting_name = property_name.trim_prefix(subgroup_prefix)
 				trimmed = true
 				group_level = 2
@@ -200,7 +301,7 @@ func add_target_properties() -> void:
 		if group_level == 0:
 			if group_prefix:
 				if property_name.begins_with(group_prefix):
-					Print.plog(LogLevel.TRACE, "match group_prefix")
+					Log.lvl( Log.Level.TRACE, "match group_prefix")
 					setting_name = property_name.trim_prefix(group_prefix)
 					trimmed = true
 					group_level = 1
@@ -223,19 +324,19 @@ func add_target_properties() -> void:
 		var setting_path:String = "/".join(parts)
 		var setting_full:String = setting_path.path_join(setting_name)
 
-		Print.plog(LogLevel.TRACE, "Category: ", category)
-		Print.plog(LogLevel.TRACE, "Group: ", [group, group_prefix])
-		Print.plog(LogLevel.TRACE, "SubGroup: ", [subgroup, subgroup_prefix])
-		Print.plog(LogLevel.TRACE, "group_level: ", group_level)
-		Print.plog(LogLevel.TRACE, "Trimmed: ", trimmed)
-		Print.plog(LogLevel.TRACE, "Setting Path: ", setting_path)
-		Print.plog(LogLevel.TRACE, "Setting Name: ", setting_name)
-		Print.plog(LogLevel.TRACE, "Setting_full: ", setting_full)
+		Log.lvl( Log.Level.TRACE, ["Category:", category])
+		Log.lvl( Log.Level.TRACE, ["Group:", group, group_prefix])
+		Log.lvl( Log.Level.TRACE, ["SubGroup:", subgroup, subgroup_prefix])
+		Log.lvl( Log.Level.TRACE, ["group_level:", group_level])
+		Log.lvl( Log.Level.TRACE, ["Trimmed:", trimmed])
+		Log.lvl( Log.Level.TRACE, ["Setting Path:", setting_path])
+		Log.lvl( Log.Level.TRACE, ["Setting Name:", setting_name])
+		Log.lvl( Log.Level.TRACE, ["Setting_full:", setting_full])
 
 		if property_value \
 		and property_type == TYPE_CALLABLE \
 		and property_hint & PROPERTY_HINT_TOOL_BUTTON:
-			Print.plog(LogLevel.TRACE, "is button")
+			Log.lvl( Log.Level.TRACE, "is button")
 			var button_func:Callable = property_value
 			# Full path so buttons sit under the same prefix as other settings.
 			add_callable_as_button(setting_full, button_func, hint_string)
@@ -264,19 +365,19 @@ func add_target_properties() -> void:
 
 ## Pull ProjectSettings values into the target; emit [signal settings_changed].
 func update_target() -> void:
-	Print.plog(LogLevel.TRACE, "update_target")
+	Log.trace({}, self)
 	for setting_name:String in setting_prop_map.keys():
 		var new_val:Variant = ProjectSettings.get(setting_name)
 		var prop_name:StringName = setting_prop_map[setting_name]
 		if new_val == _target.get(prop_name):
 			continue
-		Print.plog(LogLevel.TRACE, "Updating '%s' : %s" % [setting_name, new_val])
+		Log.lvl( Log.Level.TRACE, "Updating '%s' : %s" % [setting_name, new_val])
 		_target.set(prop_name, new_val)
 		settings_changed.emit(prop_name, new_val)
 
 
 func inspect_target() -> void:
-	Print.plog(LogLevel.TRACE, "inspect_target")
+	Log.trace({}, self)
 	EditorInterface.inspect_object(_target)
 
 
@@ -294,7 +395,7 @@ func                        __________STATIC_________              ()->void:pass
 ## [code]editor_plugins/enabled[/code]. Whole-project discovery — not this
 ## helper's install path.
 static func get_all_plugins_info( only_loaded:bool = false ) -> Array[Dictionary]:
-	Print.plog(LogLevel.TRACE, "get_all_plugins_info")
+	Log.lvl( Log.Level.TRACE, "get_all_plugins_info" )
 	var enabled_plugins:PackedStringArray = ProjectSettings.get_setting(
 		"editor_plugins/enabled")
 	var plugins_info:Array[Dictionary] = []
@@ -353,7 +454,7 @@ static func add_callable_as_button(
 			path:String,
 			callable:Callable,
 			label:String = callable.get_method().capitalize() ) -> void:
-	Print.plog(LogLevel.TRACE, "add_callable_as_button")
+	Log.lvl( Log.Level.TRACE, "add_callable_as_button" )
 	ProjectSettings.set(path, callable)
 	ProjectSettings.add_property_info({
 		&"name": path,
@@ -365,7 +466,7 @@ static func add_callable_as_button(
 
 ## Clear ProjectSettings under [param prefix] (skips TYPE_CALLABLE).
 static func erase_prefix( prefix:String ) -> void:
-	Print.plog(LogLevel.TRACE, "erase_prefix")
+	Log.lvl( Log.Level.TRACE, "erase_prefix" )
 	for property:Dictionary in ProjectSettings.get_property_list():
 		var setting_name:String = property.get(&"name")
 		if not setting_name.begins_with(prefix):
