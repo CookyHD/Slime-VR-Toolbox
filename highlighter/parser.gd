@@ -120,7 +120,7 @@ var attribute_map:Dictionary[StringName, Callable] = {
 	&'deprecated': attribute_deprecated,
 	&'required': attribute_required,
 	&'id': attribute_unsupported,
-	&'key': attribute_unsupported,
+	&'key': attribute_key,
 	&'bit_flags': attribute_unsupported,
 }
 
@@ -1190,13 +1190,22 @@ func parse_field_decl( p_token:Token ) -> void:
 			var field_type:StringName = return_dict.get(&"field_type", &"")
 			if field_type != &"":
 				frame.data[&"field_type"] = field_type
+			var element_type:StringName = return_dict.get(&"element_type", &"")
+			if element_type != &"":
+				frame.data[&"element_type"] = element_type
 		if p_token.t == &"=":
 			reader.adv_token(p_token) # consume '='
 			var token:Token = reader.get_token()
 			var return_val:Dictionary = frame.data.get(&"return")
 			if not frame.data.erase(&"return"):
 				Log.err( "&'return' was not found in frame data")
-			if return_val.get(&"field_type") == &"enum":
+			if token.t == &"null":
+				var ft:StringName = frame.data.get(&"field_type", &"")
+				if ft == &"scalar" or ft == &"enum":
+					frame.data[&"optional"] = true
+				else:
+					syntax_error(token, "Only Scalar values can have defaults")
+			elif return_val.get(&"field_type") == &"enum":
 				var enum_vals:Array[StringName] = enum_types.get(return_val.get(&"field_name"))
 				if not token.t in enum_vals:
 					syntax_error(token, "value not found in enum")
@@ -1318,6 +1327,14 @@ func parse_type( p_token:Token ) -> void:
 	elif token.t in enum_types:
 		return_val[&"field_type"] = &"enum"
 		return_val[&"field_name"] = token.t
+	elif token.t == &"string":
+		return_val[&"field_type"] = &"string"
+	elif token.t in struct_types:
+		return_val[&"field_type"] = &"struct"
+	elif token.t in table_types:
+		return_val[&"field_type"] = &"table"
+	elif token.t in union_types:
+		return_val[&"field_type"] = &"union"
 
 	if decl_type == &"struct":
 		if not token.t in scalar_types + struct_types + enum_types.keys():
@@ -1333,11 +1350,14 @@ func parse_type( p_token:Token ) -> void:
 	# If we arent using brackets we can just end here
 	if not has_bracket: return end_frame( return_val )
 
+	var element_type:StringName = return_val[&"field_type"]
 	token = reader.get_token()
 
 	# Check for Array Syntax
+	var is_array:bool = false
 	if decl_type == &"struct":
 		if token.t == &":":
+			is_array = true
 			token = reader.get_token()
 			if not reader.is_integer(token.t):
 				syntax_error(token, "Array Syntax count must be an integral value")
@@ -1345,7 +1365,9 @@ func parse_type( p_token:Token ) -> void:
 
 	# Close out the brackets.
 	want_token_t(token, &"]")
-	return end_frame()
+	return_val[&"element_type"] = element_type
+	return_val[&"field_type"] = &"array" if is_array else &"vector"
+	return end_frame( return_val )
 #endregion Type
 
 
@@ -1771,11 +1793,47 @@ func attribute_required(token:Token) -> void:
 	if field_type == &"scalar" or field_type == &"enum":
 		syntax_error(token, "only non-scalar fields in tables may be 'required'")
 
+## flatc: one key per table. Scalar, enum, string, struct, and a fixed array
+## of scalars or structs are legal. A second key, anything else, and an
+## optional scalar key use flatc's error strings.
+func attribute_key(token:Token) -> void:
+	var field:StackFrame = _field_under_metadata()
+	if field == null:
+		syntax_error(token, "'key' field must be string, scalar type or fixed size array of scalars")
+		return
+	var decl:StackFrame = _type_decl_under_metadata()
+	if decl != null and decl.data.get(&"has_key", false):
+		syntax_error(token, "only one field may be set as 'key'")
+		return
+	if decl != null:
+		decl.data[&"has_key"] = true
+	var field_type:StringName = field.data.get(&"field_type", &"")
+	var element_type:StringName = field.data.get(&"element_type", &"")
+	var valid:bool = false
+	if field_type == &"scalar" or field_type == &"enum" or field_type == &"string" or field_type == &"struct":
+		valid = true
+	elif field_type == &"array":
+		valid = element_type == &"scalar" or element_type == &"enum" or element_type == &"struct"
+	if not valid:
+		syntax_error(token, "'key' field must be string, scalar type or fixed size array of scalars")
+		return
+	if field.data.get(&"optional", false) and (field_type == &"scalar" or field_type == &"enum"):
+		syntax_error(token, "only a non-optional scalar field can be used as a 'key' field")
+
 func _field_under_metadata() -> StackFrame:
 	var idx:int = stack.size() - 2
 	while idx >= 0:
 		var frame:StackFrame = stack.at(idx)
 		if frame.type == FrameType.FIELD_DECL:
+			return frame
+		idx -= 1
+	return null
+
+func _type_decl_under_metadata() -> StackFrame:
+	var idx:int = stack.size() - 2
+	while idx >= 0:
+		var frame:StackFrame = stack.at(idx)
+		if frame.type == FrameType.TYPE_DECL:
 			return frame
 		idx -= 1
 	return null
