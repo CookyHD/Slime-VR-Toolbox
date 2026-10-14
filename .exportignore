@@ -1,2 +1,4 @@
 # Editor-only addon. The runtime library is enetheru.flatbuffers-extension.
+export_plugin.gd
+export_plugin.gd.uid
 *
