@@ -14,6 +14,8 @@ const Token = preload("uid://cvcd6kyaa4f1a")
 # Supporting Assets
 const ICON_BW_TINY = preload("uid://d32jh3dw5nypp")
 
+const ExportPlugin = preload("export_plugin.gd")
+
 const author:String = "enetheru"
 const PluginName:String = "FlatBuffers"
 const plugin_name:String = "flatbuffers"
@@ -51,6 +53,7 @@ var context_menus:Dictionary[EditorContextMenuPlugin.ContextMenuSlot,EditorConte
 
 var _cs_plugin:EditorPlugin
 var _cs_reloaded_cb:Callable = Callable()
+var export_plugin:EditorExportPlugin
 
 
 #             ███████ ██    ██ ███████ ███    ██ ████████ ███████              #
@@ -133,11 +136,17 @@ func _enter_tree() -> void:
 	if opts.experimental:
 		enable_experimental_features()
 
+	export_plugin = ExportPlugin.new()
+	add_export_plugin(export_plugin)
+
 	_register_with_command_server.call_deferred()
 
 
 func _exit_tree() -> void:
 	Log.trace( {}, self )
+	if export_plugin:
+		remove_export_plugin(export_plugin)
+		export_plugin = null
 	_unregister_from_command_server()
 
 	if opts.experimental:
