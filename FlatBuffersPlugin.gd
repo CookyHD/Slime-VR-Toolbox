@@ -139,11 +139,15 @@ func _enter_tree() -> void:
 	export_plugin = ExportPlugin.new()
 	add_export_plugin(export_plugin)
 
-	_register_with_command_server.call_deferred()
+	_schedule_command_server_register()
 
 
 func _exit_tree() -> void:
 	Log.trace( {}, self )
+	var efs:EditorFileSystem = EditorInterface.get_resource_filesystem()
+	var register_cb:Callable = _register_with_command_server
+	if efs.filesystem_changed.is_connected( register_cb ):
+		efs.filesystem_changed.disconnect( register_cb )
 	if export_plugin:
 		remove_export_plugin(export_plugin)
 		export_plugin = null
@@ -196,7 +200,27 @@ func _disable_plugin() -> void:
 #         ██      ██ ███████    ██    ██   ██  ██████  ██████  ███████         #
 func                        _________METHODS_________              ()->void:pass
 
+# The first scan clears ResourceUID, then rebuilds it. Command scripts preload
+# by uid, so a reload in that window cannot resolve them.
+func _schedule_command_server_register() -> void:
+	var efs:EditorFileSystem = EditorInterface.get_resource_filesystem()
+	if efs.is_scanning():
+		var register_cb:Callable = _register_with_command_server
+		if not efs.filesystem_changed.is_connected( register_cb ):
+			var err:Error = efs.filesystem_changed.connect( register_cb, CONNECT_ONE_SHOT )
+			if err != OK:
+				Log.lvl( Log.Level.NOTICE, "FlatBuffers: connect filesystem_changed failed: %d" % err )
+		return
+	_register_with_command_server.call_deferred()
+
+
 func _register_with_command_server() -> void:
+	if not is_inside_tree():
+		return
+	var efs:EditorFileSystem = EditorInterface.get_resource_filesystem()
+	if efs.is_scanning():
+		_schedule_command_server_register()
+		return
 	_unregister_from_command_server()
 	var cs:EditorPlugin = _find_command_server()
 	if not is_instance_valid( cs ):
@@ -220,7 +244,7 @@ func _register_with_command_server() -> void:
 
 
 func _on_command_server_reloaded() -> void:
-	_register_with_command_server.call_deferred()
+	_schedule_command_server_register()
 
 
 func _unregister_from_command_server() -> void:
