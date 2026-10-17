@@ -1,0 +1,2028 @@
+@tool
+# │ ___
+# │| _ \__ _ _ _ ___ ___ _ _
+# │|  _/ _` | '_(_-</ -_) '_|
+# │|_| \__,_|_| /__/\___|_|
+# ╰───────────────────────────
+# A FlatBuffer schema file(fbs) parser
+
+const Reader = preload('uid://cupdfm2aikswa')
+const Token = preload('uid://cvcd6kyaa4f1a')
+const FrameStack = preload('uid://d3cyn1bbenwmo')
+const StackFrame = preload('uid://c0ub8clj4bhhv')
+const FrameType = StackFrame.Type
+const FlatBuffersHighlighter = preload('uid://ddcfjoxe7i5jo')
+
+const Log = preload("uid://biv0hwe68jj3s")
+
+static var _opts:FlatBuffersOpts:
+	get():
+		if FlatBuffersPlugin._prime:
+			var opts := FlatBuffersPlugin._prime.opts
+			if opts: _opts = opts
+		return _opts
+	set(v):_opts = v
+
+## Helful bitflags for branching on common elements
+enum Allow {
+	COLON = 0x1,
+	PAREN = 0x2,
+	COMMA = 0x4,
+	BRACE = 0x8,
+}
+
+# ██████  ██████   ██████  ██████  ███████ ██████  ████████ ██ ███████ ███████ #
+# ██   ██ ██   ██ ██    ██ ██   ██ ██      ██   ██    ██    ██ ██      ██      #
+# ██████  ██████  ██    ██ ██████  █████   ██████     ██    ██ █████   ███████ #
+# ██      ██   ██ ██    ██ ██      ██      ██   ██    ██    ██ ██           ██ #
+# ██      ██   ██  ██████  ██      ███████ ██   ██    ██    ██ ███████ ███████ #
+func                        ________PROPERTIES_______              ()->void:pass
+
+# ── Dependencies ─────────────────────────────────────────────────────────────
+var plugin: FlatBuffersPlugin           # temporary bridge
+var reader: Reader             # we'll initialize it later
+
+# ── Collected schema knowledge ───────────────────────────────────────────────
+var struct_types: Array[StringName] = []
+var table_types:  Array[StringName] = []
+var union_types:  Array[StringName] = []
+var enum_types:   Dictionary = {}       # StringName → Array[StringName]
+var _bit_names:Array[String] = []
+var _bit_indexes:Array[int] = []
+var _bit_tokens:Array[Token] = []
+var _bit_seen:int = 0
+var _bit_last:int = 0
+var custom_attr:   Dictionary = {}       # StringName(file_name) → Array[StringName]
+
+# ── Include handling (will be improved later) ────────────────────────────────
+var included_files: Array[String] = []
+var scanned_files: Array[String] = []
+var scan_pending: Array[String] = []
+## Schema open in the editor. Its directory is searched after the -I list.
+var root_schema_path:String = ""
+## File whose text is being scanned. Its directory is searched first.
+var current_schema_path:String = ""
+
+# ── Incremental parsing state ────────────────────────
+var max_stack_size:int = 100
+var stack : FrameStack = FrameStack.new(max_stack_size)   # initial capacity, can tune later
+
+# saved stacks per line (key: line number, value: FrameStack)
+# TODO: I wonder if we can keep the stack in the highlight cache.
+var stack_list : Dictionary = {}               # int → FrameStack
+
+# indicates if we saved a stack for this line index
+# Where the Array index is the line_num, and stack_index[index] bool
+# indicates whether the stack_list dictionary has an index saved.
+# TODO They can probably be merged into the same field honestly.
+var stack_index : Array[bool] = [false]        # grows as needed
+
+# A block of false data which is used to expand on the stack index
+var new_index_chunk:Array[bool]
+
+# flags that influence parsing behaviour / highlighting
+# NOTE: if error or warning is set, do not to save the stack to the next line
+# error_flag is cleared at the start of each line. issues keeps every row.
+var error_flag : bool = false
+var warning_flag : bool = false
+var issues:Array[Dictionary] = []
+
+var is_quick_scan_in_progress: bool = false # re-entrancy guard + "behave in discovery mode"
+var has_performed_quick_scan: bool = false  # "can I trust struct_types/table_types etc.?"
+
+# The line number that the stack was restored from.
+var prev_idx : int = 0
+
+# Per-line colour dictionary (temporarily here; highlighter will receive a copy)
+var line_dict: Dictionary[int, Dictionary] = {}
+
+# ── Grammar constants ───────────────────────────────
+var keywords:Array[StringName] = [
+	&'include', &'namespace', &'table', &'struct', &'enum',
+	&'union', &'root_type', &'file_extension', &'file_identifier', &'attribute',
+	&'rpc_service']
+
+var integer_types:Array[StringName] = [
+	&"byte", &"ubyte", &"short", &"ushort", &"int", &"uint", &"long", &"ulong",
+	&"int8", &"uint8", &"int16", &"uint16", &"int32", &"uint32", &"int64", &"uint64"]
+
+var float_types:Array[StringName] = [&"float", &"double", &"float32", &"float64"]
+
+var boolean_types:Array[StringName] = [&"bool"]
+
+var array_types: Array[StringName] = [
+	&"string",
+	&"String",
+	&"StringName",
+	&"NodePath", ]
+
+# is assigned in _init()
+var scalar_types: Array[StringName] # integer_types + float_types + boolean_types
+
+## A map of attribute to test functionality as not all attributes are appropriate
+## in all cases.
+var attribute_map:Dictionary[StringName, Callable] = {
+	&'deprecated': attribute_deprecated,
+	&'required': attribute_required,
+	&'id': attribute_unsupported,
+	&'key': attribute_key,
+	&'bit_flags': attribute_bit_flags,
+	&'nested_flatbuffer': attribute_nested_flatbuffer,
+}
+
+
+var kw_frame_map:Dictionary[StringName, FrameType] = {
+	&'include':         FrameType.INCLUDE,
+	&'namespace':       FrameType.NAMESPACE_DECL,
+	&'table':           FrameType.TYPE_DECL,
+	&'struct':          FrameType.TYPE_DECL,
+	&'enum':            FrameType.ENUM_DECL,
+	&'union':           FrameType.UNION_DECL,
+	&'root_type':       FrameType.ROOT_DECL,
+	&'file_extension':  FrameType.FILE_EXTENSION_DECL,
+	&'file_identifier': FrameType.FILE_IDENTIFIER_DECL,
+	&'attribute':       FrameType.ATTRIBUTE_DECL,
+	&'rpc_service':     FrameType.RPC_DECL,
+}
+
+# ── Per-line parsing ────────────────────────────────────────────────────────
+# Temporary bridge while we migrate parse_xxx functions
+var active_highlighter: FlatBuffersHighlighter = null
+
+
+#      ██████  ██    ██ ███████ ██████  ██████  ██ ██████  ███████ ███████     #
+#     ██    ██ ██    ██ ██      ██   ██ ██   ██ ██ ██   ██ ██      ██          #
+#     ██    ██ ██    ██ █████   ██████  ██████  ██ ██   ██ █████   ███████     #
+#     ██    ██  ██  ██  ██      ██   ██ ██   ██ ██ ██   ██ ██           ██     #
+#      ██████    ████   ███████ ██   ██ ██   ██ ██ ██████  ███████ ███████     #
+func                        ________OVERRIDES________              ()->void:pass
+
+func _init(plugin_ref: FlatBuffersPlugin = null) -> void:
+	if plugin_ref:
+		plugin = plugin_ref
+		_sync_constants_from_plugin()
+
+	var err:int =  new_index_chunk.resize(10)
+	if err != OK: Log.err( error_string(err))
+
+	new_index_chunk.fill(false)
+
+	scalar_types = integer_types + float_types + boolean_types
+	reader = Reader.new(self)
+
+	# This saves us from having to highlight everything manually.
+	err = reader.new_token.connect(highlight)
+	if err != OK: Log.err( error_string(err))
+
+	err = reader.newline.connect(
+		func(l:int,_p:int) -> void:
+			if error_flag: return
+			save_stack(l, 0))
+	if err != OK: Log.err( error_string(err))
+
+
+#         ███    ███ ███████ ████████ ██   ██  ██████  ██████  ███████         #
+#         ████  ████ ██         ██    ██   ██ ██    ██ ██   ██ ██              #
+#         ██ ████ ██ █████      ██    ███████ ██    ██ ██   ██ ███████         #
+#         ██  ██  ██ ██         ██    ██   ██ ██    ██ ██   ██      ██         #
+#         ██      ██ ███████    ██    ██   ██  ██████  ██████  ███████         #
+func                        _________METHODS_________              ()->void:pass
+
+func clear_cache() -> void:
+	has_performed_quick_scan = false
+	error_flag = false
+	warning_flag = false
+	issues.clear()
+	included_files.clear()
+	scanned_files.clear()
+	struct_types.clear()
+	table_types.clear()
+	union_types.clear()
+	enum_types.clear()
+	reset_stack()
+
+
+func resize_stack_index( size:int ) -> void:
+	var err:int = stack_index.resize( size )
+	if err != OK: Log.err( error_string(err))
+	stack_index.fill(false)
+
+
+func lpad( extra:int = 0 ) -> String:
+	var amount:int = stack.size() -1 + extra
+	return "".lpad( amount , '\t' )
+
+
+func _sync_constants_from_plugin() -> void:
+	# TODO: move these to a shared constants file later
+	if "scalar_types" in plugin:
+		scalar_types = plugin.get('scalar_types')
+	if "keywords" in plugin:
+		keywords = plugin.get('keywords')
+
+
+# ── File Helper ────────────────────────────────
+## Resolve [param include_name] in flatc's order.
+## The including file's directory, then each generator include path, then the root schema's directory.
+func check_include_file( include_name:String ) -> String:
+	var name:String = include_name.replace( "\\", "/" )
+	var found:String = _existing_include( current_schema_path.get_base_dir(), name )
+	if not found.is_empty():
+		return found
+
+	var include_paths:Array = _generator_include_paths()
+	Log.lvl( Log.Level.TRACE, "Searching Locations: %s" % [include_paths] )
+	for ipath:String in include_paths:
+		found = _existing_include( ipath, name )
+		if not found.is_empty():
+			return found
+
+	var root_dir:String = root_schema_path.get_base_dir()
+	if root_dir != current_schema_path.get_base_dir():
+		found = _existing_include( root_dir, name )
+		if not found.is_empty():
+			return found
+
+	return ""
+
+
+func _existing_include( dir:String, include_name:String ) -> String:
+	if dir.is_empty() or include_name.is_empty():
+		return ""
+	var joined:String = dir.path_join( include_name ).simplify_path()
+	if not FileAccess.file_exists( joined ):
+		return ""
+	Log.lvl( Log.Level.TRACE, "Located file: '%s'" % joined )
+	return joined
+
+
+## Include paths flatc receives from the active generator config.
+## Project setting [code]flatbuffers/GeneratorConfigs/main[/code] wins when it is set.
+func _generator_include_paths() -> Array:
+	var config:FlatBuffersGeneratorOpts = null
+	var from_settings:Variant = ProjectSettings.get_setting( "flatbuffers/GeneratorConfigs/main", null )
+	if from_settings is FlatBuffersGeneratorOpts:
+		var settings_config:FlatBuffersGeneratorOpts = from_settings
+		config = settings_config
+	elif FlatBuffersPlugin._prime and FlatBuffersPlugin._prime.opts:
+		config = FlatBuffersPlugin._prime.opts.config_main
+	if config == null:
+		return []
+	return config.get_include_paths()
+
+
+#  ██   ██ ██  █████  ██   ██ ██     ██  █████  ██   ██ ██████ ██████ ██████   #
+#  ██   ██ ██ ██      ██   ██ ██     ██ ██      ██   ██   ██   ██     ██   ██  #
+#  ███████ ██ ██  ███ ███████ ██     ██ ██  ███ ███████   ██   ████   ██████   #
+#  ██   ██ ██ ██   ██ ██   ██ ██     ██ ██   ██ ██   ██   ██   ██     ██   ██  #
+#  ██   ██ ██  █████  ██   ██ ██████ ██  █████  ██   ██   ██   ██████ ██   ██  #
+func                        _______HIGHLIGHTER_______              ()->void:pass
+# ── Colour / error helpers ─────────────────────────
+
+func highlight(token: Token) -> void:
+	active_highlighter.highlight(token)
+	var colour:String = _opts.get_colour(token.type).to_html()
+	Log.lvl( Log.Level.TRACE, lpad() + "\t[color=%s]%s[/color]" % [colour, token])
+
+
+func highlight_colour(token: Token, colour:Color) -> void:
+	active_highlighter.highlight_colour(token, colour)
+
+
+func syntax_warning(token: Token, reason: String = "") -> void:
+	Log.trace({&'token': token, &'reason': reason}, self)
+	active_highlighter.syntax_warning(token, reason)
+
+
+func syntax_error(token: Token, reason: String = "") -> void:
+	Log.trace({&'token': token, &'reason': reason}, self)
+	active_highlighter.syntax_error(token, reason)
+
+
+## Record one diagnose row. Line and column match the editor gutter.
+func add_issue( kind:StringName, token:Token, reason:String ) -> void:
+	var frame:String = "#"
+	var stack_text:String = ""
+	if not stack.is_empty():
+		frame = str( StackFrame.Type.find_key( stack.top().type ) )
+		stack_text = str( stack )
+	issues.append( {
+		&"kind": kind,
+		&"line": token.line + 1,
+		&"col": token.col + 1,
+		&"text": token.t,
+		&"reason": reason,
+		&"frame": frame,
+		&"stack": stack_text,
+	} )
+
+
+func issue_count() -> int:
+	return issues.size()
+
+
+## Drop rows for one 0-based source line. The next parse of that line replaces them.
+func drop_line_issues( line_num:int ) -> void:
+	var display_line:int = line_num + 1
+	var kept:Array[Dictionary] = []
+	for row:Dictionary in issues:
+		@warning_ignore("unsafe_call_argument")
+		var display_stored:int = int( row.get( &"line", 0 ) )
+		if display_stored == display_line:
+			continue
+		kept.append( row )
+	issues = kept
+
+
+## Drop rows whose gutter line is no longer in the buffer.
+func prune_issues( line_count:int ) -> void:
+	var kept:Array[Dictionary] = []
+	for row:Dictionary in issues:
+		@warning_ignore("unsafe_call_argument")
+		var display_line:int = int( row.get( &"line", 0 ) )
+		if display_line < 1 or display_line > line_count:
+			continue
+		kept.append( row )
+	issues = kept
+
+
+## [param level] is an inclusive ceiling. [constant Log.Level.DEBUG] and
+## above append the parser stack that was current when the issue was recorded.
+func format_issues( level:int = -1 ) -> String:
+	var show_stack:bool = level >= 0 and ( level & Log.Level.EXCLUSIVE_DEBUG ) != 0
+	var lines:PackedStringArray = PackedStringArray()
+	for row:Dictionary in issues:
+		@warning_ignore("return_value_discarded")
+		lines.append( "%s line=%s col=%s frame=%s text=%s reason=%s" % [
+			str( row.get( &"kind", &"error" ) ),
+			str( row.get( &"line", 0 ) ),
+			str( row.get( &"col", 0 ) ),
+			str( row.get( &"frame", "#" ) ),
+			str( row.get( &"text", "" ) ),
+			str( row.get( &"reason", "" ) ),
+		] )
+		if not show_stack:
+			continue
+		var stack_text:String = str( row.get( &"stack", "" ) )
+		if stack_text.is_empty():
+			continue
+		for stack_line:String in stack_text.split( "\n" ):
+			@warning_ignore("return_value_discarded")
+			lines.append( "\t" + stack_line )
+	return "\n".join( lines )
+
+
+# ███████ ██████  █████   █████ ██   ██      ██   ██ ██████ ██ ██     ███████  #
+# ██        ██   ██   ██ ██     ██  ██       ██   ██   ██   ██ ██     ██       #
+# ███████   ██   ███████ ██     █████  █████ ██   ██   ██   ██ ██     ███████  #
+#      ██   ██   ██   ██ ██     ██  ██       ██   ██   ██   ██ ██          ██  #
+# ███████   ██   ██   ██  █████ ██   ██       █████    ██   ██ ██████ ███████  #
+func                       _______STACK_UTILS_______               ()->void:pass
+
+# Call this at the end of a successful line parse
+func save_stack(line_num: int, force: bool = false) -> void:
+	if error_flag and not force:
+		return  # don't save bad state
+
+	# Grow arrays if needed
+	while stack_index.size() <= line_num:
+		stack_index.append(false)
+
+	# Duplicate current stack
+	stack_list[line_num] = stack.duplicate()  # deep copy
+	stack_index[line_num] = true
+	prev_idx = line_num
+	Log.lvl( Log.Level.TRACE, "Stack saved to line %s" % [line_num+1] )
+	Log.lvl( Log.Level.TRACE, "Saved: %s" % [stack_list[line_num]] )
+
+
+# Get the stack to restore from for this line
+func get_prev_stack(line_num: int) -> FrameStack:
+	# Look backward for the last saved good stack
+	for i in range(line_num, -1, -1):
+		if stack_index.size() > i and stack_index[i]:
+			prev_idx = i
+			var saved:FrameStack = stack_list.get(i)
+			if not saved: continue
+			FlatBuffersHighlighter.hlog(Log.Level.DEBUG," ".join(["restoring stack from line", i+1]))
+			FlatBuffersHighlighter.hlog(Log.Level.DEBUG, saved.top())
+			return saved.duplicate()  # return a copy to avoid mutation issues
+	# No previous state → fresh stack
+	return FrameStack.new(20)
+
+
+# Reset stack state (e.g. on full document change / cache clear)
+func reset_stack() -> void:
+	stack.clear()
+	stack_list.clear()
+	stack_index.clear()
+	stack_index.append(false)  # index 0
+	prev_idx = 0
+	#STUB stack_index.resize( get_text_edit().text.length() + 10 )
+	#STUB stack_index.fill(false)
+
+
+func _dispatch(frame: StackFrame, token: Token) -> void:
+	match frame.type:
+		FrameType.NONE:                   syntax_error(token)
+		FrameType.SCHEMA:                 parse_schema(token)
+		FrameType.INCLUDE:                parse_include(token)
+		FrameType.NAMESPACE_DECL:         parse_namespace_decl(token)
+		FrameType.ATTRIBUTE_DECL:         parse_attribute_decl(token)
+		FrameType.TYPE_DECL:              parse_type_decl(token)
+		FrameType.ENUM_DECL:              parse_enum_decl(token)
+		FrameType.UNION_DECL:             parse_union_decl(token)
+		FrameType.ROOT_DECL:              parse_root_decl(token)
+		FrameType.FIELD_DECL:             parse_field_decl(token)
+		FrameType.RPC_DECL:               parse_rpc_decl(token)
+		FrameType.RPC_METHOD:             parse_rpc_method(token)
+		FrameType.TYPE:                   parse_type(token)
+		FrameType.ENUMVAL_DECL:           parse_enumval_decl(token)
+		FrameType.UNIONVAL_DECL:          parse_unionval_decl(token)
+		FrameType.METADATA:               parse_metadata(token)
+		FrameType.SCALAR:                 parse_scalar(token)
+		FrameType.OBJECT:                 parse_object(token)
+		FrameType.SINGLE_VALUE:           parse_single_value(token)
+		FrameType.VALUE:                  parse_value(token)
+		FrameType.COMMASEP:               parse_commasep(token)
+		FrameType.FILE_EXTENSION_DECL:    parse_file_extension_decl(token)
+		FrameType.FILE_IDENTIFIER_DECL:   parse_file_identifier_decl(token)
+		FrameType.STRING_CONSTANT:        parse_string_constant(token)
+		FrameType.IDENT:                  parse_ident(token)
+		#FrameType.DIGIT:                  parse_digit(token)
+		#FrameType.XDIGIT:                 parse_xdigit(token)
+		#FrameType.DEC_INTEGER_CONSTANT:   parse_dec_integer_constant(token)
+		#FrameType.HEX_INTEGER_CONSTANT:   parse_hex_integer_constant(token)
+		FrameType.INTEGER_CONSTANT:       parse_integer_constant(token)
+		#FrameType.DEC_FLOAT_CONSTANT:     parse_dec_float_constant(token)
+		#FrameType.HEX_FLOAT_CONSTANT:     parse_hex_float_constant(token)
+		#FrameType.SPECIAL_FLOAT_CONSTANT: parse_special_float_constant(token)
+		#FrameType.FLOAT_CONSTANT:         parse_float_constant(token)
+		#FrameType.BOOLEAN_CONSTANT:       parse_boolean_constant(token)
+		_: syntax_error(token, "No parser for frame type %s" % FrameType.find_key(frame.type))
+
+
+#             ███████ ██████   █████  ███    ███ ███████ ███████               #
+#             ██      ██   ██ ██   ██ ████  ████ ██      ██                    #
+#             █████   ██████  ███████ ██ ████ ██ █████   ███████               #
+#             ██      ██   ██ ██   ██ ██  ██  ██ ██           ██               #
+#             ██      ██   ██ ██   ██ ██      ██ ███████ ███████               #
+func                        __________FRAMES_________              ()->void:pass
+
+## start_frame() runs the appropriate stack frame function
+func start_frame( frame:StackFrame, token:Token ) -> void:
+	var resume:String = "" if frame.data.is_empty() else "--- Continue ---\n"
+	Log.lvl( Log.Level.TRACE, resume + lpad() + str(frame) )
+	Log.lvl( Log.Level.TRACE, lpad(1) + str(token) )
+	_dispatch(frame, token)
+
+
+## end_frame() pops the last stackframe from the stack
+## if retval is not null, the top stack frame will have 'return' = retval added
+func end_frame(retval:Variant = null) -> void:
+	Log.lvl( Log.Level.TRACE, lpad() + "⮶Return%s" % [" '%s'" % retval if retval else ""] )
+	var _sf:StackFrame = stack.pop()
+	if not stack.is_empty() and retval != null:
+		stack.top().data["return"] = retval
+
+
+func error_frame( token:Token, message:String ) -> void:
+	syntax_error(token, message)
+	end_frame(&"error")
+
+
+#  ██████  ██    ██ ██  ██████ ██   ██      ███████  ██████  █████  ███    ██  #
+# ██    ██ ██    ██ ██ ██      ██  ██       ██      ██      ██   ██ ████   ██  #
+# ██    ██ ██    ██ ██ ██      █████  █████ ███████ ██      ███████ ██ ██  ██  #
+# ██ ▄▄ ██ ██    ██ ██ ██      ██  ██            ██ ██      ██   ██ ██  ██ ██  #
+#  ██████   ██████  ██  ██████ ██   ██      ███████  ██████ ██   ██ ██   ████  #
+#     ▀▀                                                                       #
+func                       ________QUICK_SCAN_______               ()->void:pass
+
+func quick_scan( full_text:String, schema_path:String = "" ) -> void:
+	Log.trace( { &'full_text': full_text, &'schema_path': schema_path }, self )
+
+	if is_quick_scan_in_progress:
+		Log.wrn( "QuickScanText: already in progress — skipping nested call" )
+		return
+	is_quick_scan_in_progress = true
+
+	if not schema_path.is_empty():
+		root_schema_path = schema_path
+		current_schema_path = schema_path
+	var saved_current:String = current_schema_path
+
+	quick_scan_text( full_text )
+
+	while scan_pending.size() > 0:
+		var file_path:String = scan_pending.pop_front()
+		Log.lvl( Log.Level.DEBUG, "Scanning: '%s'" % file_path )
+
+		# Dont create a loop
+		if file_path in scanned_files:
+			Log.lvl( Log.Level.TRACE, "File already scanned" )
+			continue
+
+		var file:FileAccess = FileAccess.open( file_path, FileAccess.READ )
+		if not file:
+			Log.err( "QuickScan: Unable to open file for scanning." )
+			continue
+
+		var content:String = file.get_as_text()
+		current_schema_path = file_path
+		quick_scan_text( content )
+		scanned_files.append( file_path )
+		current_schema_path = saved_current
+
+	is_quick_scan_in_progress = false
+	has_performed_quick_scan = true
+	current_schema_path = saved_current
+
+
+# ── Public: reset & scan the whole document for types ────────────────────────
+func quick_scan_text(full_text: String) -> void:
+	var qreader := Reader.new(self)   # note: still passes self as parent for now
+	qreader.reset(full_text)
+
+	while not qreader.at_end():
+		var token : Token = qreader.get_token()
+
+		# We are only interested in keywords during a quickscan
+		if token.type != Token.Type.KEYWORD:
+			qreader.adv_line()
+			continue
+
+		# we want to include other files.
+		if token.t == 'include':
+			token = qreader.get_token()
+			qreader.adv_line()
+			if token.type != Token.Type.STRING: continue
+			Log.lvl( Log.Level.TRACE, "include %s" % token.t )
+			# Strip quotes from token
+			var file_path:String = token.t.substr(1, token.t.length() - 2)
+			var checked_path:String = check_include_file(file_path)
+
+			if checked_path.is_empty():
+				Log.err( "QuickScanText: Unable to locate file: '%s'" % file_path )
+				reader.adv_token(token)
+			elif checked_path in included_files:
+				Log.lvl( Log.Level.TRACE, "File already included: '%s'" % checked_path )
+			else:
+				# Scan the file if we havent already
+				Log.lvl( Log.Level.DEBUG, "Including file: %s" % checked_path )
+				included_files.append(checked_path)
+				scan_pending.append(checked_path)
+			continue
+
+
+		if token.t in ['struct', 'table', 'union']:
+			var ident:Token = qreader.get_token()
+			if ident.type != Token.Type.IDENT:
+				qreader.adv_line()
+				continue
+			Log.lvl( Log.Level.TRACE, ["%s %s" % [token.t, ident.t]])
+			match token.t:
+				&"struct": struct_types.append(ident.t)
+				&"table":  table_types.append(ident.t)
+				&"union":  union_types.append(ident.t)
+			qreader.adv_line()
+			continue
+
+		if token.t == 'enum':
+			var ident:Token = qreader.get_token()
+			if ident.type != Token.Type.IDENT:
+				qreader.adv_line()
+				continue
+			Log.lvl( Log.Level.TRACE, ["%s %s" % [token.t, ident.t]])
+
+			var enum_vals:Array[StringName] = enum_types.get_or_add(ident.t,
+					Array([], TYPE_STRING_NAME, "", null))
+			while token.t != '}':
+				token = qreader.get_token()
+				if token.type == Token.Type.IDENT:
+					enum_vals.append( token.t )
+			Log.lvl( Log.Level.TRACE, ["enum %s %s" % [ident.t, enum_vals]])
+
+		qreader.adv_line()
+
+## Returns true on success, and false on failure.
+func quick_scan_file(file_path: String) -> bool:
+	Log.trace({&'file_path': file_path}, self)
+
+	if not FileAccess.file_exists( file_path ):
+		Log.err( "QuickScan: Unable to locate file for inclusion: %s" % file_path)
+		return false
+
+	# Dont create a loop
+	if file_path in scanned_files:
+		Log.lvl( Log.Level.TRACE, "File already scanned")
+		return true
+
+	if is_quick_scan_in_progress:
+		scan_pending.append(file_path)
+		return true
+
+	var file:FileAccess = FileAccess.open(file_path, FileAccess.READ)
+	if not file:
+		Log.err( "QuickScan: Unable to open file for scanning.")
+		return false
+
+	var content:String = file.get_as_text()
+	scanned_files.append( file_path )
+	var saved_current:String = current_schema_path
+	current_schema_path = file_path
+	quick_scan( content )
+	current_schema_path = saved_current
+	return true
+
+
+#               ██████   █████  ██████  ███████ ███████ ██████                 #
+#               ██   ██ ██   ██ ██   ██ ██      ██      ██   ██                #
+#               ██████  ███████ ██████  ███████ █████   ██████                 #
+#               ██      ██   ██ ██   ██      ██ ██      ██   ██                #
+#               ██      ██   ██ ██   ██ ███████ ███████ ██   ██                #
+func                        __________PARSER_________              ()->void:pass
+
+## test the token against the name, and highlight if error.
+func want_token_tl(token: Token, tl: Array[StringName], msg: String = "") -> void:
+	if token.t in tl: return
+	syntax_error(token, "'%s' not in '%s'" % [token.t, tl])
+	if not msg.is_empty(): Log.err( msg)
+
+
+## test the token against the name, and highlight if error.
+func want_token_t(token: Token, t: StringName, msg: String = "") -> void:
+	if token.t == t: return
+	syntax_error(token, "'%s' != '%s'" % [token.t, t])
+	if not msg.is_empty(): Log.err( msg)
+
+
+## returns true if token.t == t
+func check_token_t(token: Token, t: StringName, msg: String = "") -> bool:
+	if token.t == t: return true
+	syntax_error(token, "'%s' != '%s'" % [token.t, t])
+	if not msg.is_empty(): Log.err( msg)
+	return false
+
+
+## tests token against type, and highlights if no match.
+func want_token_type(token: Token, typ: Token.Type, msg: String = "") -> void:
+	if token.type == typ: return
+	syntax_error(token, "'%s' != '%s'" % [
+		Token.Type.find_key(token.type), Token.Type.find_key(typ)])
+	if not msg.is_empty(): Log.err( msg)
+
+
+## returns true if token.type == type
+func check_token_type(token: Token, typ: Token.Type, msg: String = "") -> bool:
+	if token.type == typ: return true
+	syntax_error(token, "'%s' != '%s'" % [
+		Token.Type.find_key(token.type), Token.Type.find_key(typ)])
+	if not msg.is_empty(): Log.err( msg)
+	return false
+
+
+## Convenience to test and consume COMMENT and COMMENT_DOC tokens.
+func is_comment( p_token:Token ) -> bool:
+	if p_token.type == Token.Type.COMMENT \
+	or p_token.type == Token.Type.COMMENT_DOC:
+		var _token:Token = reader.get_token()
+		return true
+	return false
+
+
+# ── Per-line parsing ────────────────────────────────────────────────────────
+## Main entry point for highlighting one line.
+## Called from highlighter._get_line_syntax_highlighting()
+func parse_line(line_num: int, line_text: String) -> Dictionary:
+	drop_line_issues( line_num )
+	error_flag = false
+	warning_flag = false
+
+	# Grow stack_index if necessary
+	while stack_index.size() <= line_num:
+		stack_index.append_array(new_index_chunk)
+
+	stack_index[line_num] = false
+
+	# Restore stack state
+	stack = get_prev_stack(line_num)
+	if stack.is_empty():
+		stack.push(StackFrame.new(FrameType.SCHEMA))
+
+	# Reset lexer for this line
+	reader.reset(line_text, line_num)
+
+	# ── Early outs ───────────────────────────────────────
+	var p_token := reader.peek_token()
+
+	if is_comment(p_token):
+		if not error_flag:
+			save_stack(line_num)
+		return active_highlighter.line_dict
+
+	if p_token.is_eol() or p_token.is_eof():
+		if not error_flag: save_stack(line_num)
+		return active_highlighter.line_dict
+
+	# ── Full parse loop ─────────────────────────────────────────────────────
+	var loop_detection := 0
+	var end_reached := false
+
+	while not stack.is_empty():
+		loop_detection += 1
+		assert(loop_detection < max_stack_size, "Stack Limit Reached")
+
+		if reader.at_end():
+			if end_reached: break
+			end_reached = true
+
+		start_frame(stack.top(), reader.peek_token())
+
+	# ── Finish ──────────────────────────────────────────────────────────────
+	if not error_flag:
+		save_stack(line_num)
+
+	return active_highlighter.line_dict   # highlighter still owns the dict
+
+
+#        ██████  ██████   █████  ███    ███ ███    ███  █████  ██████          #
+#       ██       ██   ██ ██   ██ ████  ████ ████  ████ ██   ██ ██   ██         #
+#       ██   ███ ██████  ███████ ██ ████ ██ ██ ████ ██ ███████ ██████          #
+#       ██    ██ ██   ██ ██   ██ ██  ██  ██ ██  ██  ██ ██   ██ ██   ██         #
+#        ██████  ██   ██ ██   ██ ██      ██ ██      ██ ██   ██ ██   ██         #
+func                        _________GRAMMAR_________              ()->void:pass
+# ── Grammar parsing helpers ──────────────────────────────────────────────────
+
+#MARK: Schema
+# │ ___     _
+# │/ __| __| |_  ___ _ __  __ _
+# │\__ \/ _| ' \/ -_) '  \/ _` |
+# │|___/\__|_||_\___|_|_|_\__,_|
+# ╰──────────────────────────────
+#region Schema
+func parse_schema( p_token:Token ) -> void:
+	#schema # = include* ( namespace_decl | type_decl | enum_decl | root_decl
+	#					 | file_extension_decl | file_identifier_decl
+	#					 | attribute_decl | rpc_decl | object )*
+	var frame:StackFrame = stack.top()
+
+	if p_token.is_eol(): return
+
+	if is_comment(p_token):
+		return
+
+	var exclude:int = frame.data.get(&"exclude", 99999999)
+
+	if p_token.t == &'include':
+		if p_token.line < exclude:
+			stack.push( StackFrame.new( FrameType.INCLUDE ) )
+			return
+		syntax_error( p_token, "Trying to use include mid file" )
+		reader.adv_line()
+		return
+
+	if p_token.type == Token.Type.KEYWORD:
+		frame.data[&"exclude"] = min( exclude, p_token.line )
+		var type:FrameType = kw_frame_map.get( p_token.t )
+		stack.push( StackFrame.new( type ) )
+		return
+
+	syntax_error( p_token, "Wanted Token.Type.KEYWORD" )
+	reader.adv_line()
+	return
+#endregion Schema
+
+
+#MARK: Include
+# │ ___         _         _
+# │|_ _|_ _  __| |_  _ __| |___
+# │ | || ' \/ _| | || / _` / -_)
+# │|___|_||_\__|_|\_,_\__,_\___|
+# ╰──────────────────────────────
+#region Include
+func parse_include( _p_token:Token ) -> void:
+	# INCLUDE = include string_constant;
+	#var frame:StackFrame = stack.top()
+
+	var token:Token = reader.get_token()
+	want_token_t(token, &'include')
+
+	token = reader.get_token()
+	if check_token_type(token, Token.Type.STRING ):
+		var file_path: String = token.t.substr(1, token.t.length() -2)
+		var checked_path:String = check_include_file(file_path)
+
+		if checked_path.is_empty():
+			syntax_error( token, "ParseInclude: Unable to locate file: '%s'" % file_path)
+		elif checked_path in included_files:
+			Log.lvl( Log.Level.TRACE, "File already included: '%s'" % checked_path)
+		else:
+			Log.wrn( "File was not picked up in quick_scan: '%s'" % checked_path)
+			# Scan the file
+			included_files.append(checked_path)
+			if not quick_scan_file(checked_path):
+				syntax_error(token, "quick scan failed to parse file")
+
+	token = reader.get_token()
+	want_token_t(token, &";")
+	return end_frame()
+#endregion Include
+
+
+#MARK: Namespace Decl
+# │ _  _                                       ___         _
+# │| \| |__ _ _ __  ___ ____ __  __ _ __ ___  |   \ ___ __| |
+# │| .` / _` | '  \/ -_|_-< '_ \/ _` / _/ -_) | |) / -_) _| |
+# │|_|\_\__,_|_|_|_\___/__/ .__/\__,_\__\___| |___/\___\__|_|
+# ╰───────────────────────|_|─────────────────────────────────
+#region Namespace Decl
+func parse_namespace_decl( _p_token:Token ) -> void:
+	#NAMESPACE_DECL = namespace ident ( . ident )* ;
+	#var frame:StackFrame = stack.top()
+
+	var token:Token = reader.get_token()
+	want_token_t(token, &"namespace")
+
+	while true:
+		token = reader.get_token()
+		want_token_type(token, Token.Type.IDENT)
+
+		token = reader.peek_token()
+		if token.t == &".":
+			reader.adv_token(token)
+			continue
+		else: break
+
+	token = reader.get_token()
+	want_token_t(token, &";")
+	return end_frame()
+#endregion Namespace Decl
+
+
+#MARK: Attribute Decl
+# │   _  _   _       _ _         _         ___         _
+# │  /_\| |_| |_ _ _(_) |__ _  _| |_ ___  |   \ ___ __| |
+# │ / _ \  _|  _| '_| | '_ \ || |  _/ -_) | |) / -_) _| |
+# │/_/ \_\__|\__|_| |_|_.__/\_,_|\__\___| |___/\___\__|_|
+# ╰───────────────────────────────────────────────────────
+#region Attribute Decl
+func parse_attribute_decl( _p_token:Token ) -> void:
+	# ATTRIBUTE_DECL = attribute ident | "</tt>ident<tt>" ;
+	#var frame:StackFrame = stack.top()
+
+	var token:Token = reader.get_token()
+	want_token_t(token, &"attribute")
+
+	token = reader.get_token()
+	match token.type:
+		Token.Type.IDENT: pass
+		Token.Type.STRING:pass
+		_: syntax_error(token, "Wanted 'ident | string_constant'")
+
+	token = reader.get_token()
+	want_token_t(token, &";")
+	return end_frame()
+#endregion Attribute Decl
+
+
+#MARK: Type Decl
+# │ _____                 ___         _
+# │|_   _|  _ _ __  ___  |   \ ___ __| |
+# │  | || || | '_ \/ -_) | |) / -_) _| |
+# │  |_| \_, | .__/\___| |___/\___\__|_|
+# ╰──────|__/|_|─────────────────────────
+#region Type Decl
+func parse_type_decl( p_token:Token ) -> void:
+	#type_decl = ( table | struct ) ident [metadata] { field_decl+ }\
+	var frame:StackFrame = stack.top()
+
+	var decl_type:StringName = frame.data.get(&"decl_type", StringName())
+
+	if frame.data.get(&"next") == null:
+		var token:Token = reader.get_token()
+		if token.t not in [&'table',&'struct']:
+			syntax_error(token, "wanted ( table | struct )")
+		else:
+			decl_type = token.t
+			frame.data[&"decl_type"] = token.t
+
+		token = reader.get_token()
+		want_token_type(token, Token.Type.IDENT )
+		# add token to appropriate array
+		match decl_type:
+			&"struct": struct_types.append(token.t)
+			&"table": table_types.append(token.t)
+
+		# We dont want to consume the next token.
+		token = reader.peek_token()
+		if token.t == &"(":
+			frame.data[&'next'] = &'{'
+			stack.push( StackFrame.new( FrameType.METADATA ) )
+			return
+
+		frame.data[&'next'] = &'{'
+		# can immediately continue
+
+	if frame.data.get(&'next') == &'{':
+		var token:Token = reader.get_token()
+		if token.is_eol():return
+		want_token_t( token, &"{" )
+		frame.data[&'next'] = &'field_decl'
+
+		# update p_token to continue
+		p_token = reader.peek_token()
+
+	if frame.data.get(&'next') == &'field_decl':
+		match p_token.type:
+			Token.Type.IDENT:
+				stack.push( StackFrame.new( FrameType.FIELD_DECL, {&"decl_type":decl_type} ) )
+				return
+			Token.Type.EOL: return
+			Token.Type.PUNCT when p_token.t == &"}":
+				reader.adv_token(p_token) # Consume the }
+				end_frame()
+				return
+		if is_comment(p_token):return
+		syntax_error(reader.get_token(), "Unhandled Token")
+		return
+
+	syntax_error(p_token, "reached end of parse_type_decl(...)")
+	return end_frame()
+
+#endregion Type Decl
+
+
+#MARK: Enum Decl
+# │ ___                  ___         _
+# │| __|_ _ _  _ _ __   |   \ ___ __| |
+# │| _|| ' \ || | '  \  | |) / -_) _| |
+# │|___|_||_\_,_|_|_|_| |___/\___\__|_|
+# ╰─────────────────────────────────────
+#region Enum Decl
+func parse_enum_decl( p_token:Token ) -> void:
+	#enum_decl = enum ident:type metadata { commasep( enumval_decl ) }
+	var frame:StackFrame = stack.top()
+
+	var decl_type:StringName = frame.data.get(&"decl_type", StringName())
+	var decl_name:StringName = frame.data.get(&"decl_name", StringName())
+	var allow:int = frame.data.get_or_add(&"allow", -1 & ~Allow.COMMA)
+	# flags for allow
+	# 0x1 = type     | :integer_type
+	# 0x2 = metadata | ()
+	# 0x4 = expecting comma between enumvals
+
+	if is_comment(p_token):
+		return
+
+	if frame.data.get(&"next") == null:
+		frame.data[&'next'] = &'post_ident'
+
+		# enum keyword
+		var token:Token = reader.get_token()
+		want_token_t(token, 'enum')
+		decl_type = &'enum'
+		frame.data[&"decl_type"] = decl_type
+
+		# ident
+		token = reader.get_token()
+		if check_token_type(token, Token.Type.IDENT):
+			decl_name = token.t
+			frame.data[&"decl_name"] = decl_name
+			enum_types[ decl_name ] = Array([], TYPE_STRING_NAME, "", null)
+		else:
+			reader.adv_line()
+			error_frame(token, "IDENT Required")
+			return
+
+		# :type is mandatory
+		token = reader.get_token() # fetch and consume ':'
+		if check_token_t(token, &':'):
+			stack.push( StackFrame.new( FrameType.TYPE, { &"decl_type":decl_type } ) )
+			return
+
+		reader.adv_line()
+		error_frame(token, "enum type is required")
+		return
+
+	# Handle the branching after ident.
+	if frame.data.get(&"next") == &'post_ident':
+		if frame.data.has(&"return"):
+			var returned_text:String = str(frame.data[&"return"])
+			frame.data[&"underlying"] = StringName(returned_text)
+			if not frame.data.erase(&"return"):
+				Log.err("&'return' was not found in frame data")
+		if p_token.is_eol(): return reader.adv_token(p_token)
+		if is_comment(p_token):return
+		want_token_type(p_token, Token.Type.PUNCT)
+		match p_token.t:
+			# meta
+			&'(' when allow & Allow.PAREN:
+				frame.data[&'allow'] = allow & ~(Allow.COLON | Allow.PAREN)
+				stack.push(StackFrame.new( FrameType.METADATA ) )
+				return
+
+			# enum_val begin
+			&'{':
+				var _token:Token = reader.get_token() # consume '{'
+				frame.data[&'next'] = &'enumval_decl'
+				return
+			_:
+				error_frame(p_token, "Unexpected Token")
+				return
+
+
+	if frame.data.get(&'next') == &'enumval_decl':
+		# separator, allow for trailing read before closing brace
+		if (allow & 0x4) and p_token.t == &',':
+			frame.data[&'allow'] = allow & ~Allow.COMMA
+			reader.adv_token(p_token) # Consume the ','
+			p_token = reader.peek_token()
+
+		# closing brace
+		if p_token.t == &"}":
+			_check_bit_flags(frame)
+			reader.adv_token(p_token) # Consume the '}'
+			return end_frame()
+
+		# Newlines are ok between enumvals
+		if p_token.is_eol():
+			return reader.adv_token(p_token)
+
+		if is_comment(p_token):
+			return
+
+		# enumval_decl
+		if check_token_type( p_token, Token.Type.IDENT ):
+			frame.data[&'allow'] = allow | Allow.COMMA
+			stack.push( StackFrame.new( FrameType.ENUMVAL_DECL,
+					{ &"decl_type":decl_type, &"decl_name":decl_name } ) )
+			return
+		else:
+			reader.adv_line() # Skip the remainder of the line
+
+		return
+
+	syntax_error(p_token, "reached end of parse_enum_val( ... )" )
+	return end_frame()
+#endregion Enum Decl
+
+
+#MARK: Union Decl
+# │ _   _      _            ___         _
+# │| | | |_ _ (_)___ _ _   |   \ ___ __| |
+# │| |_| | ' \| / _ \ ' \  | |) / -_) _| |
+# │ \___/|_||_|_\___/_||_| |___/\___\__|_|
+# ╰─────────────────────────────────────────
+#region Enum Decl
+func parse_union_decl( p_token:Token ) -> void:
+	#enum_decl = union ident metadata { commasep( enumval_decl ) }
+	var frame:StackFrame = stack.top()
+
+	if frame.data.get(&"next") == null:
+		frame.data[&'next'] = &'meta'
+
+		# keyword union
+		var token:Token = reader.get_token()
+		want_token_t(token, &'union')
+
+		# ident
+		token = reader.get_token()
+		if check_token_type(token, Token.Type.IDENT):
+			union_types.append(token.t)
+
+		token = reader.peek_token()
+
+	if frame.data.get(&'next') == &'meta':
+		frame.data[&'next'] = &'{'
+		if p_token.t == &"(":
+			stack.push(StackFrame.new( FrameType.METADATA ) )
+			return
+
+	if frame.data.get(&'next') == &'{':
+		var token:Token = reader.get_token()
+		if token.is_eol(): return
+		frame.data[&'next'] = &'unionval_decl'
+		want_token_t(token, &"{")
+		p_token = reader.peek_token()
+
+	if frame.data.get(&'next') == &'unionval_decl':
+		# Newlines are ok at the beginning/end
+		if p_token.is_eol():return
+		if p_token.t == &"}":
+			reader.adv_token(p_token) # Consume the '}'
+			return end_frame()
+		if p_token.t == &',':
+			reader.adv_token(p_token) # Consume the ','
+			p_token = reader.peek_token()
+
+		if p_token.is_eol():return
+
+		if check_token_type( p_token, Token.Type.IDENT ):
+			stack.push( StackFrame.new( FrameType.UNIONVAL_DECL ) )
+			return
+
+		reader.adv_token(p_token) # move on
+		return
+
+	syntax_error(p_token, "reached end of parse_enum_val( ... )" )
+	return end_frame()
+#endregion Union Decl
+
+
+#MARK: Root Decl
+# │ ___          _     ___         _
+# │| _ \___  ___| |_  |   \ ___ __| |
+# │|   / _ \/ _ \  _| | |) / -_) _| |
+# │|_|_\___/\___/\__| |___/\___\__|_|
+# ╰───────────────────────────────────
+#region Root Decl
+func parse_root_decl( _p_token:Token ) -> void:
+	# ROOT_DECL = root_type ident ;
+	#var frame:StackFrame = stack.top()
+
+	var token:Token = reader.get_token()
+	want_token_t(token, &"root_type")
+
+	token = reader.get_token()
+	want_token_type(token, Token.Type.IDENT )
+
+	token = reader.get_token()
+	want_token_t(token, &";")
+	return end_frame()
+#endregion Root Decl
+
+
+#MARK: Field Decl
+# │ ___ _     _    _   ___         _
+# │| __(_)___| |__| | |   \ ___ __| |
+# │| _|| / -_) / _` | | |) / -_) _| |
+# │|_| |_\___|_\__,_| |___/\___\__|_|
+# ╰───────────────────────────────────
+#region Field Decl
+func parse_field_decl( p_token:Token ) -> void:
+	# field_decl = ident:type [ = scalar ] metadata;
+	var frame:StackFrame = stack.top()
+
+	# field_decl can start on a newline, so this function is called
+	# even on empty lines.
+	if p_token.is_eol(): return
+
+	if is_comment(p_token): return
+
+	var decl_type:StringName = frame.bindings.get(&"decl_type", StringName())
+	var field_name:StringName = frame.data.get(&"field_name", StringName())
+
+	if frame.data.get(&"next") == null:
+		var token:Token = reader.get_token()
+		if check_token_type(token, Token.Type.IDENT):
+			field_name = token.t
+			frame.data[&"field_name"] = token.t
+
+		# TODO is this token already named in the type_decl?
+		# I would need to fetch the parent frame and check if it is in the named list.
+		# and add the name to the list.
+
+		token = reader.get_token()
+		if token.is_eol():return
+		want_token_t( token, &":")
+
+		frame.data[&"next"] = &"default"
+		stack.push( StackFrame.new( FrameType.TYPE,
+			{ &"decl_type":decl_type, &"field_name":field_name } ) )
+		return
+
+	# Handle defaults
+	p_token = reader.peek_token()
+	if frame.data.get(&"next") == &"default":
+		frame.data[&"next"] = &"meta"
+		var returned:Variant = frame.data.get(&"return")
+		if returned is Dictionary:
+			var return_dict:Dictionary = returned
+			var field_type:StringName = return_dict.get(&"field_type", &"")
+			if field_type != &"":
+				frame.data[&"field_type"] = field_type
+			var element_type:StringName = return_dict.get(&"element_type", &"")
+			if element_type != &"":
+				frame.data[&"element_type"] = element_type
+			var type_name:StringName = return_dict.get(&"type_name", &"")
+			if type_name != &"":
+				frame.data[&"type_name"] = type_name
+		if p_token.t == &"=":
+			reader.adv_token(p_token) # consume '='
+			var token:Token = reader.get_token()
+			var return_val:Dictionary = frame.data.get(&"return")
+			if not frame.data.erase(&"return"):
+				Log.err( "&'return' was not found in frame data")
+			if token.t == &"null":
+				var ft:StringName = frame.data.get(&"field_type", &"")
+				if ft == &"scalar" or ft == &"enum":
+					frame.data[&"optional"] = true
+				else:
+					syntax_error(token, "Only Scalar values can have defaults")
+			elif return_val.get(&"field_type") == &"enum":
+				var enum_vals:Array[StringName] = enum_types.get(return_val.get(&"field_name"))
+				if not token.t in enum_vals:
+					syntax_error(token, "value not found in enum")
+				else:
+					highlight_colour(token, _opts.get_colour(Token.Type.SCALAR))
+			elif not reader.is_scalar(token.t):
+				syntax_error(token, "Only Scalar values can have defaults")
+		return
+
+	# meta
+	if frame.data.get(&"next") == &"meta":
+		frame.data[&"next"] = &";"
+		if p_token.t == &"(":
+			stack.push( StackFrame.new( FrameType.METADATA ) )
+			return
+
+	# finish
+	if frame.data.get(&"next") == &";":
+		var token:Token = reader.get_token()
+		want_token_t(token, &";")
+		return end_frame()
+
+	syntax_error(p_token, "reached end of parse_type_decl(...)")
+	return end_frame()
+#endregion Field Decl
+
+
+#MARK: Rpc Decl
+# │ ___            ___         _
+# │| _ \_ __  __  |   \ ___ __| |
+# │|   / '_ \/ _| | |) / -_) _| |
+# │|_|_\ .__/\__| |___/\___\__|_|
+# ╰────|_|────────────────────────
+#region Rpc Decl
+func parse_rpc_decl( p_token:Token ) -> void:
+	syntax_warning( p_token, &"Unimplemented")
+	reader.adv_line()
+	return end_frame()
+#endregion Rpc Decl
+
+
+#MARK: Rpc Method
+# │ ___            __  __     _   _            _
+# │| _ \_ __  __  |  \/  |___| |_| |_  ___  __| |
+# │|   / '_ \/ _| | |\/| / -_)  _| ' \/ _ \/ _` |
+# │|_|_\ .__/\__| |_|  |_\___|\__|_||_\___/\__,_|
+# ╰────|_|────────────────────────────────────────
+#region Rpc Method
+func parse_rpc_method( p_token:Token ) -> void:
+	syntax_warning( p_token, &"Unimplemented")
+	reader.adv_line()
+	return end_frame()
+#endregion Rpc Method
+
+
+#MARK: Type
+# │ _____
+# │|_   _|  _ _ __  ___
+# │  | || || | '_ \/ -_)
+# │  |_| \_, | .__/\___|
+# ╰──────|__/|_|─────────
+#region Type
+func parse_type( p_token:Token ) -> void:
+	# TYPE = bool | byte | ubyte | short | ushort | int | uint | float | long
+	#		| ulong | double | int8 | uint8 | int16 | uint16 | int32 | uint32
+	#		| int64 | uint64 | float32 | float64 | string
+	#		| [ type ]
+	#		| ident
+
+	# It is unfortunate that the type definition is vague in the spec
+	# there is no official presentation of the Array Syntax.
+	# The parsing depends on whether the containing type_decl is
+	# a struct, vector, or enum so lets figure that out at the first moment
+	# and store it in the frame information
+
+	# Array Syntax
+	# [struct/scalar type?:integer_constant]
+	# Arrays are a convenience short-hand for a fixed-length collection of elements.
+	# Arrays allow the following syntax, while maintaining binary equivalency.
+	# Arrays are currently only supported in a struct.
+
+	# Normal Syntax     # Array Syntax
+	# struct Vec3 {     # struct Vec3 {
+	#   x:float;        #   v:[float:3];
+	#   y:float;        # }
+	#   z:float;
+	# }
+
+	var frame:StackFrame = stack.top()
+
+	# Find the type_decl frame and determine what we are parsing.
+	var decl_type:StringName = frame.bindings.get(&"decl_type", StringName())
+
+	# Simple parsing for enums
+	if decl_type == &"enum":
+		p_token = reader.get_token()
+		if not p_token.t in integer_types:
+			syntax_error( p_token, "Enum types must be an integral")
+		else: highlight_colour(p_token, _opts.get_colour(Token.Type.TYPE))
+		return end_frame(p_token.t)
+
+
+	# compled parsing for structs and tables
+	var has_bracket:bool = false
+	var return_val:Dictionary = {
+		&"field_type":StringName(),
+		&"field_name":StringName()
+	}
+
+	var token:Token = reader.get_token()
+	# for both table and struct decl '[' is allowed
+	if token.t == &"[":
+		# we have either vector or array syntax
+		has_bracket = true
+		token = reader.get_token()
+
+	# we need to know if the field is scalar, for when we deal with defaults.
+	if token.t in scalar_types: return_val[&"field_type"] = &"scalar"
+	elif token.t in enum_types:
+		return_val[&"field_type"] = &"enum"
+		return_val[&"field_name"] = token.t
+	elif token.t == &"string":
+		return_val[&"field_type"] = &"string"
+	elif token.t in struct_types:
+		return_val[&"field_type"] = &"struct"
+	elif token.t in table_types:
+		return_val[&"field_type"] = &"table"
+	elif token.t in union_types:
+		return_val[&"field_type"] = &"union"
+	return_val[&"type_name"] = token.t
+
+	if decl_type == &"struct":
+		if not token.t in scalar_types + struct_types + enum_types.keys():
+			syntax_error(token, "struct array/vector fields may only contain scalars or other structs")
+		else: highlight_colour(token, _opts.get_colour(Token.Type.TYPE))
+	elif decl_type == &"table":
+		# Where table can contain vectors of any type
+		if not token.t in (scalar_types + struct_types + table_types
+								+ array_types + enum_types.keys() + union_types):
+			syntax_error(token, "invalid type name")
+		else: highlight_colour(token, _opts.get_colour(Token.Type.TYPE))
+
+	# If we arent using brackets we can just end here
+	if not has_bracket: return end_frame( return_val )
+
+	var element_type:StringName = return_val[&"field_type"]
+	token = reader.get_token()
+
+	# Check for Array Syntax
+	var is_array:bool = false
+	if decl_type == &"struct":
+		if token.t == &":":
+			is_array = true
+			token = reader.get_token()
+			if not reader.is_integer(token.t):
+				syntax_error(token, "Array Syntax count must be an integral value")
+			token = reader.get_token()
+
+	# Close out the brackets.
+	want_token_t(token, &"]")
+	return_val[&"element_type"] = element_type
+	return_val[&"field_type"] = &"array" if is_array else &"vector"
+	return end_frame( return_val )
+#endregion Type
+
+
+#MARK: Enumval Decl
+# │ ___                        _   ___         _
+# │| __|_ _ _  _ _ ____ ____ _| | |   \ ___ __| |
+# │| _|| ' \ || | '  \ V / _` | | | |) / -_) _| |
+# │|___|_||_\_,_|_|_|_\_/\__,_|_| |___/\___\__|_|
+# ╰───────────────────────────────────────────────
+#region Enumval Decl
+func parse_enumval_decl( p_token:Token ) -> void:
+	# ENUMVAL_DECL = ident [ = integer_constant ]
+	var frame:StackFrame = stack.top()
+
+	var decl_name:String = frame.bindings.get(&"decl_name", StringName())
+	#var decl_type:String = frame.bindings.get(&"decl_type", StringName())
+
+	var token:Token = reader.get_token()
+	var name_token:Token = token
+	var named:bool = check_token_type(token, Token.Type.IDENT)
+
+	if named:
+		if enum_types.has(decl_name):
+			var enum_vals:Array[StringName] = enum_types.get(decl_name)
+			enum_vals.append( token.t )
+		else:
+			return error_frame( token, "enum_types.has(decl_name) is false")
+
+	var assigned:bool = false
+	var raw:int = 0
+	var value_token:Token = name_token
+	p_token = reader.peek_token()
+	if p_token.t == &"=":
+		token = reader.get_token() # consume '='
+		token = reader.get_token() # get the value
+		value_token = token
+		if not reader.is_integer(token.t):
+			syntax_error(token, "enum values must be integer constants")
+		else:
+			assigned = true
+			raw = _schema_int(token.t)
+
+	if named:
+		_record_bit_index(name_token, value_token, assigned, raw)
+
+	return end_frame()
+#endregion Enumval Decl
+
+
+#MARK: Union value Declaration
+# │ _   _      _                  _   ___         _
+# │| | | |_ _ (_)___ _ ___ ____ _| | |   \ ___ __| |
+# │| |_| | ' \| / _ \ ' \ V / _` | | | |) / -_) _| |
+# │ \___/|_||_|_\___/_||_\_/\__,_|_| |___/\___\__|_|
+# ╰───────────────────────────────────────────────────
+#region Unionvan Decl
+func parse_unionval_decl( p_token:Token ) -> void:
+	# UNIONVAL_DECL = ident [ : ident ]
+
+	# Union Member
+	var token:Token = reader.get_token()
+	# TODO test that the union member exists
+	if check_token_type(token, Token.Type.IDENT ):
+		highlight_colour(token, _opts.get_colour(Token.Type.SCALAR))
+
+	# Union Type Alias
+	p_token = reader.peek_token()
+	if p_token.t == &":":
+		token = reader.get_token() # consume ':'
+		token = reader.get_token() # get the value
+		# TODO test that the union member alias doesnt clobber an existing type
+		want_token_type(token, Token.Type.IDENT, "Union Member Aliases must confirm to IDENT")
+
+	return end_frame()
+#endregion Enumval Decl
+
+#MARK: Metadata
+# │ __  __     _           _      _
+# │|  \/  |___| |_ __ _ __| |__ _| |_ __ _
+# │| |\/| / -_)  _/ _` / _` / _` |  _/ _` |
+# │|_|  |_\___|\__\__,_\__,_\__,_|\__\__,_|
+# ╰─────────────────────────────────────────
+#region Metadata
+func parse_metadata( p_token:Token ) -> void:
+	#metadata = [ ( commasep( ident [:single_value ] ) ) ]
+	# single_value = scalar | string_constant
+	# where ident is one of the built-in ones, or is declared in attributes
+	var frame:StackFrame = stack.top()
+
+	if frame.data.get(&"next") == null:
+		var token:Token = reader.get_token()
+		want_token_t( token, &"(" )
+		frame.data[&"next"] = &"continue"
+
+	if frame.data.get(&"next") == &"continue":
+		var token:Token = reader.get_token()
+
+		if token.t == &")": return end_frame()
+		want_token_type(token, Token.Type.IDENT )
+
+		# Here is where we need to do the checking for attributes
+		# Additional checks can be run per attribute using the stack
+		# for additional info.
+		if not (token.t in attribute_map.keys()):
+			syntax_warning( token, "Unknown Attribute in Meta" )
+		else:
+			var attribute_func:Callable = attribute_map.get(token.t)
+			attribute_func.call(token)
+			# TODO, perhaps I need to introduce a new frame for the attribute
+			# control.
+
+		token = reader.get_token()
+		if token.t == &":":
+			token = reader.get_token()
+			if not (token.type == Token.Type.SCALAR
+				or token.type == Token.Type.STRING):
+					syntax_error(token, "is not scalar or string constant")
+		if token.t == &",": return
+		if token.t == &")": return end_frame()
+
+	syntax_error(p_token, "reached end of parse_metadata(...)")
+	return end_frame()
+#endregion Metadata
+
+
+#MARK: Scalar
+# │ ___          _
+# │/ __| __ __ _| |__ _ _ _
+# │\__ \/ _/ _` | / _` | '_|
+# │|___/\__\__,_|_\__,_|_|
+# ╰──────────────────────────
+#region Scalar
+func parse_scalar( p_token:Token ) -> void:
+	# SCALAR = boolean_constant | integer_constant | float_constant
+	#var this_frame:StackFrame = stack.top()
+
+	p_token = reader.get_token()
+	if p_token.type == Token.Type.SCALAR:
+		reader.adv_token(p_token)
+		return end_frame()
+	#if token.t in user_enum_vals:
+		#token.type = Token.Type.SCALAR
+		#highlight( token )
+		#reader.get_token()
+		#return end_frame()
+	#syntax_error( token, "Wanted Token.Type.SCALAR" )
+	reader.adv_line()
+	return end_frame()
+#endregion Scalar
+
+
+#MARK: Object
+# │  ___  _     _        _
+# │ / _ \| |__ (_)___ __| |_
+# │| (_) | '_ \| / -_) _|  _|
+# │ \___/|_.__// \___\__|\__|
+# ╰──────────|__/─────────────
+#region Object
+func parse_object( p_token:Token ) -> void:
+	syntax_warning( p_token, &"Unimplemented" )
+	reader.adv_line()
+	return end_frame()
+#endregion Object
+
+
+#MARK: Single Value
+# │ ___ _           _      __   __    _
+# │/ __(_)_ _  __ _| |___  \ \ / /_ _| |_  _ ___
+# │\__ \ | ' \/ _` | / -_)  \ V / _` | | || / -_)
+# │|___/_|_||_\__, |_\___|   \_/\__,_|_|\_,_\___|
+# ╰───────────|___/───────────────────────────────
+#region Single Value
+func parse_single_value( p_token:Token ) -> void:
+	syntax_warning( p_token, &"Unimplemented" )
+	reader.adv_line()
+	return end_frame()
+#endregion Single Value
+
+
+#MARK: Value
+# │__   __    _
+# │\ \ / /_ _| |_  _ ___
+# │ \ V / _` | | || / -_)
+# │  \_/\__,_|_|\_,_\___|
+# ╰───────────────────────
+#region Value
+func parse_value( p_token:Token ) -> void:
+	syntax_warning( p_token, &"Unimplemented" )
+	reader.adv_line()
+	return end_frame()
+#endregion Value
+
+
+#MARK: Commasep
+# │  ___
+# │ / __|___ _ __  _ __  __ _ ___ ___ _ __
+# │| (__/ _ \ '  \| '  \/ _` (_-</ -_) '_ \
+# │ \___\___/_|_|_|_|_|_\__,_/__/\___| .__/
+# ╰──────────────────────────────────|_|────
+#region Commasep
+func parse_commasep( p_token:Token ) -> void:
+	# COMMASEP(x) = [ x ( , x )* ]
+	var frame:StackFrame = stack.top()
+	var arg_type:FrameType = frame.data.get(&"args")
+	if arg_type == null:
+		syntax_error(p_token, "commasep needs an argument")
+		return end_frame()
+
+	if not (p_token.type == Token.Type.IDENT || p_token.t == &","):
+		return end_frame()
+
+	if frame.data.get(&"next") == null:
+		stack.push( StackFrame.new( arg_type ) )
+		frame.data[&"next"] = &","
+		return
+	if frame.data.get(&"next") == &",":
+		var token:Token = reader.get_token()
+		if not frame.data.erase(&"return"):
+			Log.err( "Unable to erase &'return' from frame.data")
+		if token.t != &",": return end_frame()
+		if not frame.data.erase(&"next"):
+			Log.err( "Unable to erase &'next' from frame.data")
+		return
+
+	syntax_error(p_token, "Reached the end of parse_commasep(...)")
+	return end_frame()
+
+#endregion Commasep
+
+
+#MARK: File Extension Decl
+# │ ___ _ _       ___     _               _            ___         _
+# │| __(_) |___  | __|_ _| |_ ___ _ _  __(_)___ _ _   |   \ ___ __| |
+# │| _|| | / -_) | _|\ \ /  _/ -_) ' \(_-< / _ \ ' \  | |) / -_) _| |
+# │|_| |_|_\___| |___/_\_\\__\___|_||_/__/_\___/_||_| |___/\___\__|_|
+# ╰───────────────────────────────────────────────────────────────────
+#region File Extension Decl
+func parse_file_extension_decl( p_token:Token ) -> void:
+	syntax_warning( p_token, &"Unimplemented" )
+	reader.adv_line()
+	return end_frame()
+#endregion File Extension Decl
+
+
+#MARK: File Identifier Decl
+# │ ___ _ _       ___    _         _   _  __ _           ___         _
+# │| __(_) |___  |_ _|__| |___ _ _| |_(_)/ _(_)___ _ _  |   \ ___ __| |
+# │| _|| | / -_)  | |/ _` / -_) ' \  _| |  _| / -_) '_| | |) / -_) _| |
+# │|_| |_|_\___| |___\__,_\___|_||_\__|_|_| |_\___|_|   |___/\___\__|_|
+# ╰─────────────────────────────────────────────────────────────────────
+#region File Identifier Decl
+func parse_file_identifier_decl( _p_token:Token ) -> void:
+	# FILE_IDENTIFIER_DECL = file_identifier string_constant ;
+	var token:Token = reader.get_token()
+	want_token_t(token, &'file_identifier')
+
+	token = reader.get_token()
+	if check_token_type(token, Token.Type.STRING):
+		var ident:String = token.t.substr(1, token.t.length() - 2)
+		if ident.length() != 4:
+			syntax_error(token, "file_identifier must be exactly 4 characters")
+
+	token = reader.get_token()
+	want_token_t(token, &";")
+	return end_frame()
+#endregion File Identifier Decl
+
+
+#MARK: String Constant
+# │ ___ _       _              ___             _            _
+# │/ __| |_ _ _(_)_ _  __ _   / __|___ _ _  __| |_ __ _ _ _| |_
+# │\__ \  _| '_| | ' \/ _` | | (__/ _ \ ' \(_-<  _/ _` | ' \  _|
+# │|___/\__|_| |_|_||_\__, |  \___\___/_||_/__/\__\__,_|_||_\__|
+# ╰───────────────────|___/──────────────────────────────────────
+#region String Constant
+func parse_string_constant( p_token:Token ) -> void:
+	p_token = reader.get_token()
+	want_token_type(p_token, Token.Type.STRING)
+	end_frame()
+#endregion String Constant
+
+
+#MARK: Ident
+# │ ___    _         _
+# │|_ _|__| |___ _ _| |_
+# │ | |/ _` / -_) ' \  _|
+# │|___\__,_\___|_||_\__|
+# ╰───────────────────────
+#region Ident
+func parse_ident(p_token: Token) -> void:
+	# ident = [a-zA-Z_][a-zA-Z0-9_]*
+	p_token = reader.get_token()
+
+	if check_token_type(p_token, Token.Type.IDENT ):
+		highlight(p_token)
+		return end_frame()
+
+	syntax_error( p_token, "Wanted ( IDENT )" )
+	end_frame()
+#endregion Ident
+func                        __Digit__________________              ()->void:pass
+#MARK: Digit
+# │ ___  _      _ _
+# │|   \(_)__ _(_) |_
+# │| |) | / _` | |  _|
+# │|___/|_\__, |_|\__|
+# ╰───────|___/────────
+#region Digit
+
+#endregion Digit
+func                        __Xdigit_________________              ()->void:pass
+#MARK: Xdigit
+# │__  __   _ _      _ _
+# │\ \/ /__| (_)__ _(_) |_
+# │ >  </ _` | / _` | |  _|
+# │/_/\_\__,_|_\__, |_|\__|
+# ╰────────────|___/────────
+#region Xdigit
+
+#endregion Xdigit
+func                        __Dec_Integer_Constant___              ()->void:pass
+#MARK: Dec Integer Constant
+# │ ___           ___     _                       ___             _            _
+# │|   \ ___ __  |_ _|_ _| |_ ___ __ _ ___ _ _   / __|___ _ _  __| |_ __ _ _ _| |_
+# │| |) / -_) _|  | || ' \  _/ -_) _` / -_) '_| | (__/ _ \ ' \(_-<  _/ _` | ' \  _|
+# │|___/\___\__| |___|_||_\__\___\__, \___|_|    \___\___/_||_/__/\__\__,_|_||_\__|
+# ╰──────────────────────────────|___/──────────────────────────────────────────────
+#region Dec Integer Constant
+
+#endregion Dec Integer Constant
+func                        __Hex_Integer_Constant___              ()->void:pass
+#MARK: Hex Integer Constant
+# │ _  _           ___     _                       ___             _            _
+# │| || |_____ __ |_ _|_ _| |_ ___ __ _ ___ _ _   / __|___ _ _  __| |_ __ _ _ _| |_
+# │| __ / -_) \ /  | || ' \  _/ -_) _` / -_) '_| | (__/ _ \ ' \(_-<  _/ _` | ' \  _|
+# │|_||_\___/_\_\ |___|_||_\__\___\__, \___|_|    \___\___/_||_/__/\__\__,_|_||_\__|
+# ╰───────────────────────────────|___/──────────────────────────────────────────────
+#region Hex Integer Constant
+
+#endregion Hex Integer Constant
+
+
+#MARK: Integer Constant
+# │ ___     _                       ___             _            _
+# │|_ _|_ _| |_ ___ __ _ ___ _ _   / __|___ _ _  __| |_ __ _ _ _| |_
+# │ | || ' \  _/ -_) _` / -_) '_| | (__/ _ \ ' \(_-<  _/ _` | ' \  _|
+# │|___|_||_\__\___\__, \___|_|    \___\___/_||_/__/\__\__,_|_||_\__|
+# ╰────────────────|___/──────────────────────────────────────────────
+#region Integer Constant
+func parse_integer_constant(p_token: Token) -> void:
+	# INTEGER_CONSTANT = dec_integer_constant | hex_integer_constant
+	p_token = reader.get_token()
+	if reader.is_integer(p_token.t):
+		highlight(p_token)   # colour it
+		return end_frame()
+
+	syntax_error(p_token, "Wanted (dec_integer_constant | hex_integer_constant)")
+	end_frame()
+#endregion Integer Constant
+
+
+func                        __Dec_Float_Constant_____              ()->void:pass
+#MARK: Dec Float Constant
+# │ ___           ___ _           _      ___             _            _
+# │|   \ ___ __  | __| |___  __ _| |_   / __|___ _ _  __| |_ __ _ _ _| |_
+# │| |) / -_) _| | _|| / _ \/ _` |  _| | (__/ _ \ ' \(_-<  _/ _` | ' \  _|
+# │|___/\___\__| |_| |_\___/\__,_|\__|  \___\___/_||_/__/\__\__,_|_||_\__|
+# ╰────────────────────────────────────────────────────────────────────────
+#region Dec Float Constant
+
+#endregion Dec Float Constant
+func                        __Hex_Float_Constant_____              ()->void:pass
+#MARK: Hex Float Constant
+# │ _  _           ___ _           _      ___             _            _
+# │| || |_____ __ | __| |___  __ _| |_   / __|___ _ _  __| |_ __ _ _ _| |_
+# │| __ / -_) \ / | _|| / _ \/ _` |  _| | (__/ _ \ ' \(_-<  _/ _` | ' \  _|
+# │|_||_\___/_\_\ |_| |_\___/\__,_|\__|  \___\___/_||_/__/\__\__,_|_||_\__|
+# ╰─────────────────────────────────────────────────────────────────────────
+#region Hex Float Constant
+
+#endregion Hex Float Constant
+func                        __Special_Float_Constant_              ()->void:pass
+#MARK: Special Float Constant
+# │ ___              _      _   ___ _           _      ___             _            _
+# │/ __|_ __  ___ __(_)__ _| | | __| |___  __ _| |_   / __|___ _ _  __| |_ __ _ _ _| |_
+# │\__ \ '_ \/ -_) _| / _` | | | _|| / _ \/ _` |  _| | (__/ _ \ ' \(_-<  _/ _` | ' \  _|
+# │|___/ .__/\___\__|_\__,_|_| |_| |_\___/\__,_|\__|  \___\___/_||_/__/\__\__,_|_||_\__|
+# ╰────|_|───────────────────────────────────────────────────────────────────────────────
+#region Special Float Constant
+
+#endregion Special Float Constant
+func                        __Float_Constant_________              ()->void:pass
+#MARK: Float Constant
+# │ ___ _           _      ___             _            _
+# │| __| |___  __ _| |_   / __|___ _ _  __| |_ __ _ _ _| |_
+# │| _|| / _ \/ _` |  _| | (__/ _ \ ' \(_-<  _/ _` | ' \  _|
+# │|_| |_\___/\__,_|\__|  \___\___/_||_/__/\__\__,_|_||_\__|
+# ╰──────────────────────────────────────────────────────────
+#region Float Constant
+
+#endregion Float Constant
+func                        __Boolean_Constant_______              ()->void:pass
+#MARK: Boolean Constant
+# │ ___           _                  ___             _            _
+# │| _ ) ___  ___| |___ __ _ _ _    / __|___ _ _  __| |_ __ _ _ _| |_
+# │| _ \/ _ \/ _ \ / -_) _` | ' \  | (__/ _ \ ' \(_-<  _/ _` | ' \  _|
+# │|___/\___/\___/_\___\__,_|_||_|  \___\___/_||_/__/\__\__,_|_||_\__|
+# ╰────────────────────────────────────────────────────────────────────
+#region Boolean Constant
+
+#endregion Boolean Constant
+
+#    █████  ██████ ██████ ██████  ██ ██████  ██   ██ ██████ ███████ ███████    #
+#   ██   ██   ██     ██   ██   ██ ██ ██   ██ ██   ██   ██   ██      ██         #
+#   ███████   ██     ██   ██████  ██ ██████  ██   ██   ██   █████   ███████    #
+#   ██   ██   ██     ██   ██   ██ ██ ██   ██ ██   ██   ██   ██           ██    #
+#   ██   ██   ██     ██   ██   ██ ██ ██████   █████    ██   ███████ ███████    #
+func                        ________ATTRIBUTES_______              ()->void:pass
+
+func attribute_unsupported(token:Token) -> void:
+	syntax_warning( token, "This attribute is unsupported" )
+
+## flatc: only non-scalar table fields may be required.
+## Struct fields are always present, so the attribute is rejected there.
+func attribute_required(token:Token) -> void:
+	var field:StackFrame = _field_under_metadata()
+	if field == null:
+		syntax_error(token, "only non-scalar fields in tables may be 'required'")
+		return
+	var decl_type:StringName = field.bindings.get(&"decl_type", &"")
+	if decl_type == &"struct":
+		syntax_error(token, "struct fields are always required")
+		return
+	var field_type:StringName = field.data.get(&"field_type", &"")
+	if field_type == &"scalar" or field_type == &"enum":
+		syntax_error(token, "only non-scalar fields in tables may be 'required'")
+
+## flatc: one key per table. Scalar, enum, string, struct, and a fixed array
+## of scalars or structs are legal. A second key, anything else, and an
+## optional scalar key use flatc's error strings.
+func attribute_key(token:Token) -> void:
+	var field:StackFrame = _field_under_metadata()
+	if field == null:
+		syntax_error(token, "'key' field must be string, scalar type or fixed size array of scalars")
+		return
+	var decl:StackFrame = _type_decl_under_metadata()
+	if decl != null and decl.data.get(&"has_key", false):
+		syntax_error(token, "only one field may be set as 'key'")
+		return
+	if decl != null:
+		decl.data[&"has_key"] = true
+	var field_type:StringName = field.data.get(&"field_type", &"")
+	var element_type:StringName = field.data.get(&"element_type", &"")
+	var valid:bool = false
+	if field_type == &"scalar" or field_type == &"enum" or field_type == &"string" or field_type == &"struct":
+		valid = true
+	elif field_type == &"array":
+		valid = element_type == &"scalar" or element_type == &"enum" or element_type == &"struct"
+	if not valid:
+		syntax_error(token, "'key' field must be string, scalar type or fixed size array of scalars")
+		return
+	if field.data.get(&"optional", false) and (field_type == &"scalar" or field_type == &"enum"):
+		syntax_error(token, "only a non-optional scalar field can be used as a 'key' field")
+
+func _field_under_metadata() -> StackFrame:
+	var idx:int = stack.size() - 2
+	while idx >= 0:
+		var frame:StackFrame = stack.at(idx)
+		if frame.type == FrameType.FIELD_DECL:
+			return frame
+		idx -= 1
+	return null
+
+func _type_decl_under_metadata() -> StackFrame:
+	var idx:int = stack.size() - 2
+	while idx >= 0:
+		var frame:StackFrame = stack.at(idx)
+		if frame.type == FrameType.TYPE_DECL:
+			return frame
+		idx -= 1
+	return null
+
+## flatc: nested_flatbuffer is a string naming the root table, and the field
+## must be a vector of ubyte. An unknown root uses flatc's end-of-parse string.
+func attribute_nested_flatbuffer(token:Token) -> void:
+	var field:StackFrame = _field_under_metadata()
+	var nxt:Token = reader.peek_token()
+	var value:Token = token
+	var is_string:bool = false
+	var root_name:String = ""
+	if nxt.t == &":":
+		var colon:Token = reader.get_token()
+		if colon.t != &":":
+			syntax_error(token, "nested_flatbuffer attribute must be a string (the root type)")
+			return
+		value = reader.get_token()
+		if value.type == Token.Type.STRING and value.t.length() >= 2:
+			is_string = true
+			root_name = value.t.substr(1, value.t.length() - 2)
+	if not is_string:
+		syntax_error(token, "nested_flatbuffer attribute must be a string (the root type)")
+		return
+	var field_type:StringName = &""
+	var type_name:StringName = &""
+	if field != null:
+		field_type = field.data.get(&"field_type", &"")
+		type_name = field.data.get(&"type_name", &"")
+	if field_type != &"vector" or not (type_name == &"ubyte" or type_name == &"uint8"):
+		syntax_error(token, "nested_flatbuffer attribute may only apply to a vector of ubyte")
+		return
+	var bare:String = root_name
+	var dot:int = bare.rfind(".")
+	if dot != -1:
+		bare = bare.substr(dot + 1)
+	if not StringName(bare) in table_types:
+		syntax_error(value, "type referenced but not defined (check namespace): " + root_name)
+
+## flatc: bit_flags sits on the enum. A signed underlying type warns.
+## Each stored number is a bit index, shifted to 1 << index after the enum.
+func attribute_bit_flags(token:Token) -> void:
+	var enum_frame:StackFrame = _enum_under_metadata()
+	if enum_frame == null:
+		return
+	enum_frame.data[&"bit_flags"] = true
+	_bit_names.clear()
+	_bit_indexes.clear()
+	_bit_tokens.clear()
+	var underlying:StringName = enum_frame.data.get(&"underlying", &"")
+	if _signed_width(underlying) >= 0:
+		syntax_warning(token, "underlying type of bit_flags enum must be unsigned")
+
+func _enum_under_metadata() -> StackFrame:
+	var idx:int = stack.size() - 2
+	while idx >= 0:
+		var frame:StackFrame = stack.at(idx)
+		if frame.type == FrameType.ENUM_DECL:
+			return frame
+		idx -= 1
+	return null
+
+func _signed_width(underlying:StringName) -> int:
+	match underlying:
+		&"byte", &"int8": return 8
+		&"short", &"int16": return 16
+		&"int", &"int32": return 32
+		&"long", &"int64": return 64
+	return -1
+
+func _unsigned_width(underlying:StringName) -> int:
+	match underlying:
+		&"ubyte", &"uint8": return 8
+		&"ushort", &"uint16": return 16
+		&"uint", &"uint32": return 32
+		&"ulong", &"uint64": return 64
+	return -1
+
+func _schema_int(text:String) -> int:
+	var body:String = text
+	var polarity:int = 1
+	if body.begins_with("-"):
+		polarity = -1
+		body = body.substr(1)
+	elif body.begins_with("+"):
+		body = body.substr(1)
+	if body.begins_with("0x") or body.begins_with("0X"):
+		return polarity * body.hex_to_int()
+	return polarity * int(body)
+
+func _record_bit_index(name_token:Token, value_token:Token, assigned:bool, raw:int) -> void:
+	var enum_frame:StackFrame = _enum_under_metadata()
+	if enum_frame == null or not enum_frame.data.get(&"bit_flags", false):
+		return
+	var index:int = raw if assigned else 0
+	if _bit_seen > 0 and not assigned:
+		index = _bit_last + 1
+	_bit_last = index
+	_bit_seen += 1
+	var underlying:StringName = enum_frame.data.get(&"underlying", &"")
+	var width:int = _unsigned_width(underlying)
+	var unsigned:bool = width >= 0
+	if not unsigned:
+		width = _signed_width(underlying)
+	if width < 0:
+		return
+	if not unsigned and index == width - 1:
+		syntax_error(value_token, "underlying type of bit_flags enum must be unsigned")
+		return
+	if index < 0 or index >= width:
+		syntax_error(value_token, "bit flag out of range of underlying integral type")
+		return
+	var name:String = String(name_token.t)
+	_insert_bit_row(_bit_names, _bit_indexes, _bit_tokens, name, index, value_token)
+	for i:int in range(1, _bit_indexes.size()):
+		if _bit_indexes[i - 1] != _bit_indexes[i] or _bit_indexes[i] != index:
+			continue
+		syntax_error(_bit_tokens[i], "all enum values must be unique: %s and %s are both %s" % [
+			_bit_names[i - 1], _bit_names[i], _shifted_bit_text(index, unsigned)])
+		return
+
+## The line parser drops a line's stack when that line errors. Report bit
+## problems on the value line so the closing brace can still leave the enum.
+func _check_bit_flags(frame:StackFrame) -> void:
+	if frame.data.get(&"bit_flags", false):
+		_clear_bit_rows()
+
+func _clear_bit_rows() -> void:
+	_bit_names.clear()
+	_bit_indexes.clear()
+	_bit_tokens.clear()
+	_bit_seen = 0
+	_bit_last = 0
+
+func _insert_bit_row(names:Array[String], indexes:Array[int], tokens:Array[Token], name:String, index:int, token:Token) -> void:
+	names.append(name)
+	indexes.append(index)
+	tokens.append(token)
+	var at:int = names.size() - 1
+	while at > 0:
+		var before:bool = index < indexes[at - 1]
+		if index == indexes[at - 1]:
+			before = name < names[at - 1]
+		if not before:
+			break
+		var swap_name:String = names[at - 1]
+		var swap_index:int = indexes[at - 1]
+		var swap_token:Token = tokens[at - 1]
+		names[at - 1] = names[at]
+		indexes[at - 1] = indexes[at]
+		tokens[at - 1] = tokens[at]
+		names[at] = swap_name
+		indexes[at] = swap_index
+		tokens[at] = swap_token
+		at -= 1
+
+func _shifted_bit_text(index:int, unsigned:bool) -> String:
+	if unsigned and index == 63:
+		return "9223372036854775808"
+	return str(1 << index)
+
+func attribute_deprecated(_token:Token) -> void:
+	#TODO test that the circumstances in which this attribute appeared is valid.
+	pass
