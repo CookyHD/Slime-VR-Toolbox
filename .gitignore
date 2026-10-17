@@ -6,4 +6,4 @@ addons/**/
 addons/*.gd
 addons/*.uid
 
-addons/extendion/
+addons/extension
