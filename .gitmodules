@@ -1,9 +1,9 @@
 [submodule "addons/flatbuffers_extension"]
 	path = addons/flatbuffers_extension
-	url = https://github.com/enetheru/godot-flatbuffers
+	url = https://github.com/enetheru/godot-flatbuffers/tree/main
 [submodule "addons/flatbuffers_plugin"]
 	path = addons/flatbuffers_plugin
-	url = https://github.com/enetheru/godot-flatbuffers-addon
+	url = https://github.com/enetheru/godot-flatbuffers-addon/tree/main
 [submodule "addons/discord_rich_presence"]
 	path = addons/discord_rich_presence
-	url = https://github.com/SlayHorizon/discord-rich-presence-godot
+	url = https://github.com/SlayHorizon/discord-rich-presence-godot/tree/main
