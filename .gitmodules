@@ -1,0 +1,6 @@
+[submodule "addons/flatbuffers_extension"]
+	path = addons/flatbuffers_extension
+	url = https://github.com/enetheru/godot-flatbuffers
+[submodule "addons/flatbuffers_plugin"]
+	path = addons/flatbuffers_plugin
+	url = https://github.com/enetheru/godot-flatbuffers-addon
