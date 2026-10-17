@@ -4,3 +4,6 @@
 [submodule "addons/flatbuffers_plugin"]
 	path = addons/flatbuffers_plugin
 	url = https://github.com/enetheru/godot-flatbuffers-addon
+[submodule "addons/discord_rich_presence"]
+	path = addons/discord_rich_presence
+	url = https://github.com/SlayHorizon/discord-rich-presence-godot
