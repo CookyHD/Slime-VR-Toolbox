@@ -1,0 +1,444 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="FlatBufferBuilder" inherits="RefCounted" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+		Class for building and serializing FlatBuffer data.
+	</brief_description>
+	<description>
+		[FlatBufferBuilder] provides methods to construct FlatBuffer objects. It supports adding scalar types, Godot-specific types (as structs), strings, and vectors.
+		Once the buffer is built, it can be finished and converted to a [PackedByteArray] for storage or transmission.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="add_bytes" qualifiers="const">
+			<return type="void" />
+			<param index="0" name="voffset" type="int" />
+			<param index="1" name="value" type="PackedByteArray" />
+			<description>
+				Adds an offset to a byte vector field at [param voffset].
+			</description>
+		</method>
+		<method name="add_element_bool">
+			<return type="void" />
+			<param index="0" name="voffset" type="int" />
+			<param index="1" name="value" type="bool" />
+			<description>
+				Adds a boolean element to the current table at [param voffset].
+			</description>
+		</method>
+		<method name="add_element_bool_default">
+			<return type="void" />
+			<param index="0" name="voffset" type="int" />
+			<param index="1" name="value" type="bool" />
+			<param index="2" name="default" type="bool" />
+			<description>
+				Adds a boolean element to the current table at [param voffset], but only if it differs from the [param default] value.
+			</description>
+		</method>
+		<method name="add_element_byte">
+			<return type="void" />
+			<param index="0" name="voffset" type="int" />
+			<param index="1" name="value" type="int" />
+			<description>
+				Adds a signed 8-bit integer element to the current table at [param voffset].
+			</description>
+		</method>
+		<method name="add_element_byte_default">
+			<return type="void" />
+			<param index="0" name="voffset" type="int" />
+			<param index="1" name="value" type="int" />
+			<param index="2" name="default" type="int" />
+			<description>
+				Adds a signed 8-bit integer element to the current table at [param voffset], but only if it differs from the [param default] value.
+			</description>
+		</method>
+		<method name="add_element_double">
+			<return type="void" />
+			<param index="0" name="voffset" type="int" />
+			<param index="1" name="value" type="float" />
+			<description>
+				Adds a double-precision float element to the current table at [param voffset].
+			</description>
+		</method>
+		<method name="add_element_double_default">
+			<return type="void" />
+			<param index="0" name="voffset" type="int" />
+			<param index="1" name="value" type="float" />
+			<param index="2" name="default" type="float" />
+			<description>
+				Adds a double-precision float element to the current table at [param voffset], but only if it differs from the [param default] value.
+			</description>
+		</method>
+		<method name="add_element_float">
+			<return type="void" />
+			<param index="0" name="voffset" type="int" />
+			<param index="1" name="value" type="float" />
+			<description>
+				Adds a single-precision float element to the current table at [param voffset].
+			</description>
+		</method>
+		<method name="add_element_float_default">
+			<return type="void" />
+			<param index="0" name="voffset" type="int" />
+			<param index="1" name="value" type="float" />
+			<param index="2" name="default" type="float" />
+			<description>
+				Adds a single-precision float element to the current table at [param voffset], but only if it differs from the [param default] value.
+			</description>
+		</method>
+		<method name="add_element_int">
+			<return type="void" />
+			<param index="0" name="voffset" type="int" />
+			<param index="1" name="value" type="int" />
+			<description>
+				Adds a signed 32-bit integer element to the current table at [param voffset].
+			</description>
+		</method>
+		<method name="add_element_int_default">
+			<return type="void" />
+			<param index="0" name="voffset" type="int" />
+			<param index="1" name="value" type="int" />
+			<param index="2" name="default" type="int" />
+			<description>
+				Adds a signed 32-bit integer element to the current table at [param voffset], but only if it differs from the [param default] value.
+			</description>
+		</method>
+		<method name="add_element_long">
+			<return type="void" />
+			<param index="0" name="voffset" type="int" />
+			<param index="1" name="value" type="int" />
+			<description>
+				Adds a signed 64-bit integer element to the current table at [param voffset].
+			</description>
+		</method>
+		<method name="add_element_long_default">
+			<return type="void" />
+			<param index="0" name="voffset" type="int" />
+			<param index="1" name="value" type="int" />
+			<param index="2" name="default" type="int" />
+			<description>
+				Adds a signed 64-bit integer element to the current table at [param voffset], but only if it differs from the [param default] value.
+			</description>
+		</method>
+		<method name="add_element_short">
+			<return type="void" />
+			<param index="0" name="voffset" type="int" />
+			<param index="1" name="value" type="int" />
+			<description>
+				Adds a signed 16-bit integer element to the current table at [param voffset].
+			</description>
+		</method>
+		<method name="add_element_short_default">
+			<return type="void" />
+			<param index="0" name="voffset" type="int" />
+			<param index="1" name="value" type="int" />
+			<param index="2" name="default" type="int" />
+			<description>
+				Adds a signed 16-bit integer element to the current table at [param voffset], but only if it differs from the [param default] value.
+			</description>
+		</method>
+		<method name="add_element_ubyte">
+			<return type="void" />
+			<param index="0" name="voffset" type="int" />
+			<param index="1" name="value" type="int" />
+			<description>
+				Adds an unsigned 8-bit integer element to the current table at [param voffset].
+			</description>
+		</method>
+		<method name="add_element_ubyte_default">
+			<return type="void" />
+			<param index="0" name="voffset" type="int" />
+			<param index="1" name="value" type="int" />
+			<param index="2" name="default" type="int" />
+			<description>
+				Adds an unsigned 8-bit integer element to the current table at [param voffset], but only if it differs from the [param default] value.
+			</description>
+		</method>
+		<method name="add_element_uint">
+			<return type="void" />
+			<param index="0" name="voffset" type="int" />
+			<param index="1" name="value" type="int" />
+			<description>
+				Adds an unsigned 32-bit integer element to the current table at [param voffset].
+			</description>
+		</method>
+		<method name="add_element_uint_default">
+			<return type="void" />
+			<param index="0" name="voffset" type="int" />
+			<param index="1" name="value" type="int" />
+			<param index="2" name="default" type="int" />
+			<description>
+				Adds an unsigned 32-bit integer element to the current table at [param voffset], but only if it differs from the [param default] value.
+			</description>
+		</method>
+		<method name="add_element_ulong">
+			<return type="void" />
+			<param index="0" name="voffset" type="int" />
+			<param index="1" name="value" type="int" />
+			<description>
+				Adds an unsigned 64-bit integer element to the current table at [param voffset].
+			</description>
+		</method>
+		<method name="add_element_ulong_default">
+			<return type="void" />
+			<param index="0" name="voffset" type="int" />
+			<param index="1" name="value" type="int" />
+			<param index="2" name="default" type="int" />
+			<description>
+				Adds an unsigned 64-bit integer element to the current table at [param voffset], but only if it differs from the [param default] value.
+			</description>
+		</method>
+		<method name="add_element_ushort">
+			<return type="void" />
+			<param index="0" name="voffset" type="int" />
+			<param index="1" name="value" type="int" />
+			<description>
+				Adds an unsigned 16-bit integer element to the current table at [param voffset].
+			</description>
+		</method>
+		<method name="add_element_ushort_default">
+			<return type="void" />
+			<param index="0" name="voffset" type="int" />
+			<param index="1" name="value" type="int" />
+			<param index="2" name="default" type="int" />
+			<description>
+				Adds an unsigned 16-bit integer element to the current table at [param voffset], but only if it differs from the [param default] value.
+			</description>
+		</method>
+		<method name="add_offset" qualifiers="const">
+			<return type="void" />
+			<param index="0" name="voffset" type="int" />
+			<param index="1" name="value" type="int" />
+			<description>
+				Adds an offset field to the current table at [param voffset].
+			</description>
+		</method>
+		<method name="add_variant" qualifiers="const">
+			<return type="void" />
+			<param index="0" name="voffset" type="int" />
+			<param index="1" name="value" type="Variant" />
+			<param index="2" name="type" type="int" enum="Variant.Type" default="39" />
+			<description>
+				Adds a Godot [Variant] of the given [param type] to the current table at [param voffset]. Supported types include scalars and Godot structs (Vector2, Rect2, Color, etc.).
+			</description>
+		</method>
+		<method name="clear" qualifiers="const">
+			<return type="void" />
+			<description>
+				Clears the builder, resetting its internal state but keeping the allocated buffer.
+			</description>
+		</method>
+		<method name="create" qualifiers="static">
+			<return type="FlatBufferBuilder" />
+			<param index="0" name="size" type="int" default="1024" />
+			<description>
+				Creates a new [FlatBufferBuilder] with an initial buffer [param size].
+			</description>
+		</method>
+		<method name="create_variant" qualifiers="const">
+			<return type="int" />
+			<param index="0" name="value" type="Variant" />
+			<param index="1" name="type" type="int" enum="Variant.Type" default="39" />
+			<description>
+				Encodes a Godot [Variant] (like a Vector3, String or PackedArray) and returns an offset position.
+			</description>
+		</method>
+		<method name="create_vector_float32">
+			<return type="int" />
+			<param index="0" name="array" type="Array" />
+			<description>
+				Creates a vector of 32-bit floats from an [Array] and returns its offset.
+			</description>
+		</method>
+		<method name="create_vector_float64">
+			<return type="int" />
+			<param index="0" name="array" type="Array" />
+			<description>
+				Creates a vector of 64-bit floats from an [Array] and returns its offset.
+			</description>
+		</method>
+		<method name="create_vector_int8">
+			<return type="int" />
+			<param index="0" name="array" type="Array" />
+			<description>
+				Creates a vector of 8-bit signed integers from an [Array] and returns its offset.
+			</description>
+		</method>
+		<method name="create_vector_int16">
+			<return type="int" />
+			<param index="0" name="array" type="Array" />
+			<description>
+				Creates a vector of 16-bit signed integers from an [Array] and returns its offset.
+			</description>
+		</method>
+		<method name="create_vector_int32">
+			<return type="int" />
+			<param index="0" name="array" type="Array" />
+			<description>
+				Creates a vector of 32-bit signed integers from an [Array] and returns its offset.
+			</description>
+		</method>
+		<method name="create_vector_int64">
+			<return type="int" />
+			<param index="0" name="array" type="Array" />
+			<description>
+				Creates a vector of 64-bit signed integers from an [Array] and returns its offset.
+			</description>
+		</method>
+		<method name="create_vector_of_custom_struct" qualifiers="const">
+			<return type="int" />
+			<param index="0" name="array" type="Array" />
+			<param index="1" name="element_size" type="int" />
+			<description>
+				Creates a vector of custom FlatBuffer structs from an [Array] of [PackedByteArray] (each representing a struct). [param element_size] must match the struct's size in bytes.
+			</description>
+		</method>
+		<method name="create_vector_of_sorted_tables" qualifiers="const">
+			<return type="int" />
+			<param index="0" name="offsets" type="PackedInt32Array" />
+			<param index="1" name="key_field" type="int" />
+			<param index="2" name="key_kind" type="int" />
+			<param index="3" name="key_default" type="Variant" />
+			<description>
+				Sorts table [param offsets] by the key at vtable offset [param key_field] and writes them as a vector. [param key_kind] is a [enum FlatBufferBuilder.KeyKind] value. A missing scalar uses [param key_default]. Returns the vector offset.
+			</description>
+		</method>
+		<method name="create_vector_of_table" qualifiers="const">
+			<return type="int" />
+			<param index="0" name="array" type="Array" />
+			<param index="1" name="create_func" type="Callable" />
+			<description>
+				Creates a vector of tables by calling [param create_func] for each element in [param array].
+			</description>
+		</method>
+		<method name="create_vector_of_union" qualifiers="const">
+			<return type="PackedInt32Array" />
+			<param index="0" name="array" type="Array" />
+			<param index="1" name="create_func" type="Callable" />
+			<description>
+				Creates a vector of unions by calling [param create_func] for each element in [param array]. Returns a [PackedInt32Array] containing two offsets: the vector of types and the vector of values.
+			</description>
+		</method>
+		<method name="create_vector_offset" qualifiers="const">
+			<return type="int" />
+			<param index="0" name="array" type="PackedInt32Array" />
+			<description>
+				Creates a vector of offsets from a [PackedInt32Array] and returns its offset.
+			</description>
+		</method>
+		<method name="create_vector_uint8">
+			<return type="int" />
+			<param index="0" name="array" type="Array" />
+			<description>
+				Creates a vector of 8-bit unsigned integers from an [Array] and returns its offset.
+			</description>
+		</method>
+		<method name="create_vector_uint16">
+			<return type="int" />
+			<param index="0" name="array" type="Array" />
+			<description>
+				Creates a vector of 16-bit unsigned integers from an [Array] and returns its offset.
+			</description>
+		</method>
+		<method name="create_vector_uint32">
+			<return type="int" />
+			<param index="0" name="array" type="Array" />
+			<description>
+				Creates a vector of 32-bit unsigned integers from an [Array] and returns its offset.
+			</description>
+		</method>
+		<method name="create_vector_uint64">
+			<return type="int" />
+			<param index="0" name="array" type="Array" />
+			<description>
+				Creates a vector of 64-bit unsigned integers from an [Array] and returns its offset.
+			</description>
+		</method>
+		<method name="end_table" qualifiers="const">
+			<return type="int" />
+			<param index="0" name="start" type="int" />
+			<description>
+				Ends building a table and returns its offset. [param start] is the value returned by [method start_table].
+			</description>
+		</method>
+		<method name="finish" qualifiers="const">
+			<return type="void" />
+			<param index="0" name="table_offset" type="int" />
+			<param index="1" name="file_identifier" type="String" default="&quot;&quot;" />
+			<description>
+				Finishes building the buffer, setting the provided [param table_offset] as the root of the FlatBuffer.
+				When [param file_identifier] is 4 characters, those bytes are written immediately after the root offset. Any other length fails and leaves the buffer unfinished. An empty identifier writes none.
+			</description>
+		</method>
+		<method name="get_buffer" qualifiers="const">
+			<return type="PackedByteArray" />
+			<description>
+				Returns the finished buffer as a [PackedByteArray].
+			</description>
+		</method>
+		<method name="get_size" qualifiers="const">
+			<return type="int" />
+			<description>
+				Returns the current size of the built buffer.
+			</description>
+		</method>
+		<method name="required" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="table" type="int" />
+			<param index="1" name="field" type="int" />
+			<description>
+				Returns true when the offset field at [param field] was set on [param table]. A missing required field fails and returns false.
+			</description>
+		</method>
+		<method name="reset" qualifiers="const">
+			<return type="void" />
+			<description>
+				Resets the builder and its internal buffer.
+			</description>
+		</method>
+		<method name="start_table" qualifiers="const">
+			<return type="int" />
+			<description>
+				Starts building a table.
+			</description>
+		</method>
+	</methods>
+	<constants>
+		<constant name="KEY_STRING" value="0" enum="KeyKind">
+			String key. Order matches FlatBuffers string comparison.
+		</constant>
+		<constant name="KEY_BOOL" value="1" enum="KeyKind">
+			Bool key, stored as one byte.
+		</constant>
+		<constant name="KEY_BYTE" value="2" enum="KeyKind">
+			Signed 8-bit key.
+		</constant>
+		<constant name="KEY_UBYTE" value="3" enum="KeyKind">
+			Unsigned 8-bit key.
+		</constant>
+		<constant name="KEY_SHORT" value="4" enum="KeyKind">
+			Signed 16-bit key.
+		</constant>
+		<constant name="KEY_USHORT" value="5" enum="KeyKind">
+			Unsigned 16-bit key.
+		</constant>
+		<constant name="KEY_INT" value="6" enum="KeyKind">
+			Signed 32-bit key.
+		</constant>
+		<constant name="KEY_UINT" value="7" enum="KeyKind">
+			Unsigned 32-bit key.
+		</constant>
+		<constant name="KEY_LONG" value="8" enum="KeyKind">
+			Signed 64-bit key.
+		</constant>
+		<constant name="KEY_ULONG" value="9" enum="KeyKind">
+			Unsigned 64-bit key. Values above 2^63-1 do not round-trip through a Godot int.
+		</constant>
+		<constant name="KEY_FLOAT" value="10" enum="KeyKind">
+			32-bit float key.
+		</constant>
+		<constant name="KEY_DOUBLE" value="11" enum="KeyKind">
+			64-bit float key.
+		</constant>
+	</constants>
+</class>
