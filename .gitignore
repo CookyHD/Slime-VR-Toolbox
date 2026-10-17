@@ -4,3 +4,4 @@
 
 addons/**/
 addons/**.gd
+addons/**.uid
