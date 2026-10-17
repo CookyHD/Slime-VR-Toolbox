@@ -7,3 +7,6 @@
 [submodule "include/discord_rich_presence"]
 	path = include/discord_rich_presence
 	url = https://github.com/SlayHorizon/discord-rich-presence-godot
+[submodule "include/solar_xr"]
+	path = include/solar_xr
+	url = https://github.com/SlimeVR/SolarXR-Protocol
