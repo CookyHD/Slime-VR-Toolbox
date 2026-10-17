@@ -19,6 +19,34 @@ config/icon="res://icon.svg"
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/plugin/plugin.cfg")
+
+[flatbuffers]
+
+debug=false
+experimental=false
+EditorLog/verbosity=0
+highlight_error=true
+EditorLog/=true
+Colours/Syntax/unknown=Color(0.8, 0.8068627, 0.8411765, 1)
+Colours/Syntax/comment=Color(0.8, 0.8068627, 0.8411765, 0.5)
+Colours/Syntax/comment_doc=Color(0.6, 0.7, 0.8, 0.8)
+Colours/Syntax/keyword=Color(1, 0.44, 0.52, 1)
+Colours/Syntax/type=Color(0.26, 1, 0.76, 1)
+Colours/Syntax/string=Color(1, 0.93, 0.63, 1)
+Colours/Syntax/punct=Color(0.8, 0.8068627, 0.8411765, 1)
+Colours/Syntax/ident=Color(0.67, 0.79, 1, 1)
+Colours/Syntax/scalar=Color(0.63, 1, 0.88, 1)
+Colours/Syntax/meta=Color(0.8, 0.8068627, 0.8411765, 1)
+Colours/Notice/critical=Color(0.77, 0.35, 0.35, 1)
+Colours/Notice/error=Color(0.77, 0.35, 0.35, 1)
+Colours/Notice/warning=Color(0.72, 0.61, 0.48, 1)
+Colours/Notice/notice=Color(0.56, 0.67, 0.51, 1)
+Colours/Notice/debug=Color(0.6, 0.7, 0.8, 0.8)
+Colours/Notice/trace=Color(0.8, 0.8068627, 0.8411765, 0.5)
+
 [physics]
 
 3d/physics_engine="Jolt Physics"
