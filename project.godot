@@ -10,18 +10,48 @@ config_version=5
 
 [application]
 
-config/name="Slime-VR-Toolbox"
+config/name="SlimeVR-Toolbox"
+run/main_scene="uid://bk6t8yil4exld"
 config/features=PackedStringArray("4.7", "Forward Plus")
-config/icon="res://icon.svg"
+boot_splash/bg_color=Color(0.1, 0.1, 0.1, 1)
+boot_splash/stretch_mode=0
+boot_splash/image="uid://b4ncnuv536xur"
+config/icon="uid://luubuaio2t3n"
+boot_splash/minimum_display_time=250
+
+[autoload]
+
+WindowGlobal="*uid://2iecnu1y64x0"
+SolarXR="*uid://d2d6ws5bn6nbi"
+Math="*uid://dl4301o2amu6g"
+Utils="*uid://dio15nc2vlkdl"
+Global="*uid://dlarkv2kuk6r7"
+SlimeVRServer="*uid://c54u2sl8niuts"
+HapticServer="*uid://bvsq1hxb2qk22"
+OTAUpdater="*uid://cldsde4520fst"
+Enums="*uid://crcspqfohs4wp"
+Discord="*uid://b2e25i5sguu56"
 
 [display]
 
-window/stretch/mode="canvas_items"
-window/stretch/aspect="expand"
+window/size/viewport_width=1280
+window/size/viewport_height=750
+window/size/borderless=true
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/plugin/plugin.cfg")
+enabled=PackedStringArray()
+
+[file_customization]
+
+folder_colors={
+"res://addons/": "red",
+"res://assets/": "orange",
+"res://resources/": "yellow",
+"res://src/": "purple",
+"res://src/scenes/": "blue",
+"res://src/shaders/": "gray"
+}
 
 [flatbuffers]
 

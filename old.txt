@@ -1,0 +1,220 @@
+extends Node
+#
+##var osc_reciver:PacketPeerUDP = PacketPeerUDP.new()
+##
+##var reciver:PacketPeerUDP = PacketPeerUDP.new()
+##var sender:PacketPeerUDP = PacketPeerUDP.new()
+##
+##var devices:Dictionary[String,Device] = {}
+##
+##const HANDSHAKE:PackedByteArray = [0,0,0,30]
+##
+##const DISCOVER_ID:int = 200
+##const PING_ID:int = 201
+##
+##func _ready() -> void:
+	##reciver.bind(6767,"*")
+	##osc_reciver.bind(9000,"*")
+##
+##func _process(_delta:float) -> void:
+	##while reciver.get_available_packet_count() != 0:
+		##var data:PackedByteArray = reciver.get_packet()
+		##var ip:String = reciver.get_packet_ip()
+		##if data[3] == DISCOVER_ID:
+			##send(ip, HANDSHAKE)
+			##var mac:String = make_mac(data.slice(12))
+			##send(ip, new_haptic_packet(1,0.1))
+		##if data[3] == PING_ID:
+			##pass
+	##for key:String in devices:
+		##pass
+	##while osc_reciver.get_available_packet_count() != 0:
+		##var data:PackedByteArray = reciver.get_packet()
+##
+##func make_mac(data:PackedByteArray) -> String:
+	##if data.size() != 6: return "00:00:00:00:00:00"
+	##return hex(data[0]) + ":" + hex(data[1]) + ":" + hex(data[2]) + ":" + hex(data[3]) + ":" + hex(data[4]) + ":" + hex(data[5])
+##
+##func hex(num:int) -> String:
+	##var str:String = String.num_int64(num,16,true);
+	##if str.length() == 1: str = "0"+str
+	##return str
+##
+##func send(ip:String, data:PackedByteArray) -> void:
+	##sender.set_dest_address(ip, 6969)
+	##sender.put_packet(data)
+##
+##func new_haptic_packet(duration:int, intensity:float) -> PackedByteArray:
+	##var int_num:PackedByteArray = [0,0,0,0]
+	##int_num.encode_s32(0,duration)
+	##int_num.reverse()
+	##var float_num:PackedByteArray = [0,0,0,0]
+	##float_num.encode_float(0,intensity)
+	##float_num.reverse()
+	##var data:PackedByteArray = [0,0,0,31]
+	##data.append_array(int_num)
+	##data.append_array(float_num)
+	##return data
+#
+#@warning_ignore_start("static_called_on_instance")
+#
+#var server:WebSocketPeer = WebSocketPeer.new()
+#
+#var send_req:bool = false
+#
+#func _ready() -> void:
+	#server.connect_to_url("ws://localhost:21110")
+#
+#func _process(_delta: float) -> void:
+	#server.poll()
+	#
+	#var state:int = server.get_ready_state()
+	#if state != WebSocketPeer.STATE_OPEN: return
+	#
+	#if send_req == false:
+		#server.set_no_delay(true)
+		#send_req = true
+		#
+		#var fbb:FlatBufferBuilder
+		#var offset:int
+		#
+		#fbb = FlatBufferBuilder.new()
+		#offset = SolarXR.create_MessageBundle(
+			#fbb,
+			#0,
+			#fbb.create_vector_of_table(
+				#[
+					#[
+						#SolarXR.create_TransactionId(67),
+						#SolarXR.RpcMessage.IGNORE_TRACKING_CHECKLIST_STEP_REQUEST,
+						#SolarXR.create_IgnoreTrackingChecklistStepRequest(
+							#fbb,
+							#SolarXR.TrackingChecklistStepId.TRACKERS_REST_CALIBRATION,
+							#true
+						#)
+					#],
+					#[
+						#SolarXR.create_TransactionId(67),
+						#SolarXR.RpcMessage.IGNORE_TRACKING_CHECKLIST_STEP_REQUEST,
+						#SolarXR.create_IgnoreTrackingChecklistStepRequest(
+							#fbb,
+							#SolarXR.TrackingChecklistStepId.FULL_RESET,
+							#true
+						#)
+					#],
+					#[
+						#SolarXR.create_TransactionId(67),
+						#SolarXR.RpcMessage.IGNORE_TRACKING_CHECKLIST_STEP_REQUEST,
+						#SolarXR.create_IgnoreTrackingChecklistStepRequest(
+							#fbb,
+							#SolarXR.TrackingChecklistStepId.VRCHAT_SETTINGS,
+							#true
+						#)
+					#],
+					#[
+						#SolarXR.create_TransactionId(67),
+						#SolarXR.RpcMessage.IGNORE_TRACKING_CHECKLIST_STEP_REQUEST,
+						#SolarXR.create_IgnoreTrackingChecklistStepRequest(
+							#fbb,
+							#SolarXR.TrackingChecklistStepId.STEAMVR_DISCONNECTED,
+							#true
+						#)
+					#],
+					#[
+						#SolarXR.create_TransactionId(67),
+						#SolarXR.RpcMessage.IGNORE_TRACKING_CHECKLIST_STEP_REQUEST,
+						#SolarXR.create_IgnoreTrackingChecklistStepRequest(
+							#fbb,
+							#SolarXR.TrackingChecklistStepId.UNASSIGNED_HMD,
+							#true
+						#)
+					#],
+					#[
+						#SolarXR.create_TransactionId(67),
+						#SolarXR.RpcMessage.IGNORE_TRACKING_CHECKLIST_STEP_REQUEST,
+						#SolarXR.create_IgnoreTrackingChecklistStepRequest(
+							#fbb,
+							#SolarXR.TrackingChecklistStepId.TRACKER_ERROR,
+							#true
+						#)
+					#],
+					#[
+						#SolarXR.create_TransactionId(67),
+						#SolarXR.RpcMessage.IGNORE_TRACKING_CHECKLIST_STEP_REQUEST,
+						#SolarXR.create_IgnoreTrackingChecklistStepRequest(
+							#fbb,
+							#SolarXR.TrackingChecklistStepId.NETWORK_PROFILE_PUBLIC,
+							#true
+						#)
+					#],
+					#[
+						#SolarXR.create_TransactionId(67),
+						#SolarXR.RpcMessage.IGNORE_TRACKING_CHECKLIST_STEP_REQUEST,
+						#SolarXR.create_IgnoreTrackingChecklistStepRequest(
+							#fbb,
+							#SolarXR.TrackingChecklistStepId.MOUNTING_CALIBRATION,
+							#true
+						#)
+					#],
+					#[
+						#SolarXR.create_TransactionId(67),
+						#SolarXR.RpcMessage.IGNORE_TRACKING_CHECKLIST_STEP_REQUEST,
+						#SolarXR.create_IgnoreTrackingChecklistStepRequest(
+							#fbb,
+							#SolarXR.TrackingChecklistStepId.FEET_MOUNTING_CALIBRATION,
+							#true
+						#)
+					#],
+					#[
+						#SolarXR.create_TransactionId(67),
+						#SolarXR.RpcMessage.IGNORE_TRACKING_CHECKLIST_STEP_REQUEST,
+						#SolarXR.create_IgnoreTrackingChecklistStepRequest(
+							#fbb,
+							#SolarXR.TrackingChecklistStepId.STAY_ALIGNED_CONFIGURED,
+							#true
+						#)
+					#],
+					#[
+						#SolarXR.create_TransactionId(67),
+						#SolarXR.RpcMessage.IGNORE_TRACKING_CHECKLIST_STEP_REQUEST,
+						#SolarXR.create_IgnoreTrackingChecklistStepRequest(
+							#fbb,
+							#SolarXR.TrackingChecklistStepId.STEAMVR_HANDS_ENABLED,
+							#true
+						#)
+					#],
+					#[
+						#SolarXR.create_TransactionId(67),
+						#SolarXR.RpcMessage.IGNORE_TRACKING_CHECKLIST_STEP_REQUEST,
+						#SolarXR.create_IgnoreTrackingChecklistStepRequest(
+							#fbb,
+							#SolarXR.TrackingChecklistStepId.STANDABLE_INSTALLED,
+							#true
+						#)
+					#]
+				#],
+				#(func (fbb:FlatBufferBuilder, array:Array) -> int: return SolarXR.create_RpcMessageHeader(fbb, array[0], array[1], array[2]))
+			#),
+			#0
+		#)
+		#fbb.finish(offset)
+		#server.put_packet(fbb.get_buffer())
+		#
+		
+		#
+	#while server.get_available_packet_count() > 0:
+		#var buffer:PackedByteArray = server.get_packet()
+		#if server.was_string_packet(): continue
+		#
+		#var message:SolarXR.MessageBundle = FlatBuffer.get_root(buffer,SolarXR.MessageBundle)
+		#for feed:SolarXR.DataFeedMessageHeader in message.data_feed_msgs():
+			#match feed.message_type():
+				#SolarXR.DataFeedMessage.DATA_FEED_UPDATE:
+					#var update:SolarXR.DataFeedUpdate = feed.message()
+					#for device:SolarXR.DeviceData in update.devices():
+						#print(((device.hardware_info() as SolarXR.HardwareInfo).ip_address() as SolarXR.Ipv4Address).addr)
+						#for tracker:SolarXR.TrackerData in device.trackers():
+							#print(quat_string(tracker.rotation() as SolarXR.Quat))
+#
+#func quat_string(quat:SolarXR.Quat) -> String:
+	#return "Quat(" + str(quat.w) + ", " + str(quat.x) + ", " + str(quat.y) + ", " + str(quat.z) + ")"

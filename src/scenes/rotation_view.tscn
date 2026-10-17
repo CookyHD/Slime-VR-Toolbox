@@ -1,0 +1,127 @@
+[gd_scene format=3 uid="uid://crto7nrf4iskh"]
+
+[ext_resource type="Script" uid="uid://cuv2gnbrjl3kd" path="res://src/scenes/scripts/rotation_view.gd" id="1_d8atj"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_lquwl"]
+size = Vector3(1, 1, 0.4)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_jwxfu"]
+transparency = 1
+cull_mode = 1
+shading_mode = 0
+albedo_color = Color(0, 0, 0, 0.50200003)
+stencil_flags = 2
+stencil_outline_thickness = 0.02
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_l4n6n"]
+top_radius = 0.01
+bottom_radius = 0.01
+height = 1.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vd3uh"]
+render_priority = 1
+no_depth_test = true
+shading_mode = 0
+albedo_color = Color(1, 0, 0, 1)
+stencil_flags = 2
+stencil_reference = 0
+stencil_color = Color(1, 0, 0, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qula0"]
+render_priority = 1
+no_depth_test = true
+shading_mode = 0
+albedo_color = Color(0, 1, 0, 1)
+stencil_flags = 2
+stencil_color = Color(0, 1, 0, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_w2ayq"]
+render_priority = 1
+no_depth_test = true
+shading_mode = 0
+albedo_color = Color(0, 0, 1, 1)
+stencil_flags = 2
+stencil_reference = 2
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_sepk2"]
+top_radius = 0.01
+bottom_radius = 0.01
+height = 1.0
+radial_segments = 4
+rings = 2
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4hycd"]
+render_priority = 1
+no_depth_test = true
+shading_mode = 0
+albedo_color = Color(1, 1, 0, 1)
+stencil_flags = 2
+stencil_reference = 2
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_r2coy"]
+top_radius = 0.0
+bottom_radius = 0.02
+height = 0.25
+radial_segments = 12
+rings = 2
+
+[node name="Rotation View" type="Control" unique_id=715437127]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 512.0
+offset_bottom = 512.0
+script = ExtResource("1_d8atj")
+
+[node name="ViewportContainer" type="SubViewportContainer" parent="." unique_id=1372340606]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+stretch = true
+
+[node name="Viewport" type="SubViewport" parent="ViewportContainer" unique_id=1193173499]
+transparent_bg = true
+handle_input_locally = false
+render_target_update_mode = 4
+
+[node name="Rotation" type="Node3D" parent="ViewportContainer/Viewport" unique_id=887840628]
+
+[node name="Body" type="MeshInstance3D" parent="ViewportContainer/Viewport/Rotation" unique_id=612713677]
+mesh = SubResource("BoxMesh_lquwl")
+surface_material_override/0 = SubResource("StandardMaterial3D_jwxfu")
+
+[node name="X" type="MeshInstance3D" parent="ViewportContainer/Viewport/Rotation" unique_id=1769426472]
+transform = Transform3D(-4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 0, 0, 1, 0.5, 0, 0)
+mesh = SubResource("CylinderMesh_l4n6n")
+surface_material_override/0 = SubResource("StandardMaterial3D_vd3uh")
+
+[node name="Y" type="MeshInstance3D" parent="ViewportContainer/Viewport/Rotation" unique_id=666027770]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+mesh = SubResource("CylinderMesh_l4n6n")
+surface_material_override/0 = SubResource("StandardMaterial3D_qula0")
+
+[node name="Z" type="MeshInstance3D" parent="ViewportContainer/Viewport/Rotation" unique_id=530530741]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0.5)
+mesh = SubResource("CylinderMesh_l4n6n")
+surface_material_override/0 = SubResource("StandardMaterial3D_w2ayq")
+
+[node name="Acceleration" type="Node3D" parent="ViewportContainer/Viewport" unique_id=1310608137]
+visible = false
+
+[node name="Line" type="MeshInstance3D" parent="ViewportContainer/Viewport/Acceleration" unique_id=687731442]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.49861407, 0)
+mesh = SubResource("CylinderMesh_sepk2")
+surface_material_override/0 = SubResource("StandardMaterial3D_4hycd")
+
+[node name="Arrow" type="MeshInstance3D" parent="ViewportContainer/Viewport/Acceleration" unique_id=469833018]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.125, 0)
+mesh = SubResource("CylinderMesh_r2coy")
+surface_material_override/0 = SubResource("StandardMaterial3D_4hycd")
+
+[node name="Cam" type="Camera3D" parent="ViewportContainer/Viewport" unique_id=496900098]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2.5)
+current = true
+fov = 45.0
+size = 2.0

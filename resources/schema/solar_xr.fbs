@@ -1,0 +1,1520 @@
+namespace SolarXR;
+
+struct HzF32 {
+	f: float32;
+}
+
+struct TransactionId {
+	
+	id: uint32;
+}
+
+struct DeviceId {
+	id: uint8;
+}
+
+table DeviceIdTable {
+	id: DeviceId;
+}
+
+table TrackerId {
+	device_id: DeviceId;
+	tracker_num: uint8;
+}
+
+table LogData {
+	message: string;
+	data: [uint8];
+}
+
+enum FirmwareErrorCode: uint8 {
+	Other = 0,
+	Disconnected,
+	Occluded,
+	ImuError,
+}
+
+enum FilteringType: uint8 {
+	NONE = 0,
+	SMOOTHING = 1,
+	PREDICTION = 2
+}
+
+enum TrackerRole: uint8 {
+	NONE = 0,
+	WAIST = 1,
+	LEFT_FOOT = 2,
+	RIGHT_FOOT = 3,
+	CHEST = 4,
+	LEFT_KNEE = 5,
+	RIGHT_KNEE = 6,
+	LEFT_ELBOW = 7,
+	RIGHT_ELBOW = 8,
+	LEFT_SHOULDER = 9,
+	RIGHT_SHOULDER = 10,
+	LEFT_HAND = 11,
+	RIGHT_HAND = 12,
+	LEFT_CONTROLLER = 13,
+	RIGHT_CONTROLLER = 14,
+	HEAD = 15,
+	NECK = 16,
+	CAMERA = 17,
+	KEYBOARD = 18,
+	HMD = 19,
+	BEACON = 20,
+	GENERIC_CONTROLLER = 21,
+}
+
+enum BodyPart: uint8 {
+	NONE = 0,
+	HEAD = 1,
+	NECK = 2,
+	CHEST = 3,
+	WAIST = 4,
+	HIP = 5,
+	LEFT_UPPER_LEG = 6,
+	RIGHT_UPPER_LEG = 7,
+	LEFT_LOWER_LEG = 8,
+	RIGHT_LOWER_LEG = 9,
+	LEFT_FOOT = 10,
+	RIGHT_FOOT = 11,
+	LEFT_LOWER_ARM = 14,
+	RIGHT_LOWER_ARM = 15,
+	LEFT_UPPER_ARM = 16,
+	RIGHT_UPPER_ARM = 17,
+	LEFT_HAND = 18,
+	RIGHT_HAND = 19,
+	LEFT_SHOULDER = 20,
+	RIGHT_SHOULDER = 21,
+	UPPER_CHEST = 22,
+	LEFT_HIP = 23,
+	RIGHT_HIP = 24,
+	LEFT_THUMB_METACARPAL = 25,
+	LEFT_THUMB_PROXIMAL = 26,
+	LEFT_THUMB_DISTAL = 27,
+	LEFT_INDEX_PROXIMAL = 28,
+	LEFT_INDEX_INTERMEDIATE = 29,
+	LEFT_INDEX_DISTAL = 30,
+	LEFT_MIDDLE_PROXIMAL = 31,
+	LEFT_MIDDLE_INTERMEDIATE = 32,
+	LEFT_MIDDLE_DISTAL = 33,
+	LEFT_RING_PROXIMAL = 34,
+	LEFT_RING_INTERMEDIATE = 35,
+	LEFT_RING_DISTAL = 36,
+	LEFT_LITTLE_PROXIMAL = 37,
+	LEFT_LITTLE_INTERMEDIATE = 38,
+	LEFT_LITTLE_DISTAL = 39,
+	RIGHT_THUMB_METACARPAL = 40,
+	RIGHT_THUMB_PROXIMAL = 41,
+	RIGHT_THUMB_DISTAL = 42,
+	RIGHT_INDEX_PROXIMAL = 43,
+	RIGHT_INDEX_INTERMEDIATE = 44,
+	RIGHT_INDEX_DISTAL = 45,
+	RIGHT_MIDDLE_PROXIMAL = 46,
+	RIGHT_MIDDLE_INTERMEDIATE = 47,
+	RIGHT_MIDDLE_DISTAL = 48,
+	RIGHT_RING_PROXIMAL = 49,
+	RIGHT_RING_INTERMEDIATE = 50,
+	RIGHT_RING_DISTAL = 51,
+	RIGHT_LITTLE_PROXIMAL = 52,
+	RIGHT_LITTLE_INTERMEDIATE = 53,
+	RIGHT_LITTLE_DISTAL = 54,
+}
+
+enum TrackerStatus: uint8 {
+	NONE = 0,
+	DISCONNECTED = 1,
+	OK = 2,
+	BUSY = 3,
+	ERROR = 4,
+	OCCLUDED = 5,
+	TIMED_OUT = 6,
+}
+
+struct Temperature {
+	temp: float32;
+}
+
+struct Ipv4Address  {
+	addr: uint32;
+}
+
+table Bytes {
+	b: [uint8];
+}
+
+table StringTable {
+	s: string;
+}
+
+enum MagnetometerStatus: uint8 {
+	NOT_SUPPORTED = 0,
+	DISABLED = 1,
+	ENABLED = 2,
+}
+
+enum McuType: uint16 {
+	Other = 0,
+	ESP8266,
+	ESP32,
+	OWOTRACK_ANDROID,
+	WRANGLER,
+	OWOTRACK_IOS,
+	ESP32_C3,
+	MOCOPI,
+	HARITORA,
+	NRF52,
+	NRF54L,
+	DEV_RESERVED = 250,
+}
+
+enum ImuType: uint16 {
+	Other = 0,
+	MPU9250,
+	MPU6500,
+	BNO080,
+	BNO085,
+	BNO055,
+	MPU6050,
+	BNO086,
+	BMI160,
+	ICM20948,
+	ICM42688,
+	BMI270,
+	LSM6DS3TRC,
+	LSM6DSV,
+	LSM6DSO,
+	LSM6DSR,
+	ICM45686,
+	ICM45605,
+	ADC_RESISTANCE,
+	ICM55686,
+	DEV_RESERVED = 250,
+}
+
+enum BoardType: uint16 {
+	UNKNOWN = 0,
+	SLIMEVR_LEGACY,
+	SLIMEVR_DEV,
+	NODEMCU,
+	CUSTOM,
+	WROOM32,
+	WEMOSD1MINI,
+	TTGO_TBASE,
+	ESP01,
+	SLIMEVR,
+	LOLIN_C3_MINI,
+	BEETLE32C3,
+	ESP32C3DEVKITM1,
+	OWOTRACK,
+	WRANGLER,
+	MOCOPI,
+	WEMOSWROOM02,
+	XIAO_ESP32C3,
+	HARITORA,
+	ESP32C6DEVKITC1,
+	GLOVE_IMU_SLIMEVR_DEV,
+	GESTURES,
+	SLIMEVR_V1_2,
+	ESP32S3_SUPERMINI,
+	GENERIC_NRF,
+	SLIMEVR_BUTTERFLY_DEV,
+	SLIMEVR_BUTTERFLY,
+	DEV_RESERVED = 250,
+}
+
+enum TrackerDataType: uint8 {
+	ROTATION = 0,
+	FLEX_RESISTANCE,
+	FLEX_ANGLE,
+}
+
+struct HardwareAddress {
+	addr: uint64;
+}
+
+
+table HardwareInfo {
+	mcu_id: McuType;
+
+	display_name: string;
+	
+	model: string;
+	
+	manufacturer: string;
+	
+	hardware_revision: string;
+
+	firmware_version: string;
+	hardware_address: HardwareAddress;
+
+	ip_address: Ipv4Address;
+
+	board_type: string;
+
+	official_board_type: BoardType;
+
+	hardware_identifier: string;
+
+	network_protocol_version: uint16;
+
+	firmware_date: string;
+}
+
+table HardwareStatus {
+	error_status: FirmwareErrorCode;
+	tps: uint8 (deprecated);
+	ping: uint16;
+	rssi: int16;
+	mcu_temp: float32;
+	battery_voltage: float32;
+	battery_pct_estimate: uint8;
+	log_data: LogData;
+	packet_loss: float32;
+	packets_lost: int32;
+	packets_received: int32;
+	battery_runtime_estimate: int64;
+}
+
+table FirmwareStatusMask {
+	error_status: bool;
+	tps: bool;
+	ping: bool;
+	rssi: bool;
+	mcu_temp: bool;
+	battery_voltage: bool;
+	battery_pct_estimate: bool;
+	battery_runtime_estimate: bool;
+}
+
+struct Quat {
+	x: float32;
+	y: float32;
+	z: float32;
+	w: float32;
+}
+
+struct Vec3f {
+	x: float32;
+	y: float32;
+	z: float32;
+}
+
+table StayAlignedPose {
+	upper_leg_angle_in_deg: float;
+	lower_leg_angle_in_deg: float;
+	foot_angle_in_deg: float;
+}
+
+table StayAlignedTracker {
+	yaw_correction_in_deg: float;
+	locked_error_in_deg: float;
+	center_error_in_deg: float;
+	neighbor_error_in_deg: float;
+	locked: bool;
+}
+
+table TrackerData {
+	tracker_id: TrackerId;
+
+	info: TrackerInfo;
+
+	status: TrackerStatus;
+
+
+	rotation: Quat;
+	position: Vec3f;
+	raw_angular_velocity: Vec3f;
+	raw_acceleration: Vec3f;
+	temp: Temperature;
+	linear_acceleration: Vec3f;
+
+	rotation_reference_adjusted: Quat;
+	rotation_identity_adjusted: Quat;
+
+	tps: uint16;
+
+	raw_magnetic_vector: Vec3f;
+
+	stay_aligned: StayAlignedTracker;
+}
+
+table TrackerDataMask {
+	info: bool;
+	status: bool;
+	rotation: bool;
+	position: bool;
+	raw_angular_velocity: bool;
+	raw_acceleration: bool;
+	temp: bool;
+	linear_acceleration: bool;
+	rotation_reference_adjusted: bool;
+	rotation_identity_adjusted: bool;
+	tps: bool;
+	raw_magnetic_vector: bool;
+	stay_aligned: bool;
+}
+
+table TrackerInfo {
+	imu_type: ImuType;
+	body_part: BodyPart;
+	poll_rate: HzF32;
+	mounting_orientation: Quat;
+
+	editable: bool;
+
+	is_computed: bool;
+
+	is_imu: bool;
+
+	display_name: string;
+
+	custom_name: string;
+
+	allow_drift_compensation: bool;
+
+	mounting_reset_orientation: Quat;
+
+	is_hmd: bool;
+
+	magnetometer: MagnetometerStatus;
+
+	data_support: TrackerDataType;
+}
+
+table DeviceDataMask {
+	tracker_data: TrackerDataMask;
+	device_data: bool;
+}
+
+table DeviceData {
+	id: DeviceId;
+
+	custom_name: string;
+
+	hardware_info: HardwareInfo;
+	hardware_status: HardwareStatus;
+
+	trackers: [TrackerData];
+}
+
+table Bone {
+	body_part: BodyPart;
+	rotation_g: Quat;
+	bone_length: float32;
+	head_position_g: Vec3f;
+}
+
+table ServerGuards {
+	canDoMounting: bool;
+	canDoYawReset: bool;
+	canDoUserHeightCalibration: bool;
+}
+
+union DataFeedMessage {
+	PollDataFeed,
+	StartDataFeed,
+	DataFeedUpdate,
+	DataFeedConfig,
+}
+
+table DataFeedMessageHeader {
+	message: DataFeedMessage;
+}
+
+table PollDataFeed {
+	config: DataFeedConfig;
+}
+
+table StartDataFeed {
+	data_feeds: [DataFeedConfig];
+}
+
+table DataFeedUpdate {
+	devices: [DeviceData];
+	synthetic_trackers: [TrackerData];
+	bones: [Bone];
+	stay_aligned_pose: StayAlignedPose;
+
+	index: uint8;
+
+	server_guards: ServerGuards;
+}
+
+table DataFeedConfig {
+	minimum_time_since_last: uint16 = 0;
+	data_mask: DeviceDataMask;
+	synthetic_trackers_mask: TrackerDataMask;
+	bone_mask: bool;
+	stay_aligned_pose_mask: bool;
+	server_guards_mask: bool;
+}
+
+table ModelToggles {
+	extended_spine: bool;
+	extended_pelvis: bool;
+	extended_knee: bool;
+	force_arms_from_hmd: bool;
+	floor_clip: bool;
+	skating_correction: bool;
+	vive_emulation: bool (deprecated);
+	toe_snap: bool;
+	foot_plant: bool;
+	self_localization: bool;
+	use_position: bool;
+	enforce_constraints: bool;
+	correct_constraints: bool;
+}
+
+table ModelRatios {
+	impute_waist_from_chest_hip: float32;
+	impute_waist_from_chest_legs: float32;
+	impute_hip_from_chest_legs: float32;
+	impute_hip_from_waist_legs: float32;
+	interp_hip_legs: float32;
+	interp_knee_tracker_ankle: float32;
+	interp_knee_ankle: float32;
+}
+
+table LegTweaksSettings {
+	correction_strength: float32;
+}
+
+table SkeletonHeight {
+	hmd_height: float32;
+	floor_height: float32;
+}
+
+table ModelSettings {
+	toggles: ModelToggles;
+	ratios: ModelRatios;
+	leg_tweaks: LegTweaksSettings;
+	skeleton_height: SkeletonHeight;
+}
+
+union RpcMessage {
+	HeartbeatRequest,
+	HeartbeatResponse,
+	ResetRequest,
+	ResetResponse,
+	AssignTrackerRequest,
+	SettingsRequest,
+	SettingsResponse,
+	ChangeSettingsRequest,
+	ClearDriftCompensationRequest,
+	RecordBVHRequest,
+	RecordBVHStatus,
+	SkeletonConfigRequest,
+	ChangeSkeletonConfigRequest,
+	SkeletonResetAllRequest,
+	SkeletonConfigResponse,
+	OpenSerialRequest,
+	CloseSerialRequest,
+	SetWifiRequest,
+	SerialUpdateResponse,
+	AutoBoneProcessRequest,
+	AutoBoneProcessStatusResponse,
+	AutoBoneEpochResponse,
+	OverlayDisplayModeRequest,
+	OverlayDisplayModeChangeRequest,
+	OverlayDisplayModeResponse,
+	SerialTrackerRebootRequest,
+	SerialTrackerGetInfoRequest,
+	SerialTrackerFactoryResetRequest,
+	SerialDevicesRequest,
+	SerialDevicesResponse,
+	NewSerialDeviceResponse,
+	StartWifiProvisioningRequest,
+	StopWifiProvisioningRequest,
+	WifiProvisioningStatusResponse,
+	ServerInfosRequest,
+	ServerInfosResponse,
+	LegTweaksTmpChange,
+	LegTweaksTmpClear,
+	TapDetectionSetupNotification,
+	SetPauseTrackingRequest,
+	StatusSystemRequest,
+	StatusSystemResponse,
+	StatusSystemUpdate,
+	StatusSystemFixed,
+	ClearMountingResetRequest,
+	HeightRequest,
+	HeightResponse,
+	AutoBoneApplyRequest,
+	AutoBoneStopRecordingRequest,
+	AutoBoneCancelRecordingRequest,
+	SaveFileNotification,
+	TrackingPauseStateRequest,
+	TrackingPauseStateResponse,
+	SerialTrackerGetWifiScanRequest,
+	UnknownDeviceHandshakeNotification,
+	AddUnknownDeviceRequest,
+	ForgetDeviceRequest,
+	FirmwareUpdateRequest,
+	FirmwareUpdateStatusResponse,
+	FirmwareUpdateStopQueuesRequest,
+	SettingsResetRequest,
+	MagToggleRequest,
+	MagToggleResponse,
+	ChangeMagToggleRequest,
+	RecordBVHStatusRequest,
+	VRCConfigStateRequest,
+	VRCConfigStateChangeResponse,
+	EnableStayAlignedRequest,
+	DetectStayAlignedRelaxedPoseRequest,
+	ResetStayAlignedRelaxedPoseRequest,
+	SerialTrackerCustomCommandRequest,
+	VRCConfigSettingToggleMute,
+	TrackingChecklistRequest,
+	TrackingChecklistResponse,
+	IgnoreTrackingChecklistStepRequest,
+	StartUserHeightCalibration,
+	CancelUserHeightCalibration,
+	UserHeightRecordingStatusResponse,
+	KeybindRequest,
+	ChangeKeybindRequest,
+	KeybindResponse,
+	InstalledInfoRequest,
+	InstalledInfoResponse,
+	OpenUriRequest,
+	OpenUriResponse,
+	EnableSteamVRDriverRequest,
+}
+
+enum KeybindId: uint8 {
+	FULL_RESET = 0,
+	YAW_RESET = 1,
+	MOUNTING_RESET = 2,
+	PAUSE_TRACKING = 3,
+	FEET_MOUNTING_RESET = 4
+}
+
+table Keybind {
+	keybind_id: KeybindId;
+	keybind_name_id: string;
+	keybind_value: string;
+	keybind_delay: float;
+}
+
+table KeybindRequest {
+	keybind_id: KeybindId;
+}
+
+table KeybindResponse {
+	keybind: [Keybind];
+	default_keybinds: [Keybind];
+}
+
+table ChangeKeybindRequest {
+	keybind: Keybind;
+}
+
+table OpenUriRequest {
+}
+
+table OpenUriResponse {
+	success: bool;
+}
+
+table RpcMessageHeader {
+	tx_id: TransactionId;
+	message: RpcMessage;
+}
+
+table InstalledInfoRequest {}
+
+table InstalledInfoResponse {
+	isUdevInstalled: bool;
+	isWayland: bool;
+}
+
+
+table HeartbeatRequest {}
+
+table HeartbeatResponse {}
+
+enum ResetType: uint8 {
+	Yaw,
+	Full,
+	Mounting,
+}
+
+
+enum ResetStatus: uint8 {
+	STARTED,
+	FINISHED,
+}
+
+table ResetRequest {
+	reset_type: ResetType;
+	body_parts: [BodyPart];
+	delay: float;
+}
+table ResetResponse {
+	reset_type: ResetType;
+	status: ResetStatus;
+
+	body_parts: [BodyPart];
+
+	progress: int;
+	duration: int;
+}
+
+table AssignTrackerRequest {
+	tracker_id: TrackerId;
+	body_position: BodyPart;
+	mounting_orientation: Quat;
+	display_name: string;
+	allow_drift_compensation: bool;
+}
+
+table ClearDriftCompensationRequest {}
+
+
+table SettingsRequest {}
+
+table SettingsResponse {
+	steam_vr_trackers: SteamVRTrackersSetting;
+	filtering: FilteringSettings;
+	drift_compensation: DriftCompensationSettings;
+	osc_router: OSCRouterSettings;
+	vrc_osc: VRCOSCSettings;
+	vmc_osc: VMCOSCSettings;
+	model_settings: ModelSettings;
+	tap_detection_settings: TapDetectionSettings;
+	auto_bone_settings: AutoBoneSettings;
+	resets_settings: ResetsSettings;
+	stay_aligned: StayAlignedSettings;
+	hid_settings: HIDSettings;
+	timeout: TimeoutSettings;
+	velocity_settings: VelocitySettings;
+	vrm: VRMSettings;
+}
+
+table ChangeSettingsRequest {
+	steam_vr_trackers: SteamVRTrackersSetting;
+	filtering: FilteringSettings;
+	drift_compensation: DriftCompensationSettings;
+	osc_router: OSCRouterSettings;
+	vrc_osc: VRCOSCSettings;
+	vmc_osc: VMCOSCSettings;
+	model_settings: ModelSettings;
+	tap_detection_settings: TapDetectionSettings;
+	auto_bone_settings: AutoBoneSettings;
+	resets_settings: ResetsSettings;
+	stay_aligned: StayAlignedSettings;
+	hid_settings: HIDSettings;
+	timeout: TimeoutSettings;
+	velocity_settings: VelocitySettings;
+	vrm: VRMSettings;
+}
+
+
+table SteamVRTrackersSetting {
+	waist: bool;
+	chest: bool;
+	feet: bool (deprecated);
+	knees: bool (deprecated);
+	elbows: bool (deprecated);
+	hands: bool (deprecated);
+	automaticTrackerToggle: bool;
+
+	left_foot: bool;
+	right_foot: bool;
+
+	left_knee: bool;
+	right_knee: bool;
+
+	left_elbow: bool;
+	right_elbow: bool;
+
+	left_hand: bool;
+	right_hand: bool;
+}
+
+table FilteringSettings {
+	type: FilteringType;
+	amount: float32;
+}
+
+table DriftCompensationSettings {
+	enabled: bool;
+	prediction: bool;
+	amount: float32;
+	max_resets: uint16;
+}
+
+table OSCRouterSettings {
+	osc_settings: OSCSettings;
+}
+
+table VRCOSCSettings {
+	osc_settings: OSCSettings;
+	trackers: OSCTrackersSetting;
+	oscquery_enabled: bool;
+}
+
+table VMCOSCSettings {
+	osc_settings: OSCSettings;
+	vrm_json: string (deprecated);
+	anchor_hip: bool;
+	mirror_tracking: bool;
+}
+
+table VRMSettings {
+	vrm_json: string;
+}
+
+table OSCSettings {
+	enabled: bool;
+	port_in: uint16;
+	port_out: uint16;
+	address: string;
+}
+
+table OSCTrackersSetting {
+	head: bool;
+	chest: bool;
+	waist: bool;
+	knees: bool;
+	feet: bool;
+	elbows: bool;
+	hands: bool;
+}
+
+table TapDetectionSettings {
+	full_reset_delay: float;
+	full_reset_enabled: bool;
+	full_reset_taps: uint8;
+	yaw_reset_delay: float;
+	yaw_reset_enabled: bool;
+	yaw_reset_taps: uint8;
+	mounting_reset_delay: float;
+	mounting_reset_enabled: bool;
+	mounting_reset_taps: uint8;
+	setup_mode: bool;
+	number_trackers_over_threshold: uint8;
+	yaw_reset_tracker: BodyPart;
+	full_reset_tracker: BodyPart;
+	mounting_reset_tracker: BodyPart;
+
+}
+
+enum ArmsMountingResetMode: uint8 {
+	BACK,
+	FORWARD,
+	TPOSE_UP,
+	TPOSE_DOWN
+}
+
+table ResetsSettings {
+	reset_mounting_feet: bool;
+	arms_mounting_reset_mode: ArmsMountingResetMode;
+	yaw_reset_smooth_time: float32;
+	save_mounting_reset: bool;
+	reset_hmd_pitch: bool;
+}
+
+table StayAlignedSettings {
+	enabled: bool;
+	extraYawCorrection: bool;
+	hideYawCorrection: bool;
+	standingEnabled: bool;
+	standingUpperLegAngle: float32;
+	standingLowerLegAngle: float32;
+	standingFootAngle: float32;
+	sittingEnabled: bool;
+	sittingUpperLegAngle: float32;
+	sittingLowerLegAngle: float32;
+	sittingFootAngle: float32;
+	flatEnabled: bool;
+	flatUpperLegAngle: float32;
+	flatLowerLegAngle: float32;
+	flatFootAngle: float32;
+	setupComplete: bool;
+}
+
+table HIDSettings {
+	trackersOverHID: bool;
+}
+
+table TimeoutSettings {
+	duration: float32;
+}
+
+table VelocitySettings {
+	send_derived_velocity: bool;
+}
+
+table TapDetectionSetupNotification {
+	tracker_id: TrackerId;
+}
+
+table RecordBVHRequest {
+	stop: bool;
+	path: string;
+}
+
+table RecordBVHStatus {
+	recording: bool;
+}
+
+table RecordBVHStatusRequest {}
+
+enum SkeletonBone: uint8 {
+	NONE = 0,
+	HEAD = 1,
+	NECK = 2,
+	CHEST = 3,
+	CHEST_OFFSET = 4,
+	WAIST = 5,
+	HIP = 6,
+	HIP_OFFSET = 7,
+	HIPS_WIDTH = 8,
+	UPPER_LEG = 9,
+	LOWER_LEG = 10,
+	FOOT_LENGTH = 11,
+	FOOT_SHIFT = 12,
+	SKELETON_OFFSET = 13,
+	SHOULDERS_DISTANCE = 14,
+	SHOULDERS_WIDTH = 15,
+	UPPER_ARM = 16,
+	LOWER_ARM = 17,
+	HAND_Y = 18,
+	HAND_Z = 19,
+	ELBOW_OFFSET = 20,
+	UPPER_CHEST = 21,
+}
+
+table SkeletonPart {
+	bone: SkeletonBone;
+	value: float;
+}
+
+table SkeletonConfigRequest {}
+table SkeletonConfigResponse {
+	skeleton_parts: [SkeletonPart];
+	user_height: float;
+}
+
+table SkeletonResetAllRequest {}
+
+table ChangeSkeletonConfigRequest {
+	bone: SkeletonBone;
+	value: float;
+}
+
+enum SerialDeviceType: uint8 {
+	ESP_TRACKER = 0,
+	HID_RECEIVER = 1,
+	HID_TRACKER = 2,
+}
+
+table SerialDevice {
+	port: string;
+	name: string;
+	type: SerialDeviceType;
+}
+
+table OpenSerialRequest {
+	auto: bool;
+	port: string;
+}
+
+table CloseSerialRequest {}
+table SetWifiRequest (deprecated) {
+	ssid: string;
+	password: string;
+}
+table SerialUpdateResponse {
+	log: string;
+	closed: bool;
+	device: SerialDevice;
+}
+
+table SerialTrackerRebootRequest {}
+
+table SerialTrackerGetInfoRequest {}
+
+table SerialTrackerFactoryResetRequest {}
+
+table SerialTrackerCustomCommandRequest {
+	command: string;
+}
+
+table SerialDevicesRequest {}
+
+table SerialDevicesResponse {
+	devices: [SerialDevice];
+}
+
+table NewSerialDeviceResponse {
+	device: SerialDevice;
+}
+
+table StartWifiProvisioningRequest {
+	ssid: string;
+	password: string;
+	port: string;
+}
+
+table StopWifiProvisioningRequest {}
+
+enum WifiProvisioningStatus: uint8 {
+	NONE = 0,
+	SERIAL_INIT = 1,
+	PROVISIONING = 2,
+	CONNECTING = 3,
+	CONNECTION_ERROR = 4,
+	LOOKING_FOR_SERVER = 5,
+	COULD_NOT_FIND_SERVER = 6,
+	DONE = 7,
+	OBTAINING_MAC_ADDRESS = 8,
+	NO_SERIAL_LOGS_ERROR = 9,
+	NO_SERIAL_DEVICE_FOUND = 10,
+}
+
+table WifiProvisioningStatusResponse {
+	status: WifiProvisioningStatus;
+}
+
+enum AutoBoneProcessType: uint8 {
+	NONE = 0,
+	RECORD = 1,
+	SAVE = 2,
+	PROCESS = 3,
+	APPLY = 4 (deprecated),
+}
+
+table AutoBoneProcessRequest {
+	process_type: AutoBoneProcessType;
+}
+
+table AutoBoneProcessStatusResponse {
+	process_type: AutoBoneProcessType;
+	message: string (deprecated);
+	current: uint32;
+	total: uint32;
+	completed: bool;
+	success: bool;
+	eta: float32;
+}
+
+table AutoBoneEpochResponse {
+	current_epoch: uint32;
+	total_epochs: uint32;
+	epoch_error: float32;
+	adjusted_skeleton_parts: [SkeletonPart];
+}
+
+table AutoBoneSettings {
+	cursor_increment: int32;
+	min_data_distance: int32;
+	max_data_distance: int32;
+	num_epochs: int32;
+	print_every_num_epochs: int32;
+	initial_adjust_rate: float32;
+	adjust_rate_decay: float32;
+	slide_error_factor: float32;
+	offset_slide_error_factor: float32;
+	foot_height_offset_error_factor: float32;
+	body_proportion_error_factor: float32;
+	height_error_factor: float32;
+	position_error_factor: float32;
+	position_offset_error_factor: float32;
+	calc_init_error: bool;
+	randomize_frame_order: bool;
+	scale_each_step: bool;
+	sample_count: int32;
+	sample_rate_ms: int64;
+	save_recordings: bool;
+	use_skeleton_height: bool;
+	rand_seed: int64;
+}
+
+table HeightRequest (deprecated) {}
+
+table HeightResponse (deprecated) {
+	min_height: float32;
+	max_height: float32;
+}
+
+table AutoBoneApplyRequest {}
+
+table AutoBoneStopRecordingRequest {}
+
+table AutoBoneCancelRecordingRequest {}
+
+
+table OverlayDisplayModeRequest {}
+
+table OverlayDisplayModeChangeRequest {
+	is_visible: bool;
+	is_mirrored: bool;
+}
+
+table OverlayDisplayModeResponse {
+	is_visible: bool;
+	is_mirrored: bool;
+}
+
+table ServerInfosRequest {}
+
+table ServerInfosResponse {
+	localIp: string;
+}
+
+table LegTweaksTmpChange {
+	floor_clip: bool;
+	skating_correction: bool;
+	toe_snap: bool;
+	foot_plant: bool;
+}
+
+table LegTweaksTmpClear {
+	floor_clip: bool = false;
+	skating_correction: bool = false;
+	toe_snap: bool = false;
+	foot_plant: bool = false;
+}
+
+union StatusData {
+	StatusTrackerReset,
+	StatusTrackerError,
+	StatusSteamVRDisconnected,
+	StatusUnassignedHMD,
+	StatusPublicNetwork,
+}
+
+table StatusTrackerReset {
+	tracker_id: [TrackerId];
+}
+
+table StatusTrackerError {
+	tracker_id: [TrackerId];
+}
+
+table StatusSteamVRDisconnected {
+	bridge_settings_name: string;
+}
+
+table StatusUnassignedHMD {
+	tracker_id: TrackerId;
+}
+
+table StatusSystemRequest {}
+
+table StatusSystemResponse {
+	current_statuses: [StatusMessage];
+}
+
+table StatusSystemUpdate {
+	new_status: StatusMessage;
+}
+
+table StatusSystemFixed {
+	fixed_status_id: uint32;
+}
+
+table StatusPublicNetwork {
+	adapters: [string];
+}
+
+table StatusMessage {
+	id: uint32;
+	prioritized: bool = false;
+	data: StatusData;
+}
+
+table SetPauseTrackingRequest {
+	pauseTracking: bool;
+}
+
+table ClearMountingResetRequest {}
+
+enum ComputerDirectory: uint8 {
+	Documents,
+}
+
+table SaveFileNotification {
+	data: [uint8];
+	mime_type: string;
+	file_extension: string;
+	expected_dir: ComputerDirectory;
+	expected_filename: string;
+}
+
+enum FirmwareUpdateStatus: uint8 {
+	DOWNLOADING,
+
+	NEED_MANUAL_REBOOT,
+
+	AUTHENTICATING,
+
+	UPLOADING,
+
+	SYNCING_WITH_MCU,
+
+	REBOOTING,
+
+	PROVISIONING,
+
+	DONE,
+
+	ERROR_DEVICE_NOT_FOUND,
+
+	ERROR_TIMEOUT,
+
+	ERROR_DOWNLOAD_FAILED,
+
+	ERROR_AUTHENTICATION_FAILED,
+
+	ERROR_UPLOAD_FAILED,
+
+	ERROR_PROVISIONING_FAILED,
+
+	ERROR_UNSUPPORTED_METHOD,
+
+	ERROR_UNKNOWN,
+}
+
+table SerialDevicePort {
+	port: string;
+}
+
+union FirmwareUpdateDeviceId {
+	DeviceIdTable,
+	SerialDevicePort,
+}
+
+table FirmwarePart {
+	url: string;
+
+	offset: uint;
+
+	digest: string;
+}
+
+union FirmwareUpdateMethod {
+	OTAFirmwareUpdate,
+	SerialFirmwareUpdate
+}
+
+table FirmwareUpdateRequest {
+	method: FirmwareUpdateMethod;
+}
+
+table OTAFirmwareUpdate {
+	device_id: DeviceId;
+
+	firmware_part: FirmwarePart;
+}
+
+table SerialFirmwareUpdate {
+	device_id: SerialDevicePort;
+
+	needManualReboot: bool;
+
+	ssid: string;
+	password: string;
+
+	firmware_part: [FirmwarePart];
+}
+
+table FirmwareUpdateStatusResponse {
+	device_id: FirmwareUpdateDeviceId;
+	status: FirmwareUpdateStatus;
+
+	progress: int8;
+}
+
+table FirmwareUpdateStopQueuesRequest {}
+
+table TrackingPauseStateRequest {}
+
+table TrackingPauseStateResponse {
+	trackingPaused: bool;
+}
+
+table SerialTrackerGetWifiScanRequest {}
+
+table UnknownDeviceHandshakeNotification {
+	mac_address: string;
+}
+
+table AddUnknownDeviceRequest {
+	mac_address: string;
+}
+
+table ForgetDeviceRequest {
+	mac_address: string;
+}
+
+table SettingsResetRequest {}
+
+table MagToggleRequest {
+	tracker_id: TrackerId;
+}
+
+table MagToggleResponse {
+	tracker_id: TrackerId;
+	enable: bool;
+}
+
+table ChangeMagToggleRequest {
+	tracker_id: TrackerId;
+	enable: bool;
+}
+
+enum VRCTrackerModel: uint8 {
+	UNKNOWN = 0,
+	SPHERE = 1,
+	SYSTEM = 2,
+	BOX = 3,
+	AXIS = 4,
+}
+
+enum VRCSpineMode: uint8 {
+	UNKNOWN = 0,
+	LOCK_HIP = 1,
+	LOCK_HEAD = 2,
+	LOCK_BOTH = 3,
+}
+
+enum VRCAvatarMeasurementType: uint8 {
+	UNKNOWN = 0,
+	HEIGHT = 1,
+	ARM_SPAN = 2
+}
+
+table VRCConfigValidity {
+	legacy_mode_ok: bool;
+	shoulder_tracking_ok: bool;
+	user_height_ok: bool;
+	calibration_range_ok: bool;
+	calibration_visuals_ok: bool;
+	tracker_model_ok: bool;
+	spine_mode_ok: bool;
+	avatar_measurement_type_ok: bool;
+	shoulder_width_compensation_ok: bool;
+}
+
+table VRCConfigValues {
+	legacy_mode: bool;
+	shoulder_tracking_disabled: bool;
+	user_height: float;
+	calibration_range: float;
+	calibration_visuals: bool;
+	tracker_model: VRCTrackerModel;
+	spine_mode: VRCSpineMode;
+	avatar_measurement_type: VRCAvatarMeasurementType;
+	shoulder_width_compensation: bool;
+}
+
+table VRCConfigRecommendedValues {
+	legacy_mode: bool;
+	shoulder_tracking_disabled: bool;
+	user_height: float;
+	calibration_range: float;
+	calibration_visuals: bool;
+	tracker_model: VRCTrackerModel;
+	spine_mode: [VRCSpineMode];
+	avatar_measurement_type: VRCAvatarMeasurementType;
+	shoulder_width_compensation: bool;
+}
+
+table VRCConfigStateRequest {}
+
+table VRCConfigStateChangeResponse {
+	is_supported: bool;
+	validity: VRCConfigValidity;
+	state: VRCConfigValues;
+	recommended: VRCConfigRecommendedValues;
+	muted: [string];
+}
+
+table VRCConfigSettingToggleMute {
+	key: string;
+}
+
+enum TrackingChecklistStepId : uint8 {
+	UNKNOWN = 0,
+	TRACKERS_REST_CALIBRATION = 1,
+	FULL_RESET = 2,
+	VRCHAT_SETTINGS = 3,
+	STEAMVR_DISCONNECTED = 4,
+	UNASSIGNED_HMD = 5,
+	TRACKER_ERROR = 6,
+	NETWORK_PROFILE_PUBLIC = 7,
+	MOUNTING_CALIBRATION = 8,
+	FEET_MOUNTING_CALIBRATION = 9,
+	STAY_ALIGNED_CONFIGURED = 10,
+	STEAMVR_HANDS_ENABLED = 11,
+	STANDABLE_INSTALLED = 12,
+}
+
+enum TrackingChecklistStepVisibility : uint8 {
+	ALWAYS,
+	WHEN_INVALID,
+}
+
+table TrackingChecklistTrackerReset {
+	trackers_id: [TrackerId];
+}
+
+table TrackingChecklistTrackerError {
+	trackers_id: [TrackerId];
+}
+
+table TrackingChecklistNeedCalibration {
+	trackers_id: [TrackerId];
+}
+
+table TrackingChecklistSteamVRDisconnected {
+	bridge_settings_name: string;
+	driver_installed: bool;
+	driver_blocked_by_safe_mode: bool;
+	driver_enabled: bool;
+}
+
+table EnableSteamVRDriverRequest {}
+
+table TrackingChecklistUnassignedHMD {
+	tracker_id: TrackerId;
+}
+
+table TrackingChecklistPublicNetworks {
+	adapters: [string];
+}
+
+union TrackingChecklistExtraData {
+	TrackingChecklistTrackerReset,
+	TrackingChecklistTrackerError,
+	TrackingChecklistSteamVRDisconnected,
+	TrackingChecklistUnassignedHMD,
+	TrackingChecklistNeedCalibration,
+	TrackingChecklistPublicNetworks
+}
+
+table TrackingChecklistStep {
+	id: TrackingChecklistStepId;
+	valid: bool;
+	enabled: bool;
+	visibility: TrackingChecklistStepVisibility;
+	optional: bool;
+	ignorable: bool;
+	extra_data: TrackingChecklistExtraData;
+}
+
+table TrackingChecklistRequest {}
+
+table TrackingChecklistResponse {
+	steps: [TrackingChecklistStep];
+	ignored_steps: [TrackingChecklistStepId];
+}
+
+table IgnoreTrackingChecklistStepRequest {
+	step_id: TrackingChecklistStepId;
+	ignore: bool;
+}
+
+table EnableStayAlignedRequest {
+	enable: bool;
+}
+
+enum StayAlignedRelaxedPose: uint8 {
+	STANDING = 0,
+	SITTING = 1,
+	FLAT = 2
+}
+
+table DetectStayAlignedRelaxedPoseRequest {
+	pose: StayAlignedRelaxedPose;
+}
+
+table ResetStayAlignedRelaxedPoseRequest {
+	pose: StayAlignedRelaxedPose;
+}
+
+table StartUserHeightCalibration {}
+
+table CancelUserHeightCalibration {}
+
+enum UserHeightCalibrationStatus: uint8 {
+	NONE = 0,
+	RECORDING_FLOOR = 1,
+	WAITING_FOR_CONTROLLER_PITCH = 2,
+	WAITING_FOR_RISE = 3,
+	WAITING_FOR_FW_LOOK = 4,
+	RECORDING_HEIGHT = 5,
+	DONE = 6,
+	ERROR_TOO_HIGH = 7,
+	ERROR_TOO_SMALL = 8,
+	ERROR_TIMEOUT = 9
+}
+
+table UserHeightRecordingStatusResponse {
+	hmdHeight: float;
+	status: UserHeightCalibrationStatus;
+}
+
+table TopicId {
+	organization: string;
+	app_name: string;
+	topic: string;
+}
+
+table TopicHandle {
+	id: uint16;
+}
+
+union Topic {
+	TopicHandle,
+	TopicId,
+}
+
+table TopicMapping {
+	id: TopicId;
+	handle: TopicHandle;
+}
+
+table TopicHandleRequest {
+	id: TopicId;
+}
+
+table SubscriptionRequest {
+	topic: Topic;
+}
+
+union PubSubUnion {
+	Message,
+	SubscriptionRequest,
+	TopicHandleRequest,
+	TopicMapping,
+}
+
+table PubSubHeader {
+	u: PubSubUnion;
+}
+
+union Payload {
+	StringTable,
+	Bytes,
+	KeyValues,
+}
+
+table Message {
+	topic: Topic;
+	payload: Payload;
+}
+
+table KeyValues {
+	keys: [string];
+	values: [string];
+}
+
+table MessageBundle {
+	data_feed_msgs: [DataFeedMessageHeader];
+	rpc_msgs: [RpcMessageHeader];
+	pub_sub_msgs: [PubSubHeader];
+}
