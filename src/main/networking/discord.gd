@@ -14,7 +14,9 @@ func setup() -> void:
 	})
 
 func on_disconnect() -> void:
-	Utils.warn("Discord Disconnected...")
+	pass
+	#Utils.warn("Discord Disconnected...")
 
 func on_connect(_user:Dictionary) -> void:
-	Utils.debug("Discord Connected!")
+	pass
+	#Utils.debug("Discord Connected!")
