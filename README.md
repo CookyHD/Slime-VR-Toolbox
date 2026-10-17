@@ -10,6 +10,8 @@ Built using a modified version of the [Godot Engine](https://github.com/CookyHD/
 
 ## Other Projects Used
 
+[SolarXR-Protocol](https://github.com/SlimeVR/SolarXR-Protocol) by [SlimeVR](https://github.com/SlimeVR)
+
 [godot-flatbuffers](https://github.com/enetheru/godot-flatbuffers) by [enetheru](https://github.com/enetheru)
 
 [godot-flatbuffers-addon](https://github.com/enetheru/godot-flatbuffers-addon) by [enetheru](https://github.com/enetheru)
