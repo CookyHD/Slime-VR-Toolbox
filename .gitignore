@@ -3,5 +3,5 @@
 **.temp
 
 addons/**/
-addons/**.gd
-addons/**.uid
+addons/*.gd
+addons/*.uid
