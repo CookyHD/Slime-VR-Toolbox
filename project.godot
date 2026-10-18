@@ -13,34 +13,32 @@ config_version=5
 config/name="SlimeVR-Toolbox"
 run/main_scene="uid://bk6t8yil4exld"
 config/features=PackedStringArray("4.7", "Forward Plus")
+run/max_fps=60
 boot_splash/bg_color=Color(0.1, 0.1, 0.1, 1)
 boot_splash/stretch_mode=0
 boot_splash/image="uid://b4ncnuv536xur"
 config/icon="uid://luubuaio2t3n"
-boot_splash/minimum_display_time=250
 
 [autoload]
 
-WindowGlobal="*uid://2iecnu1y64x0"
-SolarXR="*uid://d2d6ws5bn6nbi"
 Math="*uid://dl4301o2amu6g"
 Utils="*uid://dio15nc2vlkdl"
 Global="*uid://dlarkv2kuk6r7"
+Discord="*uid://b2e25i5sguu56"
+OTAUpdater="*uid://cldsde4520fst"
 SlimeVRServer="*uid://c54u2sl8niuts"
 HapticServer="*uid://bvsq1hxb2qk22"
-OTAUpdater="*uid://cldsde4520fst"
-Enums="*uid://crcspqfohs4wp"
-Discord="*uid://b2e25i5sguu56"
 
 [display]
 
 window/size/viewport_width=1280
 window/size/viewport_height=750
 window/size/borderless=true
+window/subwindows/embed_subwindows=false
 
 [editor_plugins]
 
-enabled=PackedStringArray()
+enabled=PackedStringArray("res://addons/plugin/plugin.cfg")
 
 [file_customization]
 
@@ -50,15 +48,12 @@ folder_colors={
 "res://resources/": "yellow",
 "res://src/": "purple",
 "res://src/scenes/": "blue",
+"res://src/schema/": "gray",
 "res://src/shaders/": "gray"
 }
 
 [flatbuffers]
 
-debug=false
-experimental=false
-EditorLog/verbosity=0
-highlight_error=true
 EditorLog/=true
 Colours/Syntax/unknown=Color(0.8, 0.8068627, 0.8411765, 1)
 Colours/Syntax/comment=Color(0.8, 0.8068627, 0.8411765, 0.5)
@@ -76,6 +71,10 @@ Colours/Notice/warning=Color(0.72, 0.61, 0.48, 1)
 Colours/Notice/notice=Color(0.56, 0.67, 0.51, 1)
 Colours/Notice/debug=Color(0.6, 0.7, 0.8, 0.8)
 Colours/Notice/trace=Color(0.8, 0.8068627, 0.8411765, 0.5)
+debug=false
+experimental=false
+EditorLog/verbosity=0
+highlight_error=true
 
 [physics]
 

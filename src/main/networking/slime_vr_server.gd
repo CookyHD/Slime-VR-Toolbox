@@ -28,11 +28,11 @@ func update() -> void:
 func on_close() -> void:
 	isSetup = false
 	for tracker:SlimeVRTracker in Trackers:
-		tracker.set_info({}) #Show Disconnected
+		tracker.set_info({"status": 1})
 
 func on_open() -> void:
 	isSetup = true
-	Websocket.put_packet(Packages.get_start_data_feed_package())
+	Websocket.put_packet(SolarXRPackets.get_start_data_feed_package())
 
 func on_message(buffer:PackedByteArray) -> void:
 	var message:SolarXR.MessageBundle = FlatBuffer.get_root(buffer,SolarXR.MessageBundle)
@@ -47,17 +47,17 @@ func on_message(buffer:PackedByteArray) -> void:
 	
 	if message.data_feed_msgs_size() > 0:
 		for data_feed_message:SolarXR.DataFeedMessageHeader in message.data_feed_msgs():
-			for device:SolarXR.DeviceData in Packages.get_devices(data_feed_message):
-				for tracker:SolarXR.TrackerData in Packages.get_trackers(device):
-					var mac:String = Packages.get_device_mac(device) 
-					var index:int = Packages.get_tracker_index(tracker)
+			for device:SolarXR.DeviceData in SolarXRPackets.get_devices(data_feed_message):
+				for tracker:SolarXR.TrackerData in SolarXRPackets.get_trackers(device):
+					var mac:String = SolarXRPackets.get_device_mac(device) 
+					var index:int = SolarXRPackets.get_tracker_index(tracker)
 					var info:Dictionary[String,Variant] = {}
 					
-					info["rotation"] = Packages.get_tracker_rotation(tracker)
-					info["acceleration"] = Packages.get_tracker_acceleration(tracker)
-					info["alligned_offset"] = Packages.get_tracker_alligned_offset(tracker)
+					info["rotation"] = SolarXRPackets.get_tracker_rotation(tracker)
+					info["acceleration"] = SolarXRPackets.get_tracker_acceleration(tracker)
+					info["alligned_offset"] = SolarXRPackets.get_tracker_alligned_offset(tracker)
 					
-					info["status"] = Packages.get_tracker_status(tracker)
+					info["status"] = SolarXRPackets.get_tracker_status(tracker)
 					
 					if has_tracker(mac, index):
 						get_tracker(mac, index).set_info(info)

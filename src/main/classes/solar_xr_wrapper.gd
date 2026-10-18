@@ -1,5 +1,5 @@
 extends Node
-class_name Packages
+class_name SolarXRPackets
 
 @warning_ignore_start("static_called_on_instance")
 

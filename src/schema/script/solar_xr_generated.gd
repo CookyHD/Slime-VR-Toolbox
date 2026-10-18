@@ -1,4 +1,5 @@
-extends Node
+extends Object
+class_name SolarXR
 
 @warning_ignore_start("shadowed_global_identifier")
 @warning_ignore_start("shadowed_variable_base_class")
@@ -894,7 +895,6 @@ static func payload_verify(verifier:FlatBufferVerifier, value:Variant, type:Payl
 	return false
 
 class HzF32 extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	const _fb_struct_size: int = 4
 
@@ -920,7 +920,6 @@ static func create_HzF32(
 	return val
 
 class TransactionId extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	const _fb_struct_size: int = 4
 
@@ -946,7 +945,6 @@ static func create_TransactionId(
 	return val
 
 class DeviceId extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	const _fb_struct_size: int = 1
 
@@ -972,7 +970,6 @@ static func create_DeviceId(
 	return val
 
 class Temperature extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	const _fb_struct_size: int = 4
 
@@ -998,7 +995,6 @@ static func create_Temperature(
 	return val
 
 class Ipv4Address extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	const _fb_struct_size: int = 4
 
@@ -1024,7 +1020,6 @@ static func create_Ipv4Address(
 	return val
 
 class HardwareAddress extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	const _fb_struct_size: int = 8
 
@@ -1050,7 +1045,6 @@ static func create_HardwareAddress(
 	return val
 
 class Quat extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	const _fb_struct_size: int = 16
 
@@ -1094,7 +1088,6 @@ static func create_Quat(
 	return val
 
 class Vec3f extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	const _fb_struct_size: int = 12
 
@@ -1132,7 +1125,6 @@ static func create_Vec3f(
 	return val
 
 class DeviceIdTable extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_ID = 4
@@ -1159,7 +1151,7 @@ class DeviceIdTable extends FlatBuffer:
 	func id() -> DeviceId:
 		var field_start: int = get_inline_field_start( VT_ID )
 		if not field_start: return null
-		return _solar_xr_schema.DeviceId.new( _fb_bytes, field_start )
+		return SolarXR.DeviceId.new( _fb_bytes, field_start )
 
 
 ## Builder class for DeviceIdTable
@@ -1190,7 +1182,6 @@ static func create_DeviceIdTable( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class TrackerId extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_DEVICE_ID = 4,
@@ -1219,7 +1210,7 @@ class TrackerId extends FlatBuffer:
 	func device_id() -> DeviceId:
 		var field_start: int = get_inline_field_start( VT_DEVICE_ID )
 		if not field_start: return null
-		return _solar_xr_schema.DeviceId.new( _fb_bytes, field_start )
+		return SolarXR.DeviceId.new( _fb_bytes, field_start )
 
 	## Return true if tracker_num is present in the buffer, else false
 	func tracker_num_is_present() -> bool:
@@ -1265,7 +1256,6 @@ static func create_TrackerId( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class LogData extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_MESSAGE = 4,
@@ -1356,7 +1346,6 @@ static func create_LogData( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class Bytes extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_B = 4
@@ -1429,7 +1418,6 @@ static func create_Bytes( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class StringTable extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_S = 4
@@ -1487,7 +1475,6 @@ static func create_StringTable( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class HardwareInfo extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_MCU_ID = 4,
@@ -1602,7 +1589,7 @@ class HardwareInfo extends FlatBuffer:
 	func hardware_address() -> HardwareAddress:
 		var field_start: int = get_inline_field_start( VT_HARDWARE_ADDRESS )
 		if not field_start: return null
-		return _solar_xr_schema.HardwareAddress.new( _fb_bytes, field_start )
+		return SolarXR.HardwareAddress.new( _fb_bytes, field_start )
 
 	## Return true if ip_address is present in the buffer, else false
 	func ip_address_is_present() -> bool:
@@ -1611,7 +1598,7 @@ class HardwareInfo extends FlatBuffer:
 	func ip_address() -> Ipv4Address:
 		var field_start: int = get_inline_field_start( VT_IP_ADDRESS )
 		if not field_start: return null
-		return _solar_xr_schema.Ipv4Address.new( _fb_bytes, field_start )
+		return SolarXR.Ipv4Address.new( _fb_bytes, field_start )
 
 	## Return true if board_type is present in the buffer, else false
 	func board_type_is_present() -> bool:
@@ -1760,7 +1747,6 @@ static func create_HardwareInfo( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class HardwareStatus extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_ERROR_STATUS = 4,
@@ -1860,10 +1846,10 @@ class HardwareStatus extends FlatBuffer:
 	func log_data_is_present() -> bool:
 		return get_field_offset( VT_LOG_DATA )
 
-	func log_data() -> _solar_xr_schema.LogData:
+	func log_data() -> SolarXR.LogData:
 		var field_start: int = get_offset_field_start( VT_LOG_DATA )
 		if not field_start: return null
-		return _solar_xr_schema.LogData.new( _fb_bytes, field_start )
+		return SolarXR.LogData.new( _fb_bytes, field_start )
 
 	## Return true if packet_loss is present in the buffer, else false
 	func packet_loss_is_present() -> bool:
@@ -1990,7 +1976,6 @@ static func create_HardwareStatus( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class FirmwareStatusMask extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_ERROR_STATUS = 4,
@@ -2166,7 +2151,6 @@ static func create_FirmwareStatusMask( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class StayAlignedPose extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_UPPER_LEG_ANGLE_IN_DEG = 4,
@@ -2257,7 +2241,6 @@ static func create_StayAlignedPose( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class StayAlignedTracker extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_YAW_CORRECTION_IN_DEG = 4,
@@ -2382,7 +2365,6 @@ static func create_StayAlignedTracker( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class TrackerData extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_TRACKER_ID = 4,
@@ -2443,19 +2425,19 @@ class TrackerData extends FlatBuffer:
 	func tracker_id_is_present() -> bool:
 		return get_field_offset( VT_TRACKER_ID )
 
-	func tracker_id() -> _solar_xr_schema.TrackerId:
+	func tracker_id() -> SolarXR.TrackerId:
 		var field_start: int = get_offset_field_start( VT_TRACKER_ID )
 		if not field_start: return null
-		return _solar_xr_schema.TrackerId.new( _fb_bytes, field_start )
+		return SolarXR.TrackerId.new( _fb_bytes, field_start )
 
 	## Return true if info is present in the buffer, else false
 	func info_is_present() -> bool:
 		return get_field_offset( VT_INFO )
 
-	func info() -> _solar_xr_schema.TrackerInfo:
+	func info() -> SolarXR.TrackerInfo:
 		var field_start: int = get_offset_field_start( VT_INFO )
 		if not field_start: return null
-		return _solar_xr_schema.TrackerInfo.new( _fb_bytes, field_start )
+		return SolarXR.TrackerInfo.new( _fb_bytes, field_start )
 
 	## Return true if status is present in the buffer, else false
 	func status_is_present() -> bool:
@@ -2474,7 +2456,7 @@ class TrackerData extends FlatBuffer:
 	func rotation() -> Quat:
 		var field_start: int = get_inline_field_start( VT_ROTATION )
 		if not field_start: return null
-		return _solar_xr_schema.Quat.new( _fb_bytes, field_start )
+		return SolarXR.Quat.new( _fb_bytes, field_start )
 
 	## Return true if position is present in the buffer, else false
 	func position_is_present() -> bool:
@@ -2483,7 +2465,7 @@ class TrackerData extends FlatBuffer:
 	func position() -> Vec3f:
 		var field_start: int = get_inline_field_start( VT_POSITION )
 		if not field_start: return null
-		return _solar_xr_schema.Vec3f.new( _fb_bytes, field_start )
+		return SolarXR.Vec3f.new( _fb_bytes, field_start )
 
 	## Return true if raw_angular_velocity is present in the buffer, else false
 	func raw_angular_velocity_is_present() -> bool:
@@ -2492,7 +2474,7 @@ class TrackerData extends FlatBuffer:
 	func raw_angular_velocity() -> Vec3f:
 		var field_start: int = get_inline_field_start( VT_RAW_ANGULAR_VELOCITY )
 		if not field_start: return null
-		return _solar_xr_schema.Vec3f.new( _fb_bytes, field_start )
+		return SolarXR.Vec3f.new( _fb_bytes, field_start )
 
 	## Return true if raw_acceleration is present in the buffer, else false
 	func raw_acceleration_is_present() -> bool:
@@ -2501,7 +2483,7 @@ class TrackerData extends FlatBuffer:
 	func raw_acceleration() -> Vec3f:
 		var field_start: int = get_inline_field_start( VT_RAW_ACCELERATION )
 		if not field_start: return null
-		return _solar_xr_schema.Vec3f.new( _fb_bytes, field_start )
+		return SolarXR.Vec3f.new( _fb_bytes, field_start )
 
 	## Return true if temp is present in the buffer, else false
 	func temp_is_present() -> bool:
@@ -2510,7 +2492,7 @@ class TrackerData extends FlatBuffer:
 	func temp() -> Temperature:
 		var field_start: int = get_inline_field_start( VT_TEMP )
 		if not field_start: return null
-		return _solar_xr_schema.Temperature.new( _fb_bytes, field_start )
+		return SolarXR.Temperature.new( _fb_bytes, field_start )
 
 	## Return true if linear_acceleration is present in the buffer, else false
 	func linear_acceleration_is_present() -> bool:
@@ -2519,7 +2501,7 @@ class TrackerData extends FlatBuffer:
 	func linear_acceleration() -> Vec3f:
 		var field_start: int = get_inline_field_start( VT_LINEAR_ACCELERATION )
 		if not field_start: return null
-		return _solar_xr_schema.Vec3f.new( _fb_bytes, field_start )
+		return SolarXR.Vec3f.new( _fb_bytes, field_start )
 
 	## Return true if rotation_reference_adjusted is present in the buffer, else false
 	func rotation_reference_adjusted_is_present() -> bool:
@@ -2528,7 +2510,7 @@ class TrackerData extends FlatBuffer:
 	func rotation_reference_adjusted() -> Quat:
 		var field_start: int = get_inline_field_start( VT_ROTATION_REFERENCE_ADJUSTED )
 		if not field_start: return null
-		return _solar_xr_schema.Quat.new( _fb_bytes, field_start )
+		return SolarXR.Quat.new( _fb_bytes, field_start )
 
 	## Return true if rotation_identity_adjusted is present in the buffer, else false
 	func rotation_identity_adjusted_is_present() -> bool:
@@ -2537,7 +2519,7 @@ class TrackerData extends FlatBuffer:
 	func rotation_identity_adjusted() -> Quat:
 		var field_start: int = get_inline_field_start( VT_ROTATION_IDENTITY_ADJUSTED )
 		if not field_start: return null
-		return _solar_xr_schema.Quat.new( _fb_bytes, field_start )
+		return SolarXR.Quat.new( _fb_bytes, field_start )
 
 	## Return true if tps is present in the buffer, else false
 	func tps_is_present() -> bool:
@@ -2555,16 +2537,16 @@ class TrackerData extends FlatBuffer:
 	func raw_magnetic_vector() -> Vec3f:
 		var field_start: int = get_inline_field_start( VT_RAW_MAGNETIC_VECTOR )
 		if not field_start: return null
-		return _solar_xr_schema.Vec3f.new( _fb_bytes, field_start )
+		return SolarXR.Vec3f.new( _fb_bytes, field_start )
 
 	## Return true if stay_aligned is present in the buffer, else false
 	func stay_aligned_is_present() -> bool:
 		return get_field_offset( VT_STAY_ALIGNED )
 
-	func stay_aligned() -> _solar_xr_schema.StayAlignedTracker:
+	func stay_aligned() -> SolarXR.StayAlignedTracker:
 		var field_start: int = get_offset_field_start( VT_STAY_ALIGNED )
 		if not field_start: return null
-		return _solar_xr_schema.StayAlignedTracker.new( _fb_bytes, field_start )
+		return SolarXR.StayAlignedTracker.new( _fb_bytes, field_start )
 
 
 ## Builder class for TrackerData
@@ -2673,7 +2655,6 @@ static func create_TrackerData( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class TrackerDataMask extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_INFO = 4,
@@ -2934,7 +2915,6 @@ static func create_TrackerDataMask( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class TrackerInfo extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_IMU_TYPE = 4,
@@ -3011,7 +2991,7 @@ class TrackerInfo extends FlatBuffer:
 	func poll_rate() -> HzF32:
 		var field_start: int = get_inline_field_start( VT_POLL_RATE )
 		if not field_start: return null
-		return _solar_xr_schema.HzF32.new( _fb_bytes, field_start )
+		return SolarXR.HzF32.new( _fb_bytes, field_start )
 
 	## Return true if mounting_orientation is present in the buffer, else false
 	func mounting_orientation_is_present() -> bool:
@@ -3020,7 +3000,7 @@ class TrackerInfo extends FlatBuffer:
 	func mounting_orientation() -> Quat:
 		var field_start: int = get_inline_field_start( VT_MOUNTING_ORIENTATION )
 		if not field_start: return null
-		return _solar_xr_schema.Quat.new( _fb_bytes, field_start )
+		return SolarXR.Quat.new( _fb_bytes, field_start )
 
 	## Return true if editable is present in the buffer, else false
 	func editable_is_present() -> bool:
@@ -3083,7 +3063,7 @@ class TrackerInfo extends FlatBuffer:
 	func mounting_reset_orientation() -> Quat:
 		var field_start: int = get_inline_field_start( VT_MOUNTING_RESET_ORIENTATION )
 		if not field_start: return null
-		return _solar_xr_schema.Quat.new( _fb_bytes, field_start )
+		return SolarXR.Quat.new( _fb_bytes, field_start )
 
 	## Return true if is_hmd is present in the buffer, else false
 	func is_hmd_is_present() -> bool:
@@ -3221,7 +3201,6 @@ static func create_TrackerInfo( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class DeviceDataMask extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_TRACKER_DATA = 4,
@@ -3247,10 +3226,10 @@ class DeviceDataMask extends FlatBuffer:
 	func tracker_data_is_present() -> bool:
 		return get_field_offset( VT_TRACKER_DATA )
 
-	func tracker_data() -> _solar_xr_schema.TrackerDataMask:
+	func tracker_data() -> SolarXR.TrackerDataMask:
 		var field_start: int = get_offset_field_start( VT_TRACKER_DATA )
 		if not field_start: return null
-		return _solar_xr_schema.TrackerDataMask.new( _fb_bytes, field_start )
+		return SolarXR.TrackerDataMask.new( _fb_bytes, field_start )
 
 	## Return true if device_data is present in the buffer, else false
 	func device_data_is_present() -> bool:
@@ -3296,7 +3275,6 @@ static func create_DeviceDataMask( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class DeviceData extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_ID = 4,
@@ -3336,7 +3314,7 @@ class DeviceData extends FlatBuffer:
 	func id() -> DeviceId:
 		var field_start: int = get_inline_field_start( VT_ID )
 		if not field_start: return null
-		return _solar_xr_schema.DeviceId.new( _fb_bytes, field_start )
+		return SolarXR.DeviceId.new( _fb_bytes, field_start )
 
 	## Return true if custom_name is present in the buffer, else false
 	func custom_name_is_present() -> bool:
@@ -3351,26 +3329,26 @@ class DeviceData extends FlatBuffer:
 	func hardware_info_is_present() -> bool:
 		return get_field_offset( VT_HARDWARE_INFO )
 
-	func hardware_info() -> _solar_xr_schema.HardwareInfo:
+	func hardware_info() -> SolarXR.HardwareInfo:
 		var field_start: int = get_offset_field_start( VT_HARDWARE_INFO )
 		if not field_start: return null
-		return _solar_xr_schema.HardwareInfo.new( _fb_bytes, field_start )
+		return SolarXR.HardwareInfo.new( _fb_bytes, field_start )
 
 	## Return true if hardware_status is present in the buffer, else false
 	func hardware_status_is_present() -> bool:
 		return get_field_offset( VT_HARDWARE_STATUS )
 
-	func hardware_status() -> _solar_xr_schema.HardwareStatus:
+	func hardware_status() -> SolarXR.HardwareStatus:
 		var field_start: int = get_offset_field_start( VT_HARDWARE_STATUS )
 		if not field_start: return null
-		return _solar_xr_schema.HardwareStatus.new( _fb_bytes, field_start )
+		return SolarXR.HardwareStatus.new( _fb_bytes, field_start )
 
 	## Return true if trackers is present in the buffer, else false
 	func trackers_is_present() -> bool:
 		return get_field_offset( VT_TRACKERS )
 
 	func trackers_verify(verifier:FlatBufferVerifier) -> bool:
-		var tmp := _solar_xr_schema.TrackerData.new()
+		var tmp := SolarXR.TrackerData.new()
 		for i in trackers_size():
 			if not trackers_at(i, tmp).verify(verifier):
 				return false
@@ -3397,7 +3375,7 @@ class DeviceData extends FlatBuffer:
 		if into:
 			into.assign_buffer(_fb_bytes, element_pos + element_offset)
 			return into
-		return _solar_xr_schema.TrackerData.new( _fb_bytes, element_pos + element_offset )
+		return SolarXR.TrackerData.new( _fb_bytes, element_pos + element_offset )
 
 	func trackers() -> Array:
 		var array_start: int = get_offset_field_start( VT_TRACKERS )
@@ -3408,7 +3386,7 @@ class DeviceData extends FlatBuffer:
 		if array.resize( array_size ) != OK: return []
 		for i: int in array_size:
 			var p: int = array_start + i * 4
-			array[i] = _solar_xr_schema.TrackerData.new( _fb_bytes, p + _fb_bytes.decode_u32( p ) )
+			array[i] = SolarXR.TrackerData.new( _fb_bytes, p + _fb_bytes.decode_u32( p ) )
 		return array
 
 
@@ -3464,7 +3442,6 @@ static func create_DeviceData( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class Bone extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_BODY_PART = 4,
@@ -3508,7 +3485,7 @@ class Bone extends FlatBuffer:
 	func rotation_g() -> Quat:
 		var field_start: int = get_inline_field_start( VT_ROTATION_G )
 		if not field_start: return null
-		return _solar_xr_schema.Quat.new( _fb_bytes, field_start )
+		return SolarXR.Quat.new( _fb_bytes, field_start )
 
 	## Return true if bone_length is present in the buffer, else false
 	func bone_length_is_present() -> bool:
@@ -3526,7 +3503,7 @@ class Bone extends FlatBuffer:
 	func head_position_g() -> Vec3f:
 		var field_start: int = get_inline_field_start( VT_HEAD_POSITION_G )
 		if not field_start: return null
-		return _solar_xr_schema.Vec3f.new( _fb_bytes, field_start )
+		return SolarXR.Vec3f.new( _fb_bytes, field_start )
 
 
 ## Builder class for Bone
@@ -3575,7 +3552,6 @@ static func create_Bone( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class ServerGuards extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_CANDOMOUNTING = 4,
@@ -3666,7 +3642,6 @@ static func create_ServerGuards( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class DataFeedMessageHeader extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_MESSAGE_TYPE = 4,
@@ -3684,7 +3659,7 @@ class DataFeedMessageHeader extends FlatBuffer:
 			verify_table_start(verifier)
 			and verify_field_u8(verifier, VT_MESSAGE_TYPE, 1)
 			and verify_offset(verifier, VT_MESSAGE)
-			and _solar_xr_schema.datafeedmessage_verify(verifier, message(), message_type())
+			and SolarXR.data_feed_message_verify(verifier, message(), message_type())
 			and verify_end_table(verifier)
 		)
 
@@ -3703,14 +3678,14 @@ class DataFeedMessageHeader extends FlatBuffer:
 		var field_start: int = get_offset_field_start( VT_MESSAGE )
 		if not field_start: return null
 		match( message_type() ):
-			_solar_xr_schema.DataFeedMessage.POLL_DATA_FEED:
-				return _solar_xr_schema.PollDataFeed.new( _fb_bytes, field_start )
-			_solar_xr_schema.DataFeedMessage.START_DATA_FEED:
-				return _solar_xr_schema.StartDataFeed.new( _fb_bytes, field_start )
-			_solar_xr_schema.DataFeedMessage.DATA_FEED_UPDATE:
-				return _solar_xr_schema.DataFeedUpdate.new( _fb_bytes, field_start )
-			_solar_xr_schema.DataFeedMessage.DATA_FEED_CONFIG:
-				return _solar_xr_schema.DataFeedConfig.new( _fb_bytes, field_start )
+			SolarXR.DataFeedMessage.POLL_DATA_FEED:
+				return SolarXR.PollDataFeed.new( _fb_bytes, field_start )
+			SolarXR.DataFeedMessage.START_DATA_FEED:
+				return SolarXR.StartDataFeed.new( _fb_bytes, field_start )
+			SolarXR.DataFeedMessage.DATA_FEED_UPDATE:
+				return SolarXR.DataFeedUpdate.new( _fb_bytes, field_start )
+			SolarXR.DataFeedMessage.DATA_FEED_CONFIG:
+				return SolarXR.DataFeedConfig.new( _fb_bytes, field_start )
 		return null
 
 
@@ -3748,7 +3723,6 @@ static func create_DataFeedMessageHeader( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class PollDataFeed extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_CONFIG = 4
@@ -3772,10 +3746,10 @@ class PollDataFeed extends FlatBuffer:
 	func config_is_present() -> bool:
 		return get_field_offset( VT_CONFIG )
 
-	func config() -> _solar_xr_schema.DataFeedConfig:
+	func config() -> SolarXR.DataFeedConfig:
 		var field_start: int = get_offset_field_start( VT_CONFIG )
 		if not field_start: return null
-		return _solar_xr_schema.DataFeedConfig.new( _fb_bytes, field_start )
+		return SolarXR.DataFeedConfig.new( _fb_bytes, field_start )
 
 
 ## Builder class for PollDataFeed
@@ -3806,7 +3780,6 @@ static func create_PollDataFeed( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class StartDataFeed extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_DATA_FEEDS = 4
@@ -3832,7 +3805,7 @@ class StartDataFeed extends FlatBuffer:
 		return get_field_offset( VT_DATA_FEEDS )
 
 	func data_feeds_verify(verifier:FlatBufferVerifier) -> bool:
-		var tmp := _solar_xr_schema.DataFeedConfig.new()
+		var tmp := SolarXR.DataFeedConfig.new()
 		for i in data_feeds_size():
 			if not data_feeds_at(i, tmp).verify(verifier):
 				return false
@@ -3859,7 +3832,7 @@ class StartDataFeed extends FlatBuffer:
 		if into:
 			into.assign_buffer(_fb_bytes, element_pos + element_offset)
 			return into
-		return _solar_xr_schema.DataFeedConfig.new( _fb_bytes, element_pos + element_offset )
+		return SolarXR.DataFeedConfig.new( _fb_bytes, element_pos + element_offset )
 
 	func data_feeds() -> Array:
 		var array_start: int = get_offset_field_start( VT_DATA_FEEDS )
@@ -3870,7 +3843,7 @@ class StartDataFeed extends FlatBuffer:
 		if array.resize( array_size ) != OK: return []
 		for i: int in array_size:
 			var p: int = array_start + i * 4
-			array[i] = _solar_xr_schema.DataFeedConfig.new( _fb_bytes, p + _fb_bytes.decode_u32( p ) )
+			array[i] = SolarXR.DataFeedConfig.new( _fb_bytes, p + _fb_bytes.decode_u32( p ) )
 		return array
 
 
@@ -3902,7 +3875,6 @@ static func create_StartDataFeed( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class DataFeedUpdate extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_DEVICES = 4,
@@ -3944,7 +3916,7 @@ class DataFeedUpdate extends FlatBuffer:
 		return get_field_offset( VT_DEVICES )
 
 	func devices_verify(verifier:FlatBufferVerifier) -> bool:
-		var tmp := _solar_xr_schema.DeviceData.new()
+		var tmp := SolarXR.DeviceData.new()
 		for i in devices_size():
 			if not devices_at(i, tmp).verify(verifier):
 				return false
@@ -3971,7 +3943,7 @@ class DataFeedUpdate extends FlatBuffer:
 		if into:
 			into.assign_buffer(_fb_bytes, element_pos + element_offset)
 			return into
-		return _solar_xr_schema.DeviceData.new( _fb_bytes, element_pos + element_offset )
+		return SolarXR.DeviceData.new( _fb_bytes, element_pos + element_offset )
 
 	func devices() -> Array:
 		var array_start: int = get_offset_field_start( VT_DEVICES )
@@ -3982,7 +3954,7 @@ class DataFeedUpdate extends FlatBuffer:
 		if array.resize( array_size ) != OK: return []
 		for i: int in array_size:
 			var p: int = array_start + i * 4
-			array[i] = _solar_xr_schema.DeviceData.new( _fb_bytes, p + _fb_bytes.decode_u32( p ) )
+			array[i] = SolarXR.DeviceData.new( _fb_bytes, p + _fb_bytes.decode_u32( p ) )
 		return array
 
 	## Return true if synthetic_trackers is present in the buffer, else false
@@ -3990,7 +3962,7 @@ class DataFeedUpdate extends FlatBuffer:
 		return get_field_offset( VT_SYNTHETIC_TRACKERS )
 
 	func synthetic_trackers_verify(verifier:FlatBufferVerifier) -> bool:
-		var tmp := _solar_xr_schema.TrackerData.new()
+		var tmp := SolarXR.TrackerData.new()
 		for i in synthetic_trackers_size():
 			if not synthetic_trackers_at(i, tmp).verify(verifier):
 				return false
@@ -4017,7 +3989,7 @@ class DataFeedUpdate extends FlatBuffer:
 		if into:
 			into.assign_buffer(_fb_bytes, element_pos + element_offset)
 			return into
-		return _solar_xr_schema.TrackerData.new( _fb_bytes, element_pos + element_offset )
+		return SolarXR.TrackerData.new( _fb_bytes, element_pos + element_offset )
 
 	func synthetic_trackers() -> Array:
 		var array_start: int = get_offset_field_start( VT_SYNTHETIC_TRACKERS )
@@ -4028,7 +4000,7 @@ class DataFeedUpdate extends FlatBuffer:
 		if array.resize( array_size ) != OK: return []
 		for i: int in array_size:
 			var p: int = array_start + i * 4
-			array[i] = _solar_xr_schema.TrackerData.new( _fb_bytes, p + _fb_bytes.decode_u32( p ) )
+			array[i] = SolarXR.TrackerData.new( _fb_bytes, p + _fb_bytes.decode_u32( p ) )
 		return array
 
 	## Return true if bones is present in the buffer, else false
@@ -4036,7 +4008,7 @@ class DataFeedUpdate extends FlatBuffer:
 		return get_field_offset( VT_BONES )
 
 	func bones_verify(verifier:FlatBufferVerifier) -> bool:
-		var tmp := _solar_xr_schema.Bone.new()
+		var tmp := SolarXR.Bone.new()
 		for i in bones_size():
 			if not bones_at(i, tmp).verify(verifier):
 				return false
@@ -4063,7 +4035,7 @@ class DataFeedUpdate extends FlatBuffer:
 		if into:
 			into.assign_buffer(_fb_bytes, element_pos + element_offset)
 			return into
-		return _solar_xr_schema.Bone.new( _fb_bytes, element_pos + element_offset )
+		return SolarXR.Bone.new( _fb_bytes, element_pos + element_offset )
 
 	func bones() -> Array:
 		var array_start: int = get_offset_field_start( VT_BONES )
@@ -4074,17 +4046,17 @@ class DataFeedUpdate extends FlatBuffer:
 		if array.resize( array_size ) != OK: return []
 		for i: int in array_size:
 			var p: int = array_start + i * 4
-			array[i] = _solar_xr_schema.Bone.new( _fb_bytes, p + _fb_bytes.decode_u32( p ) )
+			array[i] = SolarXR.Bone.new( _fb_bytes, p + _fb_bytes.decode_u32( p ) )
 		return array
 
 	## Return true if stay_aligned_pose is present in the buffer, else false
 	func stay_aligned_pose_is_present() -> bool:
 		return get_field_offset( VT_STAY_ALIGNED_POSE )
 
-	func stay_aligned_pose() -> _solar_xr_schema.StayAlignedPose:
+	func stay_aligned_pose() -> SolarXR.StayAlignedPose:
 		var field_start: int = get_offset_field_start( VT_STAY_ALIGNED_POSE )
 		if not field_start: return null
-		return _solar_xr_schema.StayAlignedPose.new( _fb_bytes, field_start )
+		return SolarXR.StayAlignedPose.new( _fb_bytes, field_start )
 
 	## Return true if index is present in the buffer, else false
 	func index_is_present() -> bool:
@@ -4099,10 +4071,10 @@ class DataFeedUpdate extends FlatBuffer:
 	func server_guards_is_present() -> bool:
 		return get_field_offset( VT_SERVER_GUARDS )
 
-	func server_guards() -> _solar_xr_schema.ServerGuards:
+	func server_guards() -> SolarXR.ServerGuards:
 		var field_start: int = get_offset_field_start( VT_SERVER_GUARDS )
 		if not field_start: return null
-		return _solar_xr_schema.ServerGuards.new( _fb_bytes, field_start )
+		return SolarXR.ServerGuards.new( _fb_bytes, field_start )
 
 
 ## Builder class for DataFeedUpdate
@@ -4163,7 +4135,6 @@ static func create_DataFeedUpdate( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class DataFeedConfig extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_MINIMUM_TIME_SINCE_LAST = 4,
@@ -4207,19 +4178,19 @@ class DataFeedConfig extends FlatBuffer:
 	func data_mask_is_present() -> bool:
 		return get_field_offset( VT_DATA_MASK )
 
-	func data_mask() -> _solar_xr_schema.DeviceDataMask:
+	func data_mask() -> SolarXR.DeviceDataMask:
 		var field_start: int = get_offset_field_start( VT_DATA_MASK )
 		if not field_start: return null
-		return _solar_xr_schema.DeviceDataMask.new( _fb_bytes, field_start )
+		return SolarXR.DeviceDataMask.new( _fb_bytes, field_start )
 
 	## Return true if synthetic_trackers_mask is present in the buffer, else false
 	func synthetic_trackers_mask_is_present() -> bool:
 		return get_field_offset( VT_SYNTHETIC_TRACKERS_MASK )
 
-	func synthetic_trackers_mask() -> _solar_xr_schema.TrackerDataMask:
+	func synthetic_trackers_mask() -> SolarXR.TrackerDataMask:
 		var field_start: int = get_offset_field_start( VT_SYNTHETIC_TRACKERS_MASK )
 		if not field_start: return null
-		return _solar_xr_schema.TrackerDataMask.new( _fb_bytes, field_start )
+		return SolarXR.TrackerDataMask.new( _fb_bytes, field_start )
 
 	## Return true if bone_mask is present in the buffer, else false
 	func bone_mask_is_present() -> bool:
@@ -4307,7 +4278,6 @@ static func create_DataFeedConfig( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class ModelToggles extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_EXTENDED_SPINE = 4,
@@ -4552,7 +4522,6 @@ static func create_ModelToggles( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class ModelRatios extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_IMPUTE_WAIST_FROM_CHEST_HIP = 4,
@@ -4711,7 +4680,6 @@ static func create_ModelRatios( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class LegTweaksSettings extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_CORRECTION_STRENGTH = 4
@@ -4768,7 +4736,6 @@ static func create_LegTweaksSettings( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class SkeletonHeight extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_HMD_HEIGHT = 4,
@@ -4842,7 +4809,6 @@ static func create_SkeletonHeight( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class ModelSettings extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_TOGGLES = 4,
@@ -4875,37 +4841,37 @@ class ModelSettings extends FlatBuffer:
 	func toggles_is_present() -> bool:
 		return get_field_offset( VT_TOGGLES )
 
-	func toggles() -> _solar_xr_schema.ModelToggles:
+	func toggles() -> SolarXR.ModelToggles:
 		var field_start: int = get_offset_field_start( VT_TOGGLES )
 		if not field_start: return null
-		return _solar_xr_schema.ModelToggles.new( _fb_bytes, field_start )
+		return SolarXR.ModelToggles.new( _fb_bytes, field_start )
 
 	## Return true if ratios is present in the buffer, else false
 	func ratios_is_present() -> bool:
 		return get_field_offset( VT_RATIOS )
 
-	func ratios() -> _solar_xr_schema.ModelRatios:
+	func ratios() -> SolarXR.ModelRatios:
 		var field_start: int = get_offset_field_start( VT_RATIOS )
 		if not field_start: return null
-		return _solar_xr_schema.ModelRatios.new( _fb_bytes, field_start )
+		return SolarXR.ModelRatios.new( _fb_bytes, field_start )
 
 	## Return true if leg_tweaks is present in the buffer, else false
 	func leg_tweaks_is_present() -> bool:
 		return get_field_offset( VT_LEG_TWEAKS )
 
-	func leg_tweaks() -> _solar_xr_schema.LegTweaksSettings:
+	func leg_tweaks() -> SolarXR.LegTweaksSettings:
 		var field_start: int = get_offset_field_start( VT_LEG_TWEAKS )
 		if not field_start: return null
-		return _solar_xr_schema.LegTweaksSettings.new( _fb_bytes, field_start )
+		return SolarXR.LegTweaksSettings.new( _fb_bytes, field_start )
 
 	## Return true if skeleton_height is present in the buffer, else false
 	func skeleton_height_is_present() -> bool:
 		return get_field_offset( VT_SKELETON_HEIGHT )
 
-	func skeleton_height() -> _solar_xr_schema.SkeletonHeight:
+	func skeleton_height() -> SolarXR.SkeletonHeight:
 		var field_start: int = get_offset_field_start( VT_SKELETON_HEIGHT )
 		if not field_start: return null
-		return _solar_xr_schema.SkeletonHeight.new( _fb_bytes, field_start )
+		return SolarXR.SkeletonHeight.new( _fb_bytes, field_start )
 
 
 ## Builder class for ModelSettings
@@ -4954,7 +4920,6 @@ static func create_ModelSettings( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class Keybind extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_KEYBIND_ID = 4,
@@ -5065,7 +5030,6 @@ static func create_Keybind( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class KeybindRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_KEYBIND_ID = 4
@@ -5123,7 +5087,6 @@ static func create_KeybindRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class KeybindResponse extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_KEYBIND = 4,
@@ -5153,7 +5116,7 @@ class KeybindResponse extends FlatBuffer:
 		return get_field_offset( VT_KEYBIND )
 
 	func keybind_verify(verifier:FlatBufferVerifier) -> bool:
-		var tmp := _solar_xr_schema.Keybind.new()
+		var tmp := SolarXR.Keybind.new()
 		for i in keybind_size():
 			if not keybind_at(i, tmp).verify(verifier):
 				return false
@@ -5180,7 +5143,7 @@ class KeybindResponse extends FlatBuffer:
 		if into:
 			into.assign_buffer(_fb_bytes, element_pos + element_offset)
 			return into
-		return _solar_xr_schema.Keybind.new( _fb_bytes, element_pos + element_offset )
+		return SolarXR.Keybind.new( _fb_bytes, element_pos + element_offset )
 
 	func keybind() -> Array:
 		var array_start: int = get_offset_field_start( VT_KEYBIND )
@@ -5191,7 +5154,7 @@ class KeybindResponse extends FlatBuffer:
 		if array.resize( array_size ) != OK: return []
 		for i: int in array_size:
 			var p: int = array_start + i * 4
-			array[i] = _solar_xr_schema.Keybind.new( _fb_bytes, p + _fb_bytes.decode_u32( p ) )
+			array[i] = SolarXR.Keybind.new( _fb_bytes, p + _fb_bytes.decode_u32( p ) )
 		return array
 
 	## Return true if default_keybinds is present in the buffer, else false
@@ -5199,7 +5162,7 @@ class KeybindResponse extends FlatBuffer:
 		return get_field_offset( VT_DEFAULT_KEYBINDS )
 
 	func default_keybinds_verify(verifier:FlatBufferVerifier) -> bool:
-		var tmp := _solar_xr_schema.Keybind.new()
+		var tmp := SolarXR.Keybind.new()
 		for i in default_keybinds_size():
 			if not default_keybinds_at(i, tmp).verify(verifier):
 				return false
@@ -5226,7 +5189,7 @@ class KeybindResponse extends FlatBuffer:
 		if into:
 			into.assign_buffer(_fb_bytes, element_pos + element_offset)
 			return into
-		return _solar_xr_schema.Keybind.new( _fb_bytes, element_pos + element_offset )
+		return SolarXR.Keybind.new( _fb_bytes, element_pos + element_offset )
 
 	func default_keybinds() -> Array:
 		var array_start: int = get_offset_field_start( VT_DEFAULT_KEYBINDS )
@@ -5237,7 +5200,7 @@ class KeybindResponse extends FlatBuffer:
 		if array.resize( array_size ) != OK: return []
 		for i: int in array_size:
 			var p: int = array_start + i * 4
-			array[i] = _solar_xr_schema.Keybind.new( _fb_bytes, p + _fb_bytes.decode_u32( p ) )
+			array[i] = SolarXR.Keybind.new( _fb_bytes, p + _fb_bytes.decode_u32( p ) )
 		return array
 
 
@@ -5275,7 +5238,6 @@ static func create_KeybindResponse( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class ChangeKeybindRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_KEYBIND = 4
@@ -5299,10 +5261,10 @@ class ChangeKeybindRequest extends FlatBuffer:
 	func keybind_is_present() -> bool:
 		return get_field_offset( VT_KEYBIND )
 
-	func keybind() -> _solar_xr_schema.Keybind:
+	func keybind() -> SolarXR.Keybind:
 		var field_start: int = get_offset_field_start( VT_KEYBIND )
 		if not field_start: return null
-		return _solar_xr_schema.Keybind.new( _fb_bytes, field_start )
+		return SolarXR.Keybind.new( _fb_bytes, field_start )
 
 
 ## Builder class for ChangeKeybindRequest
@@ -5333,7 +5295,6 @@ static func create_ChangeKeybindRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class OpenUriRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 
 	## Initialize the ChangeKeybindRequest with the provided [param packed_bytes] at the given [param offset]
@@ -5372,7 +5333,6 @@ static func create_OpenUriRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class OpenUriResponse extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_SUCCESS = 4
@@ -5429,7 +5389,6 @@ static func create_OpenUriResponse( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class RpcMessageHeader extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_TX_ID = 4,
@@ -5450,7 +5409,7 @@ class RpcMessageHeader extends FlatBuffer:
 			#  and verify_field<was templated>u32(verifier, VT_TX_ID, 4)
 			and verify_field_u8(verifier, VT_MESSAGE_TYPE, 1)
 			and verify_offset(verifier, VT_MESSAGE)
-			and _solar_xr_schema.rpcmessage_verify(verifier, message(), message_type())
+			and SolarXR.rpc_message_verify(verifier, message(), message_type())
 			and verify_end_table(verifier)
 		)
 
@@ -5461,7 +5420,7 @@ class RpcMessageHeader extends FlatBuffer:
 	func tx_id() -> TransactionId:
 		var field_start: int = get_inline_field_start( VT_TX_ID )
 		if not field_start: return null
-		return _solar_xr_schema.TransactionId.new( _fb_bytes, field_start )
+		return SolarXR.TransactionId.new( _fb_bytes, field_start )
 
 	## Return true if message is present in the buffer, else false
 	func message_is_present() -> bool:
@@ -5478,178 +5437,178 @@ class RpcMessageHeader extends FlatBuffer:
 		var field_start: int = get_offset_field_start( VT_MESSAGE )
 		if not field_start: return null
 		match( message_type() ):
-			_solar_xr_schema.RpcMessage.HEARTBEAT_REQUEST:
-				return _solar_xr_schema.HeartbeatRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.HEARTBEAT_RESPONSE:
-				return _solar_xr_schema.HeartbeatResponse.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.RESET_REQUEST:
-				return _solar_xr_schema.ResetRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.RESET_RESPONSE:
-				return _solar_xr_schema.ResetResponse.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.ASSIGN_TRACKER_REQUEST:
-				return _solar_xr_schema.AssignTrackerRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.SETTINGS_REQUEST:
-				return _solar_xr_schema.SettingsRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.SETTINGS_RESPONSE:
-				return _solar_xr_schema.SettingsResponse.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.CHANGE_SETTINGS_REQUEST:
-				return _solar_xr_schema.ChangeSettingsRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.CLEAR_DRIFT_COMPENSATION_REQUEST:
-				return _solar_xr_schema.ClearDriftCompensationRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.RECORD_BVHREQUEST:
-				return _solar_xr_schema.RecordBVHRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.RECORD_BVHSTATUS:
-				return _solar_xr_schema.RecordBVHStatus.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.SKELETON_CONFIG_REQUEST:
-				return _solar_xr_schema.SkeletonConfigRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.CHANGE_SKELETON_CONFIG_REQUEST:
-				return _solar_xr_schema.ChangeSkeletonConfigRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.SKELETON_RESET_ALL_REQUEST:
-				return _solar_xr_schema.SkeletonResetAllRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.SKELETON_CONFIG_RESPONSE:
-				return _solar_xr_schema.SkeletonConfigResponse.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.OPEN_SERIAL_REQUEST:
-				return _solar_xr_schema.OpenSerialRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.CLOSE_SERIAL_REQUEST:
-				return _solar_xr_schema.CloseSerialRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.SET_WIFI_REQUEST:
-				return _solar_xr_schema.SetWifiRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.SERIAL_UPDATE_RESPONSE:
-				return _solar_xr_schema.SerialUpdateResponse.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.AUTO_BONE_PROCESS_REQUEST:
-				return _solar_xr_schema.AutoBoneProcessRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.AUTO_BONE_PROCESS_STATUS_RESPONSE:
-				return _solar_xr_schema.AutoBoneProcessStatusResponse.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.AUTO_BONE_EPOCH_RESPONSE:
-				return _solar_xr_schema.AutoBoneEpochResponse.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.OVERLAY_DISPLAY_MODE_REQUEST:
-				return _solar_xr_schema.OverlayDisplayModeRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.OVERLAY_DISPLAY_MODE_CHANGE_REQUEST:
-				return _solar_xr_schema.OverlayDisplayModeChangeRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.OVERLAY_DISPLAY_MODE_RESPONSE:
-				return _solar_xr_schema.OverlayDisplayModeResponse.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.SERIAL_TRACKER_REBOOT_REQUEST:
-				return _solar_xr_schema.SerialTrackerRebootRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.SERIAL_TRACKER_GET_INFO_REQUEST:
-				return _solar_xr_schema.SerialTrackerGetInfoRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.SERIAL_TRACKER_FACTORY_RESET_REQUEST:
-				return _solar_xr_schema.SerialTrackerFactoryResetRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.SERIAL_DEVICES_REQUEST:
-				return _solar_xr_schema.SerialDevicesRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.SERIAL_DEVICES_RESPONSE:
-				return _solar_xr_schema.SerialDevicesResponse.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.NEW_SERIAL_DEVICE_RESPONSE:
-				return _solar_xr_schema.NewSerialDeviceResponse.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.START_WIFI_PROVISIONING_REQUEST:
-				return _solar_xr_schema.StartWifiProvisioningRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.STOP_WIFI_PROVISIONING_REQUEST:
-				return _solar_xr_schema.StopWifiProvisioningRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.WIFI_PROVISIONING_STATUS_RESPONSE:
-				return _solar_xr_schema.WifiProvisioningStatusResponse.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.SERVER_INFOS_REQUEST:
-				return _solar_xr_schema.ServerInfosRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.SERVER_INFOS_RESPONSE:
-				return _solar_xr_schema.ServerInfosResponse.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.LEG_TWEAKS_TMP_CHANGE:
-				return _solar_xr_schema.LegTweaksTmpChange.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.LEG_TWEAKS_TMP_CLEAR:
-				return _solar_xr_schema.LegTweaksTmpClear.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.TAP_DETECTION_SETUP_NOTIFICATION:
-				return _solar_xr_schema.TapDetectionSetupNotification.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.SET_PAUSE_TRACKING_REQUEST:
-				return _solar_xr_schema.SetPauseTrackingRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.STATUS_SYSTEM_REQUEST:
-				return _solar_xr_schema.StatusSystemRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.STATUS_SYSTEM_RESPONSE:
-				return _solar_xr_schema.StatusSystemResponse.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.STATUS_SYSTEM_UPDATE:
-				return _solar_xr_schema.StatusSystemUpdate.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.STATUS_SYSTEM_FIXED:
-				return _solar_xr_schema.StatusSystemFixed.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.CLEAR_MOUNTING_RESET_REQUEST:
-				return _solar_xr_schema.ClearMountingResetRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.HEIGHT_REQUEST:
-				return _solar_xr_schema.HeightRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.HEIGHT_RESPONSE:
-				return _solar_xr_schema.HeightResponse.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.AUTO_BONE_APPLY_REQUEST:
-				return _solar_xr_schema.AutoBoneApplyRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.AUTO_BONE_STOP_RECORDING_REQUEST:
-				return _solar_xr_schema.AutoBoneStopRecordingRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.AUTO_BONE_CANCEL_RECORDING_REQUEST:
-				return _solar_xr_schema.AutoBoneCancelRecordingRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.SAVE_FILE_NOTIFICATION:
-				return _solar_xr_schema.SaveFileNotification.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.TRACKING_PAUSE_STATE_REQUEST:
-				return _solar_xr_schema.TrackingPauseStateRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.TRACKING_PAUSE_STATE_RESPONSE:
-				return _solar_xr_schema.TrackingPauseStateResponse.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.SERIAL_TRACKER_GET_WIFI_SCAN_REQUEST:
-				return _solar_xr_schema.SerialTrackerGetWifiScanRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.UNKNOWN_DEVICE_HANDSHAKE_NOTIFICATION:
-				return _solar_xr_schema.UnknownDeviceHandshakeNotification.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.ADD_UNKNOWN_DEVICE_REQUEST:
-				return _solar_xr_schema.AddUnknownDeviceRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.FORGET_DEVICE_REQUEST:
-				return _solar_xr_schema.ForgetDeviceRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.FIRMWARE_UPDATE_REQUEST:
-				return _solar_xr_schema.FirmwareUpdateRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.FIRMWARE_UPDATE_STATUS_RESPONSE:
-				return _solar_xr_schema.FirmwareUpdateStatusResponse.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.FIRMWARE_UPDATE_STOP_QUEUES_REQUEST:
-				return _solar_xr_schema.FirmwareUpdateStopQueuesRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.SETTINGS_RESET_REQUEST:
-				return _solar_xr_schema.SettingsResetRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.MAG_TOGGLE_REQUEST:
-				return _solar_xr_schema.MagToggleRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.MAG_TOGGLE_RESPONSE:
-				return _solar_xr_schema.MagToggleResponse.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.CHANGE_MAG_TOGGLE_REQUEST:
-				return _solar_xr_schema.ChangeMagToggleRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.RECORD_BVHSTATUS_REQUEST:
-				return _solar_xr_schema.RecordBVHStatusRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.VRCCONFIG_STATE_REQUEST:
-				return _solar_xr_schema.VRCConfigStateRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.VRCCONFIG_STATE_CHANGE_RESPONSE:
-				return _solar_xr_schema.VRCConfigStateChangeResponse.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.ENABLE_STAY_ALIGNED_REQUEST:
-				return _solar_xr_schema.EnableStayAlignedRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.DETECT_STAY_ALIGNED_RELAXED_POSE_REQUEST:
-				return _solar_xr_schema.DetectStayAlignedRelaxedPoseRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.RESET_STAY_ALIGNED_RELAXED_POSE_REQUEST:
-				return _solar_xr_schema.ResetStayAlignedRelaxedPoseRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.SERIAL_TRACKER_CUSTOM_COMMAND_REQUEST:
-				return _solar_xr_schema.SerialTrackerCustomCommandRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.VRCCONFIG_SETTING_TOGGLE_MUTE:
-				return _solar_xr_schema.VRCConfigSettingToggleMute.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.TRACKING_CHECKLIST_REQUEST:
-				return _solar_xr_schema.TrackingChecklistRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.TRACKING_CHECKLIST_RESPONSE:
-				return _solar_xr_schema.TrackingChecklistResponse.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.IGNORE_TRACKING_CHECKLIST_STEP_REQUEST:
-				return _solar_xr_schema.IgnoreTrackingChecklistStepRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.START_USER_HEIGHT_CALIBRATION:
-				return _solar_xr_schema.StartUserHeightCalibration.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.CANCEL_USER_HEIGHT_CALIBRATION:
-				return _solar_xr_schema.CancelUserHeightCalibration.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.USER_HEIGHT_RECORDING_STATUS_RESPONSE:
-				return _solar_xr_schema.UserHeightRecordingStatusResponse.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.KEYBIND_REQUEST:
-				return _solar_xr_schema.KeybindRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.CHANGE_KEYBIND_REQUEST:
-				return _solar_xr_schema.ChangeKeybindRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.KEYBIND_RESPONSE:
-				return _solar_xr_schema.KeybindResponse.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.INSTALLED_INFO_REQUEST:
-				return _solar_xr_schema.InstalledInfoRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.INSTALLED_INFO_RESPONSE:
-				return _solar_xr_schema.InstalledInfoResponse.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.OPEN_URI_REQUEST:
-				return _solar_xr_schema.OpenUriRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.OPEN_URI_RESPONSE:
-				return _solar_xr_schema.OpenUriResponse.new( _fb_bytes, field_start )
-			_solar_xr_schema.RpcMessage.ENABLE_STEAM_VRDRIVER_REQUEST:
-				return _solar_xr_schema.EnableSteamVRDriverRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.HEARTBEAT_REQUEST:
+				return SolarXR.HeartbeatRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.HEARTBEAT_RESPONSE:
+				return SolarXR.HeartbeatResponse.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.RESET_REQUEST:
+				return SolarXR.ResetRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.RESET_RESPONSE:
+				return SolarXR.ResetResponse.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.ASSIGN_TRACKER_REQUEST:
+				return SolarXR.AssignTrackerRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.SETTINGS_REQUEST:
+				return SolarXR.SettingsRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.SETTINGS_RESPONSE:
+				return SolarXR.SettingsResponse.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.CHANGE_SETTINGS_REQUEST:
+				return SolarXR.ChangeSettingsRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.CLEAR_DRIFT_COMPENSATION_REQUEST:
+				return SolarXR.ClearDriftCompensationRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.RECORD_BVHREQUEST:
+				return SolarXR.RecordBVHRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.RECORD_BVHSTATUS:
+				return SolarXR.RecordBVHStatus.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.SKELETON_CONFIG_REQUEST:
+				return SolarXR.SkeletonConfigRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.CHANGE_SKELETON_CONFIG_REQUEST:
+				return SolarXR.ChangeSkeletonConfigRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.SKELETON_RESET_ALL_REQUEST:
+				return SolarXR.SkeletonResetAllRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.SKELETON_CONFIG_RESPONSE:
+				return SolarXR.SkeletonConfigResponse.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.OPEN_SERIAL_REQUEST:
+				return SolarXR.OpenSerialRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.CLOSE_SERIAL_REQUEST:
+				return SolarXR.CloseSerialRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.SET_WIFI_REQUEST:
+				return SolarXR.SetWifiRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.SERIAL_UPDATE_RESPONSE:
+				return SolarXR.SerialUpdateResponse.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.AUTO_BONE_PROCESS_REQUEST:
+				return SolarXR.AutoBoneProcessRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.AUTO_BONE_PROCESS_STATUS_RESPONSE:
+				return SolarXR.AutoBoneProcessStatusResponse.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.AUTO_BONE_EPOCH_RESPONSE:
+				return SolarXR.AutoBoneEpochResponse.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.OVERLAY_DISPLAY_MODE_REQUEST:
+				return SolarXR.OverlayDisplayModeRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.OVERLAY_DISPLAY_MODE_CHANGE_REQUEST:
+				return SolarXR.OverlayDisplayModeChangeRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.OVERLAY_DISPLAY_MODE_RESPONSE:
+				return SolarXR.OverlayDisplayModeResponse.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.SERIAL_TRACKER_REBOOT_REQUEST:
+				return SolarXR.SerialTrackerRebootRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.SERIAL_TRACKER_GET_INFO_REQUEST:
+				return SolarXR.SerialTrackerGetInfoRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.SERIAL_TRACKER_FACTORY_RESET_REQUEST:
+				return SolarXR.SerialTrackerFactoryResetRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.SERIAL_DEVICES_REQUEST:
+				return SolarXR.SerialDevicesRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.SERIAL_DEVICES_RESPONSE:
+				return SolarXR.SerialDevicesResponse.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.NEW_SERIAL_DEVICE_RESPONSE:
+				return SolarXR.NewSerialDeviceResponse.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.START_WIFI_PROVISIONING_REQUEST:
+				return SolarXR.StartWifiProvisioningRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.STOP_WIFI_PROVISIONING_REQUEST:
+				return SolarXR.StopWifiProvisioningRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.WIFI_PROVISIONING_STATUS_RESPONSE:
+				return SolarXR.WifiProvisioningStatusResponse.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.SERVER_INFOS_REQUEST:
+				return SolarXR.ServerInfosRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.SERVER_INFOS_RESPONSE:
+				return SolarXR.ServerInfosResponse.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.LEG_TWEAKS_TMP_CHANGE:
+				return SolarXR.LegTweaksTmpChange.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.LEG_TWEAKS_TMP_CLEAR:
+				return SolarXR.LegTweaksTmpClear.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.TAP_DETECTION_SETUP_NOTIFICATION:
+				return SolarXR.TapDetectionSetupNotification.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.SET_PAUSE_TRACKING_REQUEST:
+				return SolarXR.SetPauseTrackingRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.STATUS_SYSTEM_REQUEST:
+				return SolarXR.StatusSystemRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.STATUS_SYSTEM_RESPONSE:
+				return SolarXR.StatusSystemResponse.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.STATUS_SYSTEM_UPDATE:
+				return SolarXR.StatusSystemUpdate.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.STATUS_SYSTEM_FIXED:
+				return SolarXR.StatusSystemFixed.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.CLEAR_MOUNTING_RESET_REQUEST:
+				return SolarXR.ClearMountingResetRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.HEIGHT_REQUEST:
+				return SolarXR.HeightRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.HEIGHT_RESPONSE:
+				return SolarXR.HeightResponse.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.AUTO_BONE_APPLY_REQUEST:
+				return SolarXR.AutoBoneApplyRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.AUTO_BONE_STOP_RECORDING_REQUEST:
+				return SolarXR.AutoBoneStopRecordingRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.AUTO_BONE_CANCEL_RECORDING_REQUEST:
+				return SolarXR.AutoBoneCancelRecordingRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.SAVE_FILE_NOTIFICATION:
+				return SolarXR.SaveFileNotification.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.TRACKING_PAUSE_STATE_REQUEST:
+				return SolarXR.TrackingPauseStateRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.TRACKING_PAUSE_STATE_RESPONSE:
+				return SolarXR.TrackingPauseStateResponse.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.SERIAL_TRACKER_GET_WIFI_SCAN_REQUEST:
+				return SolarXR.SerialTrackerGetWifiScanRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.UNKNOWN_DEVICE_HANDSHAKE_NOTIFICATION:
+				return SolarXR.UnknownDeviceHandshakeNotification.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.ADD_UNKNOWN_DEVICE_REQUEST:
+				return SolarXR.AddUnknownDeviceRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.FORGET_DEVICE_REQUEST:
+				return SolarXR.ForgetDeviceRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.FIRMWARE_UPDATE_REQUEST:
+				return SolarXR.FirmwareUpdateRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.FIRMWARE_UPDATE_STATUS_RESPONSE:
+				return SolarXR.FirmwareUpdateStatusResponse.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.FIRMWARE_UPDATE_STOP_QUEUES_REQUEST:
+				return SolarXR.FirmwareUpdateStopQueuesRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.SETTINGS_RESET_REQUEST:
+				return SolarXR.SettingsResetRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.MAG_TOGGLE_REQUEST:
+				return SolarXR.MagToggleRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.MAG_TOGGLE_RESPONSE:
+				return SolarXR.MagToggleResponse.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.CHANGE_MAG_TOGGLE_REQUEST:
+				return SolarXR.ChangeMagToggleRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.RECORD_BVHSTATUS_REQUEST:
+				return SolarXR.RecordBVHStatusRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.VRCCONFIG_STATE_REQUEST:
+				return SolarXR.VRCConfigStateRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.VRCCONFIG_STATE_CHANGE_RESPONSE:
+				return SolarXR.VRCConfigStateChangeResponse.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.ENABLE_STAY_ALIGNED_REQUEST:
+				return SolarXR.EnableStayAlignedRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.DETECT_STAY_ALIGNED_RELAXED_POSE_REQUEST:
+				return SolarXR.DetectStayAlignedRelaxedPoseRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.RESET_STAY_ALIGNED_RELAXED_POSE_REQUEST:
+				return SolarXR.ResetStayAlignedRelaxedPoseRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.SERIAL_TRACKER_CUSTOM_COMMAND_REQUEST:
+				return SolarXR.SerialTrackerCustomCommandRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.VRCCONFIG_SETTING_TOGGLE_MUTE:
+				return SolarXR.VRCConfigSettingToggleMute.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.TRACKING_CHECKLIST_REQUEST:
+				return SolarXR.TrackingChecklistRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.TRACKING_CHECKLIST_RESPONSE:
+				return SolarXR.TrackingChecklistResponse.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.IGNORE_TRACKING_CHECKLIST_STEP_REQUEST:
+				return SolarXR.IgnoreTrackingChecklistStepRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.START_USER_HEIGHT_CALIBRATION:
+				return SolarXR.StartUserHeightCalibration.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.CANCEL_USER_HEIGHT_CALIBRATION:
+				return SolarXR.CancelUserHeightCalibration.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.USER_HEIGHT_RECORDING_STATUS_RESPONSE:
+				return SolarXR.UserHeightRecordingStatusResponse.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.KEYBIND_REQUEST:
+				return SolarXR.KeybindRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.CHANGE_KEYBIND_REQUEST:
+				return SolarXR.ChangeKeybindRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.KEYBIND_RESPONSE:
+				return SolarXR.KeybindResponse.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.INSTALLED_INFO_REQUEST:
+				return SolarXR.InstalledInfoRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.INSTALLED_INFO_RESPONSE:
+				return SolarXR.InstalledInfoResponse.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.OPEN_URI_REQUEST:
+				return SolarXR.OpenUriRequest.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.OPEN_URI_RESPONSE:
+				return SolarXR.OpenUriResponse.new( _fb_bytes, field_start )
+			SolarXR.RpcMessage.ENABLE_STEAM_VRDRIVER_REQUEST:
+				return SolarXR.EnableSteamVRDriverRequest.new( _fb_bytes, field_start )
 		return null
 
 
@@ -5693,7 +5652,6 @@ static func create_RpcMessageHeader( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class InstalledInfoRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 
 	## Initialize the RpcMessageHeader with the provided [param packed_bytes] at the given [param offset]
@@ -5732,7 +5690,6 @@ static func create_InstalledInfoRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class InstalledInfoResponse extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_ISUDEVINSTALLED = 4,
@@ -5806,7 +5763,6 @@ static func create_InstalledInfoResponse( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class HeartbeatRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 
 	## Initialize the InstalledInfoResponse with the provided [param packed_bytes] at the given [param offset]
@@ -5845,7 +5801,6 @@ static func create_HeartbeatRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class HeartbeatResponse extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 
 	## Initialize the HeartbeatRequest with the provided [param packed_bytes] at the given [param offset]
@@ -5884,7 +5839,6 @@ static func create_HeartbeatResponse( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class ResetRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_RESET_TYPE = 4,
@@ -5992,7 +5946,6 @@ static func create_ResetRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class ResetResponse extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_RESET_TYPE = 4,
@@ -6135,7 +6088,6 @@ static func create_ResetResponse( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class AssignTrackerRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_TRACKER_ID = 4,
@@ -6169,10 +6121,10 @@ class AssignTrackerRequest extends FlatBuffer:
 	func tracker_id_is_present() -> bool:
 		return get_field_offset( VT_TRACKER_ID )
 
-	func tracker_id() -> _solar_xr_schema.TrackerId:
+	func tracker_id() -> SolarXR.TrackerId:
 		var field_start: int = get_offset_field_start( VT_TRACKER_ID )
 		if not field_start: return null
-		return _solar_xr_schema.TrackerId.new( _fb_bytes, field_start )
+		return SolarXR.TrackerId.new( _fb_bytes, field_start )
 
 	## Return true if body_position is present in the buffer, else false
 	func body_position_is_present() -> bool:
@@ -6191,7 +6143,7 @@ class AssignTrackerRequest extends FlatBuffer:
 	func mounting_orientation() -> Quat:
 		var field_start: int = get_inline_field_start( VT_MOUNTING_ORIENTATION )
 		if not field_start: return null
-		return _solar_xr_schema.Quat.new( _fb_bytes, field_start )
+		return SolarXR.Quat.new( _fb_bytes, field_start )
 
 	## Return true if display_name is present in the buffer, else false
 	func display_name_is_present() -> bool:
@@ -6264,7 +6216,6 @@ static func create_AssignTrackerRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class ClearDriftCompensationRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 
 	## Initialize the AssignTrackerRequest with the provided [param packed_bytes] at the given [param offset]
@@ -6303,7 +6254,6 @@ static func create_ClearDriftCompensationRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class SettingsRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 
 	## Initialize the ClearDriftCompensationRequest with the provided [param packed_bytes] at the given [param offset]
@@ -6342,7 +6292,6 @@ static func create_SettingsRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class SettingsResponse extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_STEAM_VR_TRACKERS = 4,
@@ -6408,136 +6357,136 @@ class SettingsResponse extends FlatBuffer:
 	func steam_vr_trackers_is_present() -> bool:
 		return get_field_offset( VT_STEAM_VR_TRACKERS )
 
-	func steam_vr_trackers() -> _solar_xr_schema.SteamVRTrackersSetting:
+	func steam_vr_trackers() -> SolarXR.SteamVRTrackersSetting:
 		var field_start: int = get_offset_field_start( VT_STEAM_VR_TRACKERS )
 		if not field_start: return null
-		return _solar_xr_schema.SteamVRTrackersSetting.new( _fb_bytes, field_start )
+		return SolarXR.SteamVRTrackersSetting.new( _fb_bytes, field_start )
 
 	## Return true if filtering is present in the buffer, else false
 	func filtering_is_present() -> bool:
 		return get_field_offset( VT_FILTERING )
 
-	func filtering() -> _solar_xr_schema.FilteringSettings:
+	func filtering() -> SolarXR.FilteringSettings:
 		var field_start: int = get_offset_field_start( VT_FILTERING )
 		if not field_start: return null
-		return _solar_xr_schema.FilteringSettings.new( _fb_bytes, field_start )
+		return SolarXR.FilteringSettings.new( _fb_bytes, field_start )
 
 	## Return true if drift_compensation is present in the buffer, else false
 	func drift_compensation_is_present() -> bool:
 		return get_field_offset( VT_DRIFT_COMPENSATION )
 
-	func drift_compensation() -> _solar_xr_schema.DriftCompensationSettings:
+	func drift_compensation() -> SolarXR.DriftCompensationSettings:
 		var field_start: int = get_offset_field_start( VT_DRIFT_COMPENSATION )
 		if not field_start: return null
-		return _solar_xr_schema.DriftCompensationSettings.new( _fb_bytes, field_start )
+		return SolarXR.DriftCompensationSettings.new( _fb_bytes, field_start )
 
 	## Return true if osc_router is present in the buffer, else false
 	func osc_router_is_present() -> bool:
 		return get_field_offset( VT_OSC_ROUTER )
 
-	func osc_router() -> _solar_xr_schema.OSCRouterSettings:
+	func osc_router() -> SolarXR.OSCRouterSettings:
 		var field_start: int = get_offset_field_start( VT_OSC_ROUTER )
 		if not field_start: return null
-		return _solar_xr_schema.OSCRouterSettings.new( _fb_bytes, field_start )
+		return SolarXR.OSCRouterSettings.new( _fb_bytes, field_start )
 
 	## Return true if vrc_osc is present in the buffer, else false
 	func vrc_osc_is_present() -> bool:
 		return get_field_offset( VT_VRC_OSC )
 
-	func vrc_osc() -> _solar_xr_schema.VRCOSCSettings:
+	func vrc_osc() -> SolarXR.VRCOSCSettings:
 		var field_start: int = get_offset_field_start( VT_VRC_OSC )
 		if not field_start: return null
-		return _solar_xr_schema.VRCOSCSettings.new( _fb_bytes, field_start )
+		return SolarXR.VRCOSCSettings.new( _fb_bytes, field_start )
 
 	## Return true if vmc_osc is present in the buffer, else false
 	func vmc_osc_is_present() -> bool:
 		return get_field_offset( VT_VMC_OSC )
 
-	func vmc_osc() -> _solar_xr_schema.VMCOSCSettings:
+	func vmc_osc() -> SolarXR.VMCOSCSettings:
 		var field_start: int = get_offset_field_start( VT_VMC_OSC )
 		if not field_start: return null
-		return _solar_xr_schema.VMCOSCSettings.new( _fb_bytes, field_start )
+		return SolarXR.VMCOSCSettings.new( _fb_bytes, field_start )
 
 	## Return true if model_settings is present in the buffer, else false
 	func model_settings_is_present() -> bool:
 		return get_field_offset( VT_MODEL_SETTINGS )
 
-	func model_settings() -> _solar_xr_schema.ModelSettings:
+	func model_settings() -> SolarXR.ModelSettings:
 		var field_start: int = get_offset_field_start( VT_MODEL_SETTINGS )
 		if not field_start: return null
-		return _solar_xr_schema.ModelSettings.new( _fb_bytes, field_start )
+		return SolarXR.ModelSettings.new( _fb_bytes, field_start )
 
 	## Return true if tap_detection_settings is present in the buffer, else false
 	func tap_detection_settings_is_present() -> bool:
 		return get_field_offset( VT_TAP_DETECTION_SETTINGS )
 
-	func tap_detection_settings() -> _solar_xr_schema.TapDetectionSettings:
+	func tap_detection_settings() -> SolarXR.TapDetectionSettings:
 		var field_start: int = get_offset_field_start( VT_TAP_DETECTION_SETTINGS )
 		if not field_start: return null
-		return _solar_xr_schema.TapDetectionSettings.new( _fb_bytes, field_start )
+		return SolarXR.TapDetectionSettings.new( _fb_bytes, field_start )
 
 	## Return true if auto_bone_settings is present in the buffer, else false
 	func auto_bone_settings_is_present() -> bool:
 		return get_field_offset( VT_AUTO_BONE_SETTINGS )
 
-	func auto_bone_settings() -> _solar_xr_schema.AutoBoneSettings:
+	func auto_bone_settings() -> SolarXR.AutoBoneSettings:
 		var field_start: int = get_offset_field_start( VT_AUTO_BONE_SETTINGS )
 		if not field_start: return null
-		return _solar_xr_schema.AutoBoneSettings.new( _fb_bytes, field_start )
+		return SolarXR.AutoBoneSettings.new( _fb_bytes, field_start )
 
 	## Return true if resets_settings is present in the buffer, else false
 	func resets_settings_is_present() -> bool:
 		return get_field_offset( VT_RESETS_SETTINGS )
 
-	func resets_settings() -> _solar_xr_schema.ResetsSettings:
+	func resets_settings() -> SolarXR.ResetsSettings:
 		var field_start: int = get_offset_field_start( VT_RESETS_SETTINGS )
 		if not field_start: return null
-		return _solar_xr_schema.ResetsSettings.new( _fb_bytes, field_start )
+		return SolarXR.ResetsSettings.new( _fb_bytes, field_start )
 
 	## Return true if stay_aligned is present in the buffer, else false
 	func stay_aligned_is_present() -> bool:
 		return get_field_offset( VT_STAY_ALIGNED )
 
-	func stay_aligned() -> _solar_xr_schema.StayAlignedSettings:
+	func stay_aligned() -> SolarXR.StayAlignedSettings:
 		var field_start: int = get_offset_field_start( VT_STAY_ALIGNED )
 		if not field_start: return null
-		return _solar_xr_schema.StayAlignedSettings.new( _fb_bytes, field_start )
+		return SolarXR.StayAlignedSettings.new( _fb_bytes, field_start )
 
 	## Return true if hid_settings is present in the buffer, else false
 	func hid_settings_is_present() -> bool:
 		return get_field_offset( VT_HID_SETTINGS )
 
-	func hid_settings() -> _solar_xr_schema.HIDSettings:
+	func hid_settings() -> SolarXR.HIDSettings:
 		var field_start: int = get_offset_field_start( VT_HID_SETTINGS )
 		if not field_start: return null
-		return _solar_xr_schema.HIDSettings.new( _fb_bytes, field_start )
+		return SolarXR.HIDSettings.new( _fb_bytes, field_start )
 
 	## Return true if timeout is present in the buffer, else false
 	func timeout_is_present() -> bool:
 		return get_field_offset( VT_TIMEOUT )
 
-	func timeout() -> _solar_xr_schema.TimeoutSettings:
+	func timeout() -> SolarXR.TimeoutSettings:
 		var field_start: int = get_offset_field_start( VT_TIMEOUT )
 		if not field_start: return null
-		return _solar_xr_schema.TimeoutSettings.new( _fb_bytes, field_start )
+		return SolarXR.TimeoutSettings.new( _fb_bytes, field_start )
 
 	## Return true if velocity_settings is present in the buffer, else false
 	func velocity_settings_is_present() -> bool:
 		return get_field_offset( VT_VELOCITY_SETTINGS )
 
-	func velocity_settings() -> _solar_xr_schema.VelocitySettings:
+	func velocity_settings() -> SolarXR.VelocitySettings:
 		var field_start: int = get_offset_field_start( VT_VELOCITY_SETTINGS )
 		if not field_start: return null
-		return _solar_xr_schema.VelocitySettings.new( _fb_bytes, field_start )
+		return SolarXR.VelocitySettings.new( _fb_bytes, field_start )
 
 	## Return true if vrm is present in the buffer, else false
 	func vrm_is_present() -> bool:
 		return get_field_offset( VT_VRM )
 
-	func vrm() -> _solar_xr_schema.VRMSettings:
+	func vrm() -> SolarXR.VRMSettings:
 		var field_start: int = get_offset_field_start( VT_VRM )
 		if not field_start: return null
-		return _solar_xr_schema.VRMSettings.new( _fb_bytes, field_start )
+		return SolarXR.VRMSettings.new( _fb_bytes, field_start )
 
 
 ## Builder class for SettingsResponse
@@ -6652,7 +6601,6 @@ static func create_SettingsResponse( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class ChangeSettingsRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_STEAM_VR_TRACKERS = 4,
@@ -6718,136 +6666,136 @@ class ChangeSettingsRequest extends FlatBuffer:
 	func steam_vr_trackers_is_present() -> bool:
 		return get_field_offset( VT_STEAM_VR_TRACKERS )
 
-	func steam_vr_trackers() -> _solar_xr_schema.SteamVRTrackersSetting:
+	func steam_vr_trackers() -> SolarXR.SteamVRTrackersSetting:
 		var field_start: int = get_offset_field_start( VT_STEAM_VR_TRACKERS )
 		if not field_start: return null
-		return _solar_xr_schema.SteamVRTrackersSetting.new( _fb_bytes, field_start )
+		return SolarXR.SteamVRTrackersSetting.new( _fb_bytes, field_start )
 
 	## Return true if filtering is present in the buffer, else false
 	func filtering_is_present() -> bool:
 		return get_field_offset( VT_FILTERING )
 
-	func filtering() -> _solar_xr_schema.FilteringSettings:
+	func filtering() -> SolarXR.FilteringSettings:
 		var field_start: int = get_offset_field_start( VT_FILTERING )
 		if not field_start: return null
-		return _solar_xr_schema.FilteringSettings.new( _fb_bytes, field_start )
+		return SolarXR.FilteringSettings.new( _fb_bytes, field_start )
 
 	## Return true if drift_compensation is present in the buffer, else false
 	func drift_compensation_is_present() -> bool:
 		return get_field_offset( VT_DRIFT_COMPENSATION )
 
-	func drift_compensation() -> _solar_xr_schema.DriftCompensationSettings:
+	func drift_compensation() -> SolarXR.DriftCompensationSettings:
 		var field_start: int = get_offset_field_start( VT_DRIFT_COMPENSATION )
 		if not field_start: return null
-		return _solar_xr_schema.DriftCompensationSettings.new( _fb_bytes, field_start )
+		return SolarXR.DriftCompensationSettings.new( _fb_bytes, field_start )
 
 	## Return true if osc_router is present in the buffer, else false
 	func osc_router_is_present() -> bool:
 		return get_field_offset( VT_OSC_ROUTER )
 
-	func osc_router() -> _solar_xr_schema.OSCRouterSettings:
+	func osc_router() -> SolarXR.OSCRouterSettings:
 		var field_start: int = get_offset_field_start( VT_OSC_ROUTER )
 		if not field_start: return null
-		return _solar_xr_schema.OSCRouterSettings.new( _fb_bytes, field_start )
+		return SolarXR.OSCRouterSettings.new( _fb_bytes, field_start )
 
 	## Return true if vrc_osc is present in the buffer, else false
 	func vrc_osc_is_present() -> bool:
 		return get_field_offset( VT_VRC_OSC )
 
-	func vrc_osc() -> _solar_xr_schema.VRCOSCSettings:
+	func vrc_osc() -> SolarXR.VRCOSCSettings:
 		var field_start: int = get_offset_field_start( VT_VRC_OSC )
 		if not field_start: return null
-		return _solar_xr_schema.VRCOSCSettings.new( _fb_bytes, field_start )
+		return SolarXR.VRCOSCSettings.new( _fb_bytes, field_start )
 
 	## Return true if vmc_osc is present in the buffer, else false
 	func vmc_osc_is_present() -> bool:
 		return get_field_offset( VT_VMC_OSC )
 
-	func vmc_osc() -> _solar_xr_schema.VMCOSCSettings:
+	func vmc_osc() -> SolarXR.VMCOSCSettings:
 		var field_start: int = get_offset_field_start( VT_VMC_OSC )
 		if not field_start: return null
-		return _solar_xr_schema.VMCOSCSettings.new( _fb_bytes, field_start )
+		return SolarXR.VMCOSCSettings.new( _fb_bytes, field_start )
 
 	## Return true if model_settings is present in the buffer, else false
 	func model_settings_is_present() -> bool:
 		return get_field_offset( VT_MODEL_SETTINGS )
 
-	func model_settings() -> _solar_xr_schema.ModelSettings:
+	func model_settings() -> SolarXR.ModelSettings:
 		var field_start: int = get_offset_field_start( VT_MODEL_SETTINGS )
 		if not field_start: return null
-		return _solar_xr_schema.ModelSettings.new( _fb_bytes, field_start )
+		return SolarXR.ModelSettings.new( _fb_bytes, field_start )
 
 	## Return true if tap_detection_settings is present in the buffer, else false
 	func tap_detection_settings_is_present() -> bool:
 		return get_field_offset( VT_TAP_DETECTION_SETTINGS )
 
-	func tap_detection_settings() -> _solar_xr_schema.TapDetectionSettings:
+	func tap_detection_settings() -> SolarXR.TapDetectionSettings:
 		var field_start: int = get_offset_field_start( VT_TAP_DETECTION_SETTINGS )
 		if not field_start: return null
-		return _solar_xr_schema.TapDetectionSettings.new( _fb_bytes, field_start )
+		return SolarXR.TapDetectionSettings.new( _fb_bytes, field_start )
 
 	## Return true if auto_bone_settings is present in the buffer, else false
 	func auto_bone_settings_is_present() -> bool:
 		return get_field_offset( VT_AUTO_BONE_SETTINGS )
 
-	func auto_bone_settings() -> _solar_xr_schema.AutoBoneSettings:
+	func auto_bone_settings() -> SolarXR.AutoBoneSettings:
 		var field_start: int = get_offset_field_start( VT_AUTO_BONE_SETTINGS )
 		if not field_start: return null
-		return _solar_xr_schema.AutoBoneSettings.new( _fb_bytes, field_start )
+		return SolarXR.AutoBoneSettings.new( _fb_bytes, field_start )
 
 	## Return true if resets_settings is present in the buffer, else false
 	func resets_settings_is_present() -> bool:
 		return get_field_offset( VT_RESETS_SETTINGS )
 
-	func resets_settings() -> _solar_xr_schema.ResetsSettings:
+	func resets_settings() -> SolarXR.ResetsSettings:
 		var field_start: int = get_offset_field_start( VT_RESETS_SETTINGS )
 		if not field_start: return null
-		return _solar_xr_schema.ResetsSettings.new( _fb_bytes, field_start )
+		return SolarXR.ResetsSettings.new( _fb_bytes, field_start )
 
 	## Return true if stay_aligned is present in the buffer, else false
 	func stay_aligned_is_present() -> bool:
 		return get_field_offset( VT_STAY_ALIGNED )
 
-	func stay_aligned() -> _solar_xr_schema.StayAlignedSettings:
+	func stay_aligned() -> SolarXR.StayAlignedSettings:
 		var field_start: int = get_offset_field_start( VT_STAY_ALIGNED )
 		if not field_start: return null
-		return _solar_xr_schema.StayAlignedSettings.new( _fb_bytes, field_start )
+		return SolarXR.StayAlignedSettings.new( _fb_bytes, field_start )
 
 	## Return true if hid_settings is present in the buffer, else false
 	func hid_settings_is_present() -> bool:
 		return get_field_offset( VT_HID_SETTINGS )
 
-	func hid_settings() -> _solar_xr_schema.HIDSettings:
+	func hid_settings() -> SolarXR.HIDSettings:
 		var field_start: int = get_offset_field_start( VT_HID_SETTINGS )
 		if not field_start: return null
-		return _solar_xr_schema.HIDSettings.new( _fb_bytes, field_start )
+		return SolarXR.HIDSettings.new( _fb_bytes, field_start )
 
 	## Return true if timeout is present in the buffer, else false
 	func timeout_is_present() -> bool:
 		return get_field_offset( VT_TIMEOUT )
 
-	func timeout() -> _solar_xr_schema.TimeoutSettings:
+	func timeout() -> SolarXR.TimeoutSettings:
 		var field_start: int = get_offset_field_start( VT_TIMEOUT )
 		if not field_start: return null
-		return _solar_xr_schema.TimeoutSettings.new( _fb_bytes, field_start )
+		return SolarXR.TimeoutSettings.new( _fb_bytes, field_start )
 
 	## Return true if velocity_settings is present in the buffer, else false
 	func velocity_settings_is_present() -> bool:
 		return get_field_offset( VT_VELOCITY_SETTINGS )
 
-	func velocity_settings() -> _solar_xr_schema.VelocitySettings:
+	func velocity_settings() -> SolarXR.VelocitySettings:
 		var field_start: int = get_offset_field_start( VT_VELOCITY_SETTINGS )
 		if not field_start: return null
-		return _solar_xr_schema.VelocitySettings.new( _fb_bytes, field_start )
+		return SolarXR.VelocitySettings.new( _fb_bytes, field_start )
 
 	## Return true if vrm is present in the buffer, else false
 	func vrm_is_present() -> bool:
 		return get_field_offset( VT_VRM )
 
-	func vrm() -> _solar_xr_schema.VRMSettings:
+	func vrm() -> SolarXR.VRMSettings:
 		var field_start: int = get_offset_field_start( VT_VRM )
 		if not field_start: return null
-		return _solar_xr_schema.VRMSettings.new( _fb_bytes, field_start )
+		return SolarXR.VRMSettings.new( _fb_bytes, field_start )
 
 
 ## Builder class for ChangeSettingsRequest
@@ -6962,7 +6910,6 @@ static func create_ChangeSettingsRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class SteamVRTrackersSetting extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_WAIST = 4,
@@ -7193,7 +7140,6 @@ static func create_SteamVRTrackersSetting( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class FilteringSettings extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_TYPE = 4,
@@ -7268,7 +7214,6 @@ static func create_FilteringSettings( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class DriftCompensationSettings extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_ENABLED = 4,
@@ -7376,7 +7321,6 @@ static func create_DriftCompensationSettings( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class OSCRouterSettings extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_OSC_SETTINGS = 4
@@ -7400,10 +7344,10 @@ class OSCRouterSettings extends FlatBuffer:
 	func osc_settings_is_present() -> bool:
 		return get_field_offset( VT_OSC_SETTINGS )
 
-	func osc_settings() -> _solar_xr_schema.OSCSettings:
+	func osc_settings() -> SolarXR.OSCSettings:
 		var field_start: int = get_offset_field_start( VT_OSC_SETTINGS )
 		if not field_start: return null
-		return _solar_xr_schema.OSCSettings.new( _fb_bytes, field_start )
+		return SolarXR.OSCSettings.new( _fb_bytes, field_start )
 
 
 ## Builder class for OSCRouterSettings
@@ -7434,7 +7378,6 @@ static func create_OSCRouterSettings( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class VRCOSCSettings extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_OSC_SETTINGS = 4,
@@ -7463,19 +7406,19 @@ class VRCOSCSettings extends FlatBuffer:
 	func osc_settings_is_present() -> bool:
 		return get_field_offset( VT_OSC_SETTINGS )
 
-	func osc_settings() -> _solar_xr_schema.OSCSettings:
+	func osc_settings() -> SolarXR.OSCSettings:
 		var field_start: int = get_offset_field_start( VT_OSC_SETTINGS )
 		if not field_start: return null
-		return _solar_xr_schema.OSCSettings.new( _fb_bytes, field_start )
+		return SolarXR.OSCSettings.new( _fb_bytes, field_start )
 
 	## Return true if trackers is present in the buffer, else false
 	func trackers_is_present() -> bool:
 		return get_field_offset( VT_TRACKERS )
 
-	func trackers() -> _solar_xr_schema.OSCTrackersSetting:
+	func trackers() -> SolarXR.OSCTrackersSetting:
 		var field_start: int = get_offset_field_start( VT_TRACKERS )
 		if not field_start: return null
-		return _solar_xr_schema.OSCTrackersSetting.new( _fb_bytes, field_start )
+		return SolarXR.OSCTrackersSetting.new( _fb_bytes, field_start )
 
 	## Return true if oscquery_enabled is present in the buffer, else false
 	func oscquery_enabled_is_present() -> bool:
@@ -7527,7 +7470,6 @@ static func create_VRCOSCSettings( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class VMCOSCSettings extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_OSC_SETTINGS = 4,
@@ -7556,10 +7498,10 @@ class VMCOSCSettings extends FlatBuffer:
 	func osc_settings_is_present() -> bool:
 		return get_field_offset( VT_OSC_SETTINGS )
 
-	func osc_settings() -> _solar_xr_schema.OSCSettings:
+	func osc_settings() -> SolarXR.OSCSettings:
 		var field_start: int = get_offset_field_start( VT_OSC_SETTINGS )
 		if not field_start: return null
-		return _solar_xr_schema.OSCSettings.new( _fb_bytes, field_start )
+		return SolarXR.OSCSettings.new( _fb_bytes, field_start )
 
 	## Return true if anchor_hip is present in the buffer, else false
 	func anchor_hip_is_present() -> bool:
@@ -7620,7 +7562,6 @@ static func create_VMCOSCSettings( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class VRMSettings extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_VRM_JSON = 4
@@ -7678,7 +7619,6 @@ static func create_VRMSettings( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class OSCSettings extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_ENABLED = 4,
@@ -7787,7 +7727,6 @@ static func create_OSCSettings( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class OSCTrackersSetting extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_HEAD = 4,
@@ -7946,7 +7885,6 @@ static func create_OSCTrackersSetting( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class TapDetectionSettings extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_FULL_RESET_DELAY = 4,
@@ -8227,7 +8165,6 @@ static func create_TapDetectionSettings( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class ResetsSettings extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_RESET_MOUNTING_FEET = 4,
@@ -8353,7 +8290,6 @@ static func create_ResetsSettings( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class StayAlignedSettings extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_ENABLED = 4,
@@ -8665,7 +8601,6 @@ static func create_StayAlignedSettings( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class HIDSettings extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_TRACKERSOVERHID = 4
@@ -8722,7 +8657,6 @@ static func create_HIDSettings( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class TimeoutSettings extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_DURATION = 4
@@ -8779,7 +8713,6 @@ static func create_TimeoutSettings( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class VelocitySettings extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_SEND_DERIVED_VELOCITY = 4
@@ -8836,7 +8769,6 @@ static func create_VelocitySettings( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class TapDetectionSetupNotification extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_TRACKER_ID = 4
@@ -8860,10 +8792,10 @@ class TapDetectionSetupNotification extends FlatBuffer:
 	func tracker_id_is_present() -> bool:
 		return get_field_offset( VT_TRACKER_ID )
 
-	func tracker_id() -> _solar_xr_schema.TrackerId:
+	func tracker_id() -> SolarXR.TrackerId:
 		var field_start: int = get_offset_field_start( VT_TRACKER_ID )
 		if not field_start: return null
-		return _solar_xr_schema.TrackerId.new( _fb_bytes, field_start )
+		return SolarXR.TrackerId.new( _fb_bytes, field_start )
 
 
 ## Builder class for TapDetectionSetupNotification
@@ -8894,7 +8826,6 @@ static func create_TapDetectionSetupNotification( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class RecordBVHRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_STOP = 4,
@@ -8969,7 +8900,6 @@ static func create_RecordBVHRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class RecordBVHStatus extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_RECORDING = 4
@@ -9026,7 +8956,6 @@ static func create_RecordBVHStatus( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class RecordBVHStatusRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 
 	## Initialize the RecordBVHStatus with the provided [param packed_bytes] at the given [param offset]
@@ -9065,7 +8994,6 @@ static func create_RecordBVHStatusRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class SkeletonPart extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_BONE = 4,
@@ -9140,7 +9068,6 @@ static func create_SkeletonPart( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class SkeletonConfigRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 
 	## Initialize the SkeletonPart with the provided [param packed_bytes] at the given [param offset]
@@ -9179,7 +9106,6 @@ static func create_SkeletonConfigRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class SkeletonConfigResponse extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_SKELETON_PARTS = 4,
@@ -9207,7 +9133,7 @@ class SkeletonConfigResponse extends FlatBuffer:
 		return get_field_offset( VT_SKELETON_PARTS )
 
 	func skeleton_parts_verify(verifier:FlatBufferVerifier) -> bool:
-		var tmp := _solar_xr_schema.SkeletonPart.new()
+		var tmp := SolarXR.SkeletonPart.new()
 		for i in skeleton_parts_size():
 			if not skeleton_parts_at(i, tmp).verify(verifier):
 				return false
@@ -9234,7 +9160,7 @@ class SkeletonConfigResponse extends FlatBuffer:
 		if into:
 			into.assign_buffer(_fb_bytes, element_pos + element_offset)
 			return into
-		return _solar_xr_schema.SkeletonPart.new( _fb_bytes, element_pos + element_offset )
+		return SolarXR.SkeletonPart.new( _fb_bytes, element_pos + element_offset )
 
 	func skeleton_parts() -> Array:
 		var array_start: int = get_offset_field_start( VT_SKELETON_PARTS )
@@ -9245,7 +9171,7 @@ class SkeletonConfigResponse extends FlatBuffer:
 		if array.resize( array_size ) != OK: return []
 		for i: int in array_size:
 			var p: int = array_start + i * 4
-			array[i] = _solar_xr_schema.SkeletonPart.new( _fb_bytes, p + _fb_bytes.decode_u32( p ) )
+			array[i] = SolarXR.SkeletonPart.new( _fb_bytes, p + _fb_bytes.decode_u32( p ) )
 		return array
 
 	## Return true if user_height is present in the buffer, else false
@@ -9292,7 +9218,6 @@ static func create_SkeletonConfigResponse( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class SkeletonResetAllRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 
 	## Initialize the SkeletonConfigResponse with the provided [param packed_bytes] at the given [param offset]
@@ -9331,7 +9256,6 @@ static func create_SkeletonResetAllRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class ChangeSkeletonConfigRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_BONE = 4,
@@ -9406,7 +9330,6 @@ static func create_ChangeSkeletonConfigRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class SerialDevice extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_PORT = 4,
@@ -9500,7 +9423,6 @@ static func create_SerialDevice( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class OpenSerialRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_AUTO = 4,
@@ -9575,7 +9497,6 @@ static func create_OpenSerialRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class CloseSerialRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 
 	## Initialize the OpenSerialRequest with the provided [param packed_bytes] at the given [param offset]
@@ -9614,7 +9535,6 @@ static func create_CloseSerialRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class SetWifiRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_SSID = 4,
@@ -9690,7 +9610,6 @@ static func create_SetWifiRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class SerialUpdateResponse extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_LOG = 4,
@@ -9737,10 +9656,10 @@ class SerialUpdateResponse extends FlatBuffer:
 	func device_is_present() -> bool:
 		return get_field_offset( VT_DEVICE )
 
-	func device() -> _solar_xr_schema.SerialDevice:
+	func device() -> SolarXR.SerialDevice:
 		var field_start: int = get_offset_field_start( VT_DEVICE )
 		if not field_start: return null
-		return _solar_xr_schema.SerialDevice.new( _fb_bytes, field_start )
+		return SolarXR.SerialDevice.new( _fb_bytes, field_start )
 
 
 ## Builder class for SerialUpdateResponse
@@ -9783,7 +9702,6 @@ static func create_SerialUpdateResponse( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class SerialTrackerRebootRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 
 	## Initialize the SerialUpdateResponse with the provided [param packed_bytes] at the given [param offset]
@@ -9822,7 +9740,6 @@ static func create_SerialTrackerRebootRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class SerialTrackerGetInfoRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 
 	## Initialize the SerialTrackerRebootRequest with the provided [param packed_bytes] at the given [param offset]
@@ -9861,7 +9778,6 @@ static func create_SerialTrackerGetInfoRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class SerialTrackerFactoryResetRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 
 	## Initialize the SerialTrackerGetInfoRequest with the provided [param packed_bytes] at the given [param offset]
@@ -9900,7 +9816,6 @@ static func create_SerialTrackerFactoryResetRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class SerialTrackerCustomCommandRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_COMMAND = 4
@@ -9958,7 +9873,6 @@ static func create_SerialTrackerCustomCommandRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class SerialDevicesRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 
 	## Initialize the SerialTrackerCustomCommandRequest with the provided [param packed_bytes] at the given [param offset]
@@ -9997,7 +9911,6 @@ static func create_SerialDevicesRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class SerialDevicesResponse extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_DEVICES = 4
@@ -10023,7 +9936,7 @@ class SerialDevicesResponse extends FlatBuffer:
 		return get_field_offset( VT_DEVICES )
 
 	func devices_verify(verifier:FlatBufferVerifier) -> bool:
-		var tmp := _solar_xr_schema.SerialDevice.new()
+		var tmp := SolarXR.SerialDevice.new()
 		for i in devices_size():
 			if not devices_at(i, tmp).verify(verifier):
 				return false
@@ -10050,7 +9963,7 @@ class SerialDevicesResponse extends FlatBuffer:
 		if into:
 			into.assign_buffer(_fb_bytes, element_pos + element_offset)
 			return into
-		return _solar_xr_schema.SerialDevice.new( _fb_bytes, element_pos + element_offset )
+		return SolarXR.SerialDevice.new( _fb_bytes, element_pos + element_offset )
 
 	func devices() -> Array:
 		var array_start: int = get_offset_field_start( VT_DEVICES )
@@ -10061,7 +9974,7 @@ class SerialDevicesResponse extends FlatBuffer:
 		if array.resize( array_size ) != OK: return []
 		for i: int in array_size:
 			var p: int = array_start + i * 4
-			array[i] = _solar_xr_schema.SerialDevice.new( _fb_bytes, p + _fb_bytes.decode_u32( p ) )
+			array[i] = SolarXR.SerialDevice.new( _fb_bytes, p + _fb_bytes.decode_u32( p ) )
 		return array
 
 
@@ -10093,7 +10006,6 @@ static func create_SerialDevicesResponse( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class NewSerialDeviceResponse extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_DEVICE = 4
@@ -10117,10 +10029,10 @@ class NewSerialDeviceResponse extends FlatBuffer:
 	func device_is_present() -> bool:
 		return get_field_offset( VT_DEVICE )
 
-	func device() -> _solar_xr_schema.SerialDevice:
+	func device() -> SolarXR.SerialDevice:
 		var field_start: int = get_offset_field_start( VT_DEVICE )
 		if not field_start: return null
-		return _solar_xr_schema.SerialDevice.new( _fb_bytes, field_start )
+		return SolarXR.SerialDevice.new( _fb_bytes, field_start )
 
 
 ## Builder class for NewSerialDeviceResponse
@@ -10151,7 +10063,6 @@ static func create_NewSerialDeviceResponse( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class StartWifiProvisioningRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_SSID = 4,
@@ -10245,7 +10156,6 @@ static func create_StartWifiProvisioningRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class StopWifiProvisioningRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 
 	## Initialize the StartWifiProvisioningRequest with the provided [param packed_bytes] at the given [param offset]
@@ -10284,7 +10194,6 @@ static func create_StopWifiProvisioningRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class WifiProvisioningStatusResponse extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_STATUS = 4
@@ -10342,7 +10251,6 @@ static func create_WifiProvisioningStatusResponse( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class AutoBoneProcessRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_PROCESS_TYPE = 4
@@ -10400,7 +10308,6 @@ static func create_AutoBoneProcessRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class AutoBoneProcessStatusResponse extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_PROCESS_TYPE = 4,
@@ -10544,7 +10451,6 @@ static func create_AutoBoneProcessStatusResponse( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class AutoBoneEpochResponse extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_CURRENT_EPOCH = 4,
@@ -10603,7 +10509,7 @@ class AutoBoneEpochResponse extends FlatBuffer:
 		return get_field_offset( VT_ADJUSTED_SKELETON_PARTS )
 
 	func adjusted_skeleton_parts_verify(verifier:FlatBufferVerifier) -> bool:
-		var tmp := _solar_xr_schema.SkeletonPart.new()
+		var tmp := SolarXR.SkeletonPart.new()
 		for i in adjusted_skeleton_parts_size():
 			if not adjusted_skeleton_parts_at(i, tmp).verify(verifier):
 				return false
@@ -10630,7 +10536,7 @@ class AutoBoneEpochResponse extends FlatBuffer:
 		if into:
 			into.assign_buffer(_fb_bytes, element_pos + element_offset)
 			return into
-		return _solar_xr_schema.SkeletonPart.new( _fb_bytes, element_pos + element_offset )
+		return SolarXR.SkeletonPart.new( _fb_bytes, element_pos + element_offset )
 
 	func adjusted_skeleton_parts() -> Array:
 		var array_start: int = get_offset_field_start( VT_ADJUSTED_SKELETON_PARTS )
@@ -10641,7 +10547,7 @@ class AutoBoneEpochResponse extends FlatBuffer:
 		if array.resize( array_size ) != OK: return []
 		for i: int in array_size:
 			var p: int = array_start + i * 4
-			array[i] = _solar_xr_schema.SkeletonPart.new( _fb_bytes, p + _fb_bytes.decode_u32( p ) )
+			array[i] = SolarXR.SkeletonPart.new( _fb_bytes, p + _fb_bytes.decode_u32( p ) )
 		return array
 
 
@@ -10691,7 +10597,6 @@ static func create_AutoBoneEpochResponse( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class AutoBoneSettings extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_CURSOR_INCREMENT = 4,
@@ -11105,7 +11010,6 @@ static func create_AutoBoneSettings( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class HeightRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 
 	## Initialize the AutoBoneSettings with the provided [param packed_bytes] at the given [param offset]
@@ -11144,7 +11048,6 @@ static func create_HeightRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class HeightResponse extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_MIN_HEIGHT = 4,
@@ -11218,7 +11121,6 @@ static func create_HeightResponse( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class AutoBoneApplyRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 
 	## Initialize the HeightResponse with the provided [param packed_bytes] at the given [param offset]
@@ -11257,7 +11159,6 @@ static func create_AutoBoneApplyRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class AutoBoneStopRecordingRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 
 	## Initialize the AutoBoneApplyRequest with the provided [param packed_bytes] at the given [param offset]
@@ -11296,7 +11197,6 @@ static func create_AutoBoneStopRecordingRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class AutoBoneCancelRecordingRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 
 	## Initialize the AutoBoneStopRecordingRequest with the provided [param packed_bytes] at the given [param offset]
@@ -11335,7 +11235,6 @@ static func create_AutoBoneCancelRecordingRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class OverlayDisplayModeRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 
 	## Initialize the AutoBoneCancelRecordingRequest with the provided [param packed_bytes] at the given [param offset]
@@ -11374,7 +11273,6 @@ static func create_OverlayDisplayModeRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class OverlayDisplayModeChangeRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_IS_VISIBLE = 4,
@@ -11448,7 +11346,6 @@ static func create_OverlayDisplayModeChangeRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class OverlayDisplayModeResponse extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_IS_VISIBLE = 4,
@@ -11522,7 +11419,6 @@ static func create_OverlayDisplayModeResponse( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class ServerInfosRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 
 	## Initialize the OverlayDisplayModeResponse with the provided [param packed_bytes] at the given [param offset]
@@ -11561,7 +11457,6 @@ static func create_ServerInfosRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class ServerInfosResponse extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_LOCALIP = 4
@@ -11619,7 +11514,6 @@ static func create_ServerInfosResponse( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class LegTweaksTmpChange extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_FLOOR_CLIP = 4,
@@ -11727,7 +11621,6 @@ static func create_LegTweaksTmpChange( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class LegTweaksTmpClear extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_FLOOR_CLIP = 4,
@@ -11835,7 +11728,6 @@ static func create_LegTweaksTmpClear( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class StatusTrackerReset extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_TRACKER_ID = 4
@@ -11861,7 +11753,7 @@ class StatusTrackerReset extends FlatBuffer:
 		return get_field_offset( VT_TRACKER_ID )
 
 	func tracker_id_verify(verifier:FlatBufferVerifier) -> bool:
-		var tmp := _solar_xr_schema.TrackerId.new()
+		var tmp := SolarXR.TrackerId.new()
 		for i in tracker_id_size():
 			if not tracker_id_at(i, tmp).verify(verifier):
 				return false
@@ -11888,7 +11780,7 @@ class StatusTrackerReset extends FlatBuffer:
 		if into:
 			into.assign_buffer(_fb_bytes, element_pos + element_offset)
 			return into
-		return _solar_xr_schema.TrackerId.new( _fb_bytes, element_pos + element_offset )
+		return SolarXR.TrackerId.new( _fb_bytes, element_pos + element_offset )
 
 	func tracker_id() -> Array:
 		var array_start: int = get_offset_field_start( VT_TRACKER_ID )
@@ -11899,7 +11791,7 @@ class StatusTrackerReset extends FlatBuffer:
 		if array.resize( array_size ) != OK: return []
 		for i: int in array_size:
 			var p: int = array_start + i * 4
-			array[i] = _solar_xr_schema.TrackerId.new( _fb_bytes, p + _fb_bytes.decode_u32( p ) )
+			array[i] = SolarXR.TrackerId.new( _fb_bytes, p + _fb_bytes.decode_u32( p ) )
 		return array
 
 
@@ -11931,7 +11823,6 @@ static func create_StatusTrackerReset( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class StatusTrackerError extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_TRACKER_ID = 4
@@ -11957,7 +11848,7 @@ class StatusTrackerError extends FlatBuffer:
 		return get_field_offset( VT_TRACKER_ID )
 
 	func tracker_id_verify(verifier:FlatBufferVerifier) -> bool:
-		var tmp := _solar_xr_schema.TrackerId.new()
+		var tmp := SolarXR.TrackerId.new()
 		for i in tracker_id_size():
 			if not tracker_id_at(i, tmp).verify(verifier):
 				return false
@@ -11984,7 +11875,7 @@ class StatusTrackerError extends FlatBuffer:
 		if into:
 			into.assign_buffer(_fb_bytes, element_pos + element_offset)
 			return into
-		return _solar_xr_schema.TrackerId.new( _fb_bytes, element_pos + element_offset )
+		return SolarXR.TrackerId.new( _fb_bytes, element_pos + element_offset )
 
 	func tracker_id() -> Array:
 		var array_start: int = get_offset_field_start( VT_TRACKER_ID )
@@ -11995,7 +11886,7 @@ class StatusTrackerError extends FlatBuffer:
 		if array.resize( array_size ) != OK: return []
 		for i: int in array_size:
 			var p: int = array_start + i * 4
-			array[i] = _solar_xr_schema.TrackerId.new( _fb_bytes, p + _fb_bytes.decode_u32( p ) )
+			array[i] = SolarXR.TrackerId.new( _fb_bytes, p + _fb_bytes.decode_u32( p ) )
 		return array
 
 
@@ -12027,7 +11918,6 @@ static func create_StatusTrackerError( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class StatusSteamVRDisconnected extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_BRIDGE_SETTINGS_NAME = 4
@@ -12085,7 +11975,6 @@ static func create_StatusSteamVRDisconnected( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class StatusUnassignedHMD extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_TRACKER_ID = 4
@@ -12109,10 +11998,10 @@ class StatusUnassignedHMD extends FlatBuffer:
 	func tracker_id_is_present() -> bool:
 		return get_field_offset( VT_TRACKER_ID )
 
-	func tracker_id() -> _solar_xr_schema.TrackerId:
+	func tracker_id() -> SolarXR.TrackerId:
 		var field_start: int = get_offset_field_start( VT_TRACKER_ID )
 		if not field_start: return null
-		return _solar_xr_schema.TrackerId.new( _fb_bytes, field_start )
+		return SolarXR.TrackerId.new( _fb_bytes, field_start )
 
 
 ## Builder class for StatusUnassignedHMD
@@ -12143,7 +12032,6 @@ static func create_StatusUnassignedHMD( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class StatusSystemRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 
 	## Initialize the StatusUnassignedHMD with the provided [param packed_bytes] at the given [param offset]
@@ -12182,7 +12070,6 @@ static func create_StatusSystemRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class StatusSystemResponse extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_CURRENT_STATUSES = 4
@@ -12208,7 +12095,7 @@ class StatusSystemResponse extends FlatBuffer:
 		return get_field_offset( VT_CURRENT_STATUSES )
 
 	func current_statuses_verify(verifier:FlatBufferVerifier) -> bool:
-		var tmp := _solar_xr_schema.StatusMessage.new()
+		var tmp := SolarXR.StatusMessage.new()
 		for i in current_statuses_size():
 			if not current_statuses_at(i, tmp).verify(verifier):
 				return false
@@ -12235,7 +12122,7 @@ class StatusSystemResponse extends FlatBuffer:
 		if into:
 			into.assign_buffer(_fb_bytes, element_pos + element_offset)
 			return into
-		return _solar_xr_schema.StatusMessage.new( _fb_bytes, element_pos + element_offset )
+		return SolarXR.StatusMessage.new( _fb_bytes, element_pos + element_offset )
 
 	func current_statuses() -> Array:
 		var array_start: int = get_offset_field_start( VT_CURRENT_STATUSES )
@@ -12246,7 +12133,7 @@ class StatusSystemResponse extends FlatBuffer:
 		if array.resize( array_size ) != OK: return []
 		for i: int in array_size:
 			var p: int = array_start + i * 4
-			array[i] = _solar_xr_schema.StatusMessage.new( _fb_bytes, p + _fb_bytes.decode_u32( p ) )
+			array[i] = SolarXR.StatusMessage.new( _fb_bytes, p + _fb_bytes.decode_u32( p ) )
 		return array
 
 
@@ -12278,7 +12165,6 @@ static func create_StatusSystemResponse( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class StatusSystemUpdate extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_NEW_STATUS = 4
@@ -12302,10 +12188,10 @@ class StatusSystemUpdate extends FlatBuffer:
 	func new_status_is_present() -> bool:
 		return get_field_offset( VT_NEW_STATUS )
 
-	func new_status() -> _solar_xr_schema.StatusMessage:
+	func new_status() -> SolarXR.StatusMessage:
 		var field_start: int = get_offset_field_start( VT_NEW_STATUS )
 		if not field_start: return null
-		return _solar_xr_schema.StatusMessage.new( _fb_bytes, field_start )
+		return SolarXR.StatusMessage.new( _fb_bytes, field_start )
 
 
 ## Builder class for StatusSystemUpdate
@@ -12336,7 +12222,6 @@ static func create_StatusSystemUpdate( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class StatusSystemFixed extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_FIXED_STATUS_ID = 4
@@ -12393,7 +12278,6 @@ static func create_StatusSystemFixed( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class StatusPublicNetwork extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_ADAPTERS = 4
@@ -12473,7 +12357,6 @@ static func create_StatusPublicNetwork( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class StatusMessage extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_ID = 4,
@@ -12495,7 +12378,7 @@ class StatusMessage extends FlatBuffer:
 			and verify_field_u8(verifier, VT_PRIORITIZED, 1)
 			and verify_field_u8(verifier, VT_DATA_TYPE, 1)
 			and verify_offset(verifier, VT_DATA)
-			and _solar_xr_schema.statusdata_verify(verifier, data(), data_type())
+			and SolarXR.status_data_verify(verifier, data(), data_type())
 			and verify_end_table(verifier)
 		)
 
@@ -12532,16 +12415,16 @@ class StatusMessage extends FlatBuffer:
 		var field_start: int = get_offset_field_start( VT_DATA )
 		if not field_start: return null
 		match( data_type() ):
-			_solar_xr_schema.StatusData.STATUS_TRACKER_RESET:
-				return _solar_xr_schema.StatusTrackerReset.new( _fb_bytes, field_start )
-			_solar_xr_schema.StatusData.STATUS_TRACKER_ERROR:
-				return _solar_xr_schema.StatusTrackerError.new( _fb_bytes, field_start )
-			_solar_xr_schema.StatusData.STATUS_STEAM_VRDISCONNECTED:
-				return _solar_xr_schema.StatusSteamVRDisconnected.new( _fb_bytes, field_start )
-			_solar_xr_schema.StatusData.STATUS_UNASSIGNED_HMD:
-				return _solar_xr_schema.StatusUnassignedHMD.new( _fb_bytes, field_start )
-			_solar_xr_schema.StatusData.STATUS_PUBLIC_NETWORK:
-				return _solar_xr_schema.StatusPublicNetwork.new( _fb_bytes, field_start )
+			SolarXR.StatusData.STATUS_TRACKER_RESET:
+				return SolarXR.StatusTrackerReset.new( _fb_bytes, field_start )
+			SolarXR.StatusData.STATUS_TRACKER_ERROR:
+				return SolarXR.StatusTrackerError.new( _fb_bytes, field_start )
+			SolarXR.StatusData.STATUS_STEAM_VRDISCONNECTED:
+				return SolarXR.StatusSteamVRDisconnected.new( _fb_bytes, field_start )
+			SolarXR.StatusData.STATUS_UNASSIGNED_HMD:
+				return SolarXR.StatusUnassignedHMD.new( _fb_bytes, field_start )
+			SolarXR.StatusData.STATUS_PUBLIC_NETWORK:
+				return SolarXR.StatusPublicNetwork.new( _fb_bytes, field_start )
 		return null
 
 
@@ -12591,7 +12474,6 @@ static func create_StatusMessage( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class SetPauseTrackingRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_PAUSETRACKING = 4
@@ -12648,7 +12530,6 @@ static func create_SetPauseTrackingRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class ClearMountingResetRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 
 	## Initialize the SetPauseTrackingRequest with the provided [param packed_bytes] at the given [param offset]
@@ -12687,7 +12568,6 @@ static func create_ClearMountingResetRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class SaveFileNotification extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_DATA = 4,
@@ -12832,7 +12712,6 @@ static func create_SaveFileNotification( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class SerialDevicePort extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_PORT = 4
@@ -12890,7 +12769,6 @@ static func create_SerialDevicePort( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class FirmwarePart extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_URL = 4,
@@ -12983,7 +12861,6 @@ static func create_FirmwarePart( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class FirmwareUpdateRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_METHOD_TYPE = 4,
@@ -13001,7 +12878,7 @@ class FirmwareUpdateRequest extends FlatBuffer:
 			verify_table_start(verifier)
 			and verify_field_u8(verifier, VT_METHOD_TYPE, 1)
 			and verify_offset(verifier, VT_METHOD)
-			and _solar_xr_schema.firmwareupdatemethod_verify(verifier, method(), method_type())
+			and SolarXR.firmware_update_method_verify(verifier, method(), method_type())
 			and verify_end_table(verifier)
 		)
 
@@ -13020,10 +12897,10 @@ class FirmwareUpdateRequest extends FlatBuffer:
 		var field_start: int = get_offset_field_start( VT_METHOD )
 		if not field_start: return null
 		match( method_type() ):
-			_solar_xr_schema.FirmwareUpdateMethod.OTAFIRMWARE_UPDATE:
-				return _solar_xr_schema.OTAFirmwareUpdate.new( _fb_bytes, field_start )
-			_solar_xr_schema.FirmwareUpdateMethod.SERIAL_FIRMWARE_UPDATE:
-				return _solar_xr_schema.SerialFirmwareUpdate.new( _fb_bytes, field_start )
+			SolarXR.FirmwareUpdateMethod.OTAFIRMWARE_UPDATE:
+				return SolarXR.OTAFirmwareUpdate.new( _fb_bytes, field_start )
+			SolarXR.FirmwareUpdateMethod.SERIAL_FIRMWARE_UPDATE:
+				return SolarXR.SerialFirmwareUpdate.new( _fb_bytes, field_start )
 		return null
 
 
@@ -13061,7 +12938,6 @@ static func create_FirmwareUpdateRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class OTAFirmwareUpdate extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_DEVICE_ID = 4,
@@ -13091,16 +12967,16 @@ class OTAFirmwareUpdate extends FlatBuffer:
 	func device_id() -> DeviceId:
 		var field_start: int = get_inline_field_start( VT_DEVICE_ID )
 		if not field_start: return null
-		return _solar_xr_schema.DeviceId.new( _fb_bytes, field_start )
+		return SolarXR.DeviceId.new( _fb_bytes, field_start )
 
 	## Return true if firmware_part is present in the buffer, else false
 	func firmware_part_is_present() -> bool:
 		return get_field_offset( VT_FIRMWARE_PART )
 
-	func firmware_part() -> _solar_xr_schema.FirmwarePart:
+	func firmware_part() -> SolarXR.FirmwarePart:
 		var field_start: int = get_offset_field_start( VT_FIRMWARE_PART )
 		if not field_start: return null
-		return _solar_xr_schema.FirmwarePart.new( _fb_bytes, field_start )
+		return SolarXR.FirmwarePart.new( _fb_bytes, field_start )
 
 
 ## Builder class for OTAFirmwareUpdate
@@ -13137,7 +13013,6 @@ static func create_OTAFirmwareUpdate( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class SerialFirmwareUpdate extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_DEVICE_ID = 4,
@@ -13173,10 +13048,10 @@ class SerialFirmwareUpdate extends FlatBuffer:
 	func device_id_is_present() -> bool:
 		return get_field_offset( VT_DEVICE_ID )
 
-	func device_id() -> _solar_xr_schema.SerialDevicePort:
+	func device_id() -> SolarXR.SerialDevicePort:
 		var field_start: int = get_offset_field_start( VT_DEVICE_ID )
 		if not field_start: return null
-		return _solar_xr_schema.SerialDevicePort.new( _fb_bytes, field_start )
+		return SolarXR.SerialDevicePort.new( _fb_bytes, field_start )
 
 	## Return true if needManualReboot is present in the buffer, else false
 	func needManualReboot_is_present() -> bool:
@@ -13210,7 +13085,7 @@ class SerialFirmwareUpdate extends FlatBuffer:
 		return get_field_offset( VT_FIRMWARE_PART )
 
 	func firmware_part_verify(verifier:FlatBufferVerifier) -> bool:
-		var tmp := _solar_xr_schema.FirmwarePart.new()
+		var tmp := SolarXR.FirmwarePart.new()
 		for i in firmware_part_size():
 			if not firmware_part_at(i, tmp).verify(verifier):
 				return false
@@ -13237,7 +13112,7 @@ class SerialFirmwareUpdate extends FlatBuffer:
 		if into:
 			into.assign_buffer(_fb_bytes, element_pos + element_offset)
 			return into
-		return _solar_xr_schema.FirmwarePart.new( _fb_bytes, element_pos + element_offset )
+		return SolarXR.FirmwarePart.new( _fb_bytes, element_pos + element_offset )
 
 	func firmware_part() -> Array:
 		var array_start: int = get_offset_field_start( VT_FIRMWARE_PART )
@@ -13248,7 +13123,7 @@ class SerialFirmwareUpdate extends FlatBuffer:
 		if array.resize( array_size ) != OK: return []
 		for i: int in array_size:
 			var p: int = array_start + i * 4
-			array[i] = _solar_xr_schema.FirmwarePart.new( _fb_bytes, p + _fb_bytes.decode_u32( p ) )
+			array[i] = SolarXR.FirmwarePart.new( _fb_bytes, p + _fb_bytes.decode_u32( p ) )
 		return array
 
 
@@ -13304,7 +13179,6 @@ static func create_SerialFirmwareUpdate( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class FirmwareUpdateStatusResponse extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_DEVICE_ID_TYPE = 4,
@@ -13324,7 +13198,7 @@ class FirmwareUpdateStatusResponse extends FlatBuffer:
 			verify_table_start(verifier)
 			and verify_field_u8(verifier, VT_DEVICE_ID_TYPE, 1)
 			and verify_offset(verifier, VT_DEVICE_ID)
-			and _solar_xr_schema.firmwareupdatedeviceid_verify(verifier, device_id(), device_id_type())
+			and SolarXR.firmware_update_device_id_verify(verifier, device_id(), device_id_type())
 			and verify_field_u8(verifier, VT_STATUS, 1)
 			and verify_field_s8(verifier, VT_PROGRESS, 1)
 			and verify_end_table(verifier)
@@ -13345,10 +13219,10 @@ class FirmwareUpdateStatusResponse extends FlatBuffer:
 		var field_start: int = get_offset_field_start( VT_DEVICE_ID )
 		if not field_start: return null
 		match( device_id_type() ):
-			_solar_xr_schema.FirmwareUpdateDeviceId.DEVICE_ID_TABLE:
-				return _solar_xr_schema.DeviceIdTable.new( _fb_bytes, field_start )
-			_solar_xr_schema.FirmwareUpdateDeviceId.SERIAL_DEVICE_PORT:
-				return _solar_xr_schema.SerialDevicePort.new( _fb_bytes, field_start )
+			SolarXR.FirmwareUpdateDeviceId.DEVICE_ID_TABLE:
+				return SolarXR.DeviceIdTable.new( _fb_bytes, field_start )
+			SolarXR.FirmwareUpdateDeviceId.SERIAL_DEVICE_PORT:
+				return SolarXR.SerialDevicePort.new( _fb_bytes, field_start )
 		return null
 
 	## Return true if status is present in the buffer, else false
@@ -13417,7 +13291,6 @@ static func create_FirmwareUpdateStatusResponse( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class FirmwareUpdateStopQueuesRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 
 	## Initialize the FirmwareUpdateStatusResponse with the provided [param packed_bytes] at the given [param offset]
@@ -13456,7 +13329,6 @@ static func create_FirmwareUpdateStopQueuesRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class TrackingPauseStateRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 
 	## Initialize the FirmwareUpdateStopQueuesRequest with the provided [param packed_bytes] at the given [param offset]
@@ -13495,7 +13367,6 @@ static func create_TrackingPauseStateRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class TrackingPauseStateResponse extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_TRACKINGPAUSED = 4
@@ -13552,7 +13423,6 @@ static func create_TrackingPauseStateResponse( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class SerialTrackerGetWifiScanRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 
 	## Initialize the TrackingPauseStateResponse with the provided [param packed_bytes] at the given [param offset]
@@ -13591,7 +13461,6 @@ static func create_SerialTrackerGetWifiScanRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class UnknownDeviceHandshakeNotification extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_MAC_ADDRESS = 4
@@ -13649,7 +13518,6 @@ static func create_UnknownDeviceHandshakeNotification( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class AddUnknownDeviceRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_MAC_ADDRESS = 4
@@ -13707,7 +13575,6 @@ static func create_AddUnknownDeviceRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class ForgetDeviceRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_MAC_ADDRESS = 4
@@ -13765,7 +13632,6 @@ static func create_ForgetDeviceRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class SettingsResetRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 
 	## Initialize the ForgetDeviceRequest with the provided [param packed_bytes] at the given [param offset]
@@ -13804,7 +13670,6 @@ static func create_SettingsResetRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class MagToggleRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_TRACKER_ID = 4
@@ -13828,10 +13693,10 @@ class MagToggleRequest extends FlatBuffer:
 	func tracker_id_is_present() -> bool:
 		return get_field_offset( VT_TRACKER_ID )
 
-	func tracker_id() -> _solar_xr_schema.TrackerId:
+	func tracker_id() -> SolarXR.TrackerId:
 		var field_start: int = get_offset_field_start( VT_TRACKER_ID )
 		if not field_start: return null
-		return _solar_xr_schema.TrackerId.new( _fb_bytes, field_start )
+		return SolarXR.TrackerId.new( _fb_bytes, field_start )
 
 
 ## Builder class for MagToggleRequest
@@ -13862,7 +13727,6 @@ static func create_MagToggleRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class MagToggleResponse extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_TRACKER_ID = 4,
@@ -13888,10 +13752,10 @@ class MagToggleResponse extends FlatBuffer:
 	func tracker_id_is_present() -> bool:
 		return get_field_offset( VT_TRACKER_ID )
 
-	func tracker_id() -> _solar_xr_schema.TrackerId:
+	func tracker_id() -> SolarXR.TrackerId:
 		var field_start: int = get_offset_field_start( VT_TRACKER_ID )
 		if not field_start: return null
-		return _solar_xr_schema.TrackerId.new( _fb_bytes, field_start )
+		return SolarXR.TrackerId.new( _fb_bytes, field_start )
 
 	## Return true if enable is present in the buffer, else false
 	func enable_is_present() -> bool:
@@ -13937,7 +13801,6 @@ static func create_MagToggleResponse( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class ChangeMagToggleRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_TRACKER_ID = 4,
@@ -13963,10 +13826,10 @@ class ChangeMagToggleRequest extends FlatBuffer:
 	func tracker_id_is_present() -> bool:
 		return get_field_offset( VT_TRACKER_ID )
 
-	func tracker_id() -> _solar_xr_schema.TrackerId:
+	func tracker_id() -> SolarXR.TrackerId:
 		var field_start: int = get_offset_field_start( VT_TRACKER_ID )
 		if not field_start: return null
-		return _solar_xr_schema.TrackerId.new( _fb_bytes, field_start )
+		return SolarXR.TrackerId.new( _fb_bytes, field_start )
 
 	## Return true if enable is present in the buffer, else false
 	func enable_is_present() -> bool:
@@ -14012,7 +13875,6 @@ static func create_ChangeMagToggleRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class VRCConfigValidity extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_LEGACY_MODE_OK = 4,
@@ -14205,7 +14067,6 @@ static func create_VRCConfigValidity( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class VRCConfigValues extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_LEGACY_MODE = 4,
@@ -14401,7 +14262,6 @@ static func create_VRCConfigValues( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class VRCConfigRecommendedValues extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_LEGACY_MODE = 4,
@@ -14612,7 +14472,6 @@ static func create_VRCConfigRecommendedValues( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class VRCConfigStateRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 
 	## Initialize the VRCConfigRecommendedValues with the provided [param packed_bytes] at the given [param offset]
@@ -14651,7 +14510,6 @@ static func create_VRCConfigStateRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class VRCConfigStateChangeResponse extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_IS_SUPPORTED = 4,
@@ -14696,28 +14554,28 @@ class VRCConfigStateChangeResponse extends FlatBuffer:
 	func validity_is_present() -> bool:
 		return get_field_offset( VT_VALIDITY )
 
-	func validity() -> _solar_xr_schema.VRCConfigValidity:
+	func validity() -> SolarXR.VRCConfigValidity:
 		var field_start: int = get_offset_field_start( VT_VALIDITY )
 		if not field_start: return null
-		return _solar_xr_schema.VRCConfigValidity.new( _fb_bytes, field_start )
+		return SolarXR.VRCConfigValidity.new( _fb_bytes, field_start )
 
 	## Return true if state is present in the buffer, else false
 	func state_is_present() -> bool:
 		return get_field_offset( VT_STATE )
 
-	func state() -> _solar_xr_schema.VRCConfigValues:
+	func state() -> SolarXR.VRCConfigValues:
 		var field_start: int = get_offset_field_start( VT_STATE )
 		if not field_start: return null
-		return _solar_xr_schema.VRCConfigValues.new( _fb_bytes, field_start )
+		return SolarXR.VRCConfigValues.new( _fb_bytes, field_start )
 
 	## Return true if recommended is present in the buffer, else false
 	func recommended_is_present() -> bool:
 		return get_field_offset( VT_RECOMMENDED )
 
-	func recommended() -> _solar_xr_schema.VRCConfigRecommendedValues:
+	func recommended() -> SolarXR.VRCConfigRecommendedValues:
 		var field_start: int = get_offset_field_start( VT_RECOMMENDED )
 		if not field_start: return null
-		return _solar_xr_schema.VRCConfigRecommendedValues.new( _fb_bytes, field_start )
+		return SolarXR.VRCConfigRecommendedValues.new( _fb_bytes, field_start )
 
 	## Return true if muted is present in the buffer, else false
 	func muted_is_present() -> bool:
@@ -14802,7 +14660,6 @@ static func create_VRCConfigStateChangeResponse( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class VRCConfigSettingToggleMute extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_KEY = 4
@@ -14860,7 +14717,6 @@ static func create_VRCConfigSettingToggleMute( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class TrackingChecklistTrackerReset extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_TRACKERS_ID = 4
@@ -14886,7 +14742,7 @@ class TrackingChecklistTrackerReset extends FlatBuffer:
 		return get_field_offset( VT_TRACKERS_ID )
 
 	func trackers_id_verify(verifier:FlatBufferVerifier) -> bool:
-		var tmp := _solar_xr_schema.TrackerId.new()
+		var tmp := SolarXR.TrackerId.new()
 		for i in trackers_id_size():
 			if not trackers_id_at(i, tmp).verify(verifier):
 				return false
@@ -14913,7 +14769,7 @@ class TrackingChecklistTrackerReset extends FlatBuffer:
 		if into:
 			into.assign_buffer(_fb_bytes, element_pos + element_offset)
 			return into
-		return _solar_xr_schema.TrackerId.new( _fb_bytes, element_pos + element_offset )
+		return SolarXR.TrackerId.new( _fb_bytes, element_pos + element_offset )
 
 	func trackers_id() -> Array:
 		var array_start: int = get_offset_field_start( VT_TRACKERS_ID )
@@ -14924,7 +14780,7 @@ class TrackingChecklistTrackerReset extends FlatBuffer:
 		if array.resize( array_size ) != OK: return []
 		for i: int in array_size:
 			var p: int = array_start + i * 4
-			array[i] = _solar_xr_schema.TrackerId.new( _fb_bytes, p + _fb_bytes.decode_u32( p ) )
+			array[i] = SolarXR.TrackerId.new( _fb_bytes, p + _fb_bytes.decode_u32( p ) )
 		return array
 
 
@@ -14956,7 +14812,6 @@ static func create_TrackingChecklistTrackerReset( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class TrackingChecklistTrackerError extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_TRACKERS_ID = 4
@@ -14982,7 +14837,7 @@ class TrackingChecklistTrackerError extends FlatBuffer:
 		return get_field_offset( VT_TRACKERS_ID )
 
 	func trackers_id_verify(verifier:FlatBufferVerifier) -> bool:
-		var tmp := _solar_xr_schema.TrackerId.new()
+		var tmp := SolarXR.TrackerId.new()
 		for i in trackers_id_size():
 			if not trackers_id_at(i, tmp).verify(verifier):
 				return false
@@ -15009,7 +14864,7 @@ class TrackingChecklistTrackerError extends FlatBuffer:
 		if into:
 			into.assign_buffer(_fb_bytes, element_pos + element_offset)
 			return into
-		return _solar_xr_schema.TrackerId.new( _fb_bytes, element_pos + element_offset )
+		return SolarXR.TrackerId.new( _fb_bytes, element_pos + element_offset )
 
 	func trackers_id() -> Array:
 		var array_start: int = get_offset_field_start( VT_TRACKERS_ID )
@@ -15020,7 +14875,7 @@ class TrackingChecklistTrackerError extends FlatBuffer:
 		if array.resize( array_size ) != OK: return []
 		for i: int in array_size:
 			var p: int = array_start + i * 4
-			array[i] = _solar_xr_schema.TrackerId.new( _fb_bytes, p + _fb_bytes.decode_u32( p ) )
+			array[i] = SolarXR.TrackerId.new( _fb_bytes, p + _fb_bytes.decode_u32( p ) )
 		return array
 
 
@@ -15052,7 +14907,6 @@ static func create_TrackingChecklistTrackerError( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class TrackingChecklistNeedCalibration extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_TRACKERS_ID = 4
@@ -15078,7 +14932,7 @@ class TrackingChecklistNeedCalibration extends FlatBuffer:
 		return get_field_offset( VT_TRACKERS_ID )
 
 	func trackers_id_verify(verifier:FlatBufferVerifier) -> bool:
-		var tmp := _solar_xr_schema.TrackerId.new()
+		var tmp := SolarXR.TrackerId.new()
 		for i in trackers_id_size():
 			if not trackers_id_at(i, tmp).verify(verifier):
 				return false
@@ -15105,7 +14959,7 @@ class TrackingChecklistNeedCalibration extends FlatBuffer:
 		if into:
 			into.assign_buffer(_fb_bytes, element_pos + element_offset)
 			return into
-		return _solar_xr_schema.TrackerId.new( _fb_bytes, element_pos + element_offset )
+		return SolarXR.TrackerId.new( _fb_bytes, element_pos + element_offset )
 
 	func trackers_id() -> Array:
 		var array_start: int = get_offset_field_start( VT_TRACKERS_ID )
@@ -15116,7 +14970,7 @@ class TrackingChecklistNeedCalibration extends FlatBuffer:
 		if array.resize( array_size ) != OK: return []
 		for i: int in array_size:
 			var p: int = array_start + i * 4
-			array[i] = _solar_xr_schema.TrackerId.new( _fb_bytes, p + _fb_bytes.decode_u32( p ) )
+			array[i] = SolarXR.TrackerId.new( _fb_bytes, p + _fb_bytes.decode_u32( p ) )
 		return array
 
 
@@ -15148,7 +15002,6 @@ static func create_TrackingChecklistNeedCalibration( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class TrackingChecklistSteamVRDisconnected extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_BRIDGE_SETTINGS_NAME = 4,
@@ -15257,7 +15110,6 @@ static func create_TrackingChecklistSteamVRDisconnected( _fbb: FlatBufferBuilder
 	return builder.finish();
 
 class EnableSteamVRDriverRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 
 	## Initialize the TrackingChecklistSteamVRDisconnected with the provided [param packed_bytes] at the given [param offset]
@@ -15296,7 +15148,6 @@ static func create_EnableSteamVRDriverRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class TrackingChecklistUnassignedHMD extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_TRACKER_ID = 4
@@ -15320,10 +15171,10 @@ class TrackingChecklistUnassignedHMD extends FlatBuffer:
 	func tracker_id_is_present() -> bool:
 		return get_field_offset( VT_TRACKER_ID )
 
-	func tracker_id() -> _solar_xr_schema.TrackerId:
+	func tracker_id() -> SolarXR.TrackerId:
 		var field_start: int = get_offset_field_start( VT_TRACKER_ID )
 		if not field_start: return null
-		return _solar_xr_schema.TrackerId.new( _fb_bytes, field_start )
+		return SolarXR.TrackerId.new( _fb_bytes, field_start )
 
 
 ## Builder class for TrackingChecklistUnassignedHMD
@@ -15354,7 +15205,6 @@ static func create_TrackingChecklistUnassignedHMD( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class TrackingChecklistPublicNetworks extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_ADAPTERS = 4
@@ -15434,7 +15284,6 @@ static func create_TrackingChecklistPublicNetworks( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class TrackingChecklistStep extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_ID = 4,
@@ -15464,7 +15313,7 @@ class TrackingChecklistStep extends FlatBuffer:
 			and verify_field_u8(verifier, VT_IGNORABLE, 1)
 			and verify_field_u8(verifier, VT_EXTRA_DATA_TYPE, 1)
 			and verify_offset(verifier, VT_EXTRA_DATA)
-			and _solar_xr_schema.trackingchecklistextradata_verify(verifier, extra_data(), extra_data_type())
+			and SolarXR.tracking_checklist_extra_data_verify(verifier, extra_data(), extra_data_type())
 			and verify_end_table(verifier)
 		)
 
@@ -15539,18 +15388,18 @@ class TrackingChecklistStep extends FlatBuffer:
 		var field_start: int = get_offset_field_start( VT_EXTRA_DATA )
 		if not field_start: return null
 		match( extra_data_type() ):
-			_solar_xr_schema.TrackingChecklistExtraData.TRACKING_CHECKLIST_TRACKER_RESET:
-				return _solar_xr_schema.TrackingChecklistTrackerReset.new( _fb_bytes, field_start )
-			_solar_xr_schema.TrackingChecklistExtraData.TRACKING_CHECKLIST_TRACKER_ERROR:
-				return _solar_xr_schema.TrackingChecklistTrackerError.new( _fb_bytes, field_start )
-			_solar_xr_schema.TrackingChecklistExtraData.TRACKING_CHECKLIST_STEAM_VRDISCONNECTED:
-				return _solar_xr_schema.TrackingChecklistSteamVRDisconnected.new( _fb_bytes, field_start )
-			_solar_xr_schema.TrackingChecklistExtraData.TRACKING_CHECKLIST_UNASSIGNED_HMD:
-				return _solar_xr_schema.TrackingChecklistUnassignedHMD.new( _fb_bytes, field_start )
-			_solar_xr_schema.TrackingChecklistExtraData.TRACKING_CHECKLIST_NEED_CALIBRATION:
-				return _solar_xr_schema.TrackingChecklistNeedCalibration.new( _fb_bytes, field_start )
-			_solar_xr_schema.TrackingChecklistExtraData.TRACKING_CHECKLIST_PUBLIC_NETWORKS:
-				return _solar_xr_schema.TrackingChecklistPublicNetworks.new( _fb_bytes, field_start )
+			SolarXR.TrackingChecklistExtraData.TRACKING_CHECKLIST_TRACKER_RESET:
+				return SolarXR.TrackingChecklistTrackerReset.new( _fb_bytes, field_start )
+			SolarXR.TrackingChecklistExtraData.TRACKING_CHECKLIST_TRACKER_ERROR:
+				return SolarXR.TrackingChecklistTrackerError.new( _fb_bytes, field_start )
+			SolarXR.TrackingChecklistExtraData.TRACKING_CHECKLIST_STEAM_VRDISCONNECTED:
+				return SolarXR.TrackingChecklistSteamVRDisconnected.new( _fb_bytes, field_start )
+			SolarXR.TrackingChecklistExtraData.TRACKING_CHECKLIST_UNASSIGNED_HMD:
+				return SolarXR.TrackingChecklistUnassignedHMD.new( _fb_bytes, field_start )
+			SolarXR.TrackingChecklistExtraData.TRACKING_CHECKLIST_NEED_CALIBRATION:
+				return SolarXR.TrackingChecklistNeedCalibration.new( _fb_bytes, field_start )
+			SolarXR.TrackingChecklistExtraData.TRACKING_CHECKLIST_PUBLIC_NETWORKS:
+				return SolarXR.TrackingChecklistPublicNetworks.new( _fb_bytes, field_start )
 		return null
 
 
@@ -15624,7 +15473,6 @@ static func create_TrackingChecklistStep( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class TrackingChecklistRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 
 	## Initialize the TrackingChecklistStep with the provided [param packed_bytes] at the given [param offset]
@@ -15663,7 +15511,6 @@ static func create_TrackingChecklistRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class TrackingChecklistResponse extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_STEPS = 4,
@@ -15692,7 +15539,7 @@ class TrackingChecklistResponse extends FlatBuffer:
 		return get_field_offset( VT_STEPS )
 
 	func steps_verify(verifier:FlatBufferVerifier) -> bool:
-		var tmp := _solar_xr_schema.TrackingChecklistStep.new()
+		var tmp := SolarXR.TrackingChecklistStep.new()
 		for i in steps_size():
 			if not steps_at(i, tmp).verify(verifier):
 				return false
@@ -15719,7 +15566,7 @@ class TrackingChecklistResponse extends FlatBuffer:
 		if into:
 			into.assign_buffer(_fb_bytes, element_pos + element_offset)
 			return into
-		return _solar_xr_schema.TrackingChecklistStep.new( _fb_bytes, element_pos + element_offset )
+		return SolarXR.TrackingChecklistStep.new( _fb_bytes, element_pos + element_offset )
 
 	func steps() -> Array:
 		var array_start: int = get_offset_field_start( VT_STEPS )
@@ -15730,7 +15577,7 @@ class TrackingChecklistResponse extends FlatBuffer:
 		if array.resize( array_size ) != OK: return []
 		for i: int in array_size:
 			var p: int = array_start + i * 4
-			array[i] = _solar_xr_schema.TrackingChecklistStep.new( _fb_bytes, p + _fb_bytes.decode_u32( p ) )
+			array[i] = SolarXR.TrackingChecklistStep.new( _fb_bytes, p + _fb_bytes.decode_u32( p ) )
 		return array
 
 	## Return true if ignored_steps is present in the buffer, else false
@@ -15792,7 +15639,6 @@ static func create_TrackingChecklistResponse( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class IgnoreTrackingChecklistStepRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_STEP_ID = 4,
@@ -15867,7 +15713,6 @@ static func create_IgnoreTrackingChecklistStepRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class EnableStayAlignedRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_ENABLE = 4
@@ -15924,7 +15769,6 @@ static func create_EnableStayAlignedRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class DetectStayAlignedRelaxedPoseRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_POSE = 4
@@ -15982,7 +15826,6 @@ static func create_DetectStayAlignedRelaxedPoseRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class ResetStayAlignedRelaxedPoseRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_POSE = 4
@@ -16040,7 +15883,6 @@ static func create_ResetStayAlignedRelaxedPoseRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class StartUserHeightCalibration extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 
 	## Initialize the ResetStayAlignedRelaxedPoseRequest with the provided [param packed_bytes] at the given [param offset]
@@ -16079,7 +15921,6 @@ static func create_StartUserHeightCalibration( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class CancelUserHeightCalibration extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 
 	## Initialize the StartUserHeightCalibration with the provided [param packed_bytes] at the given [param offset]
@@ -16118,7 +15959,6 @@ static func create_CancelUserHeightCalibration( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class UserHeightRecordingStatusResponse extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_HMDHEIGHT = 4,
@@ -16193,7 +16033,6 @@ static func create_UserHeightRecordingStatusResponse( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class TopicId extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_ORGANIZATION = 4,
@@ -16287,7 +16126,6 @@ static func create_TopicId( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class TopicHandle extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_ID = 4
@@ -16344,7 +16182,6 @@ static func create_TopicHandle( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class TopicMapping extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_ID = 4,
@@ -16371,19 +16208,19 @@ class TopicMapping extends FlatBuffer:
 	func id_is_present() -> bool:
 		return get_field_offset( VT_ID )
 
-	func id() -> _solar_xr_schema.TopicId:
+	func id() -> SolarXR.TopicId:
 		var field_start: int = get_offset_field_start( VT_ID )
 		if not field_start: return null
-		return _solar_xr_schema.TopicId.new( _fb_bytes, field_start )
+		return SolarXR.TopicId.new( _fb_bytes, field_start )
 
 	## Return true if handle is present in the buffer, else false
 	func handle_is_present() -> bool:
 		return get_field_offset( VT_HANDLE )
 
-	func handle() -> _solar_xr_schema.TopicHandle:
+	func handle() -> SolarXR.TopicHandle:
 		var field_start: int = get_offset_field_start( VT_HANDLE )
 		if not field_start: return null
-		return _solar_xr_schema.TopicHandle.new( _fb_bytes, field_start )
+		return SolarXR.TopicHandle.new( _fb_bytes, field_start )
 
 
 ## Builder class for TopicMapping
@@ -16420,7 +16257,6 @@ static func create_TopicMapping( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class TopicHandleRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_ID = 4
@@ -16444,10 +16280,10 @@ class TopicHandleRequest extends FlatBuffer:
 	func id_is_present() -> bool:
 		return get_field_offset( VT_ID )
 
-	func id() -> _solar_xr_schema.TopicId:
+	func id() -> SolarXR.TopicId:
 		var field_start: int = get_offset_field_start( VT_ID )
 		if not field_start: return null
-		return _solar_xr_schema.TopicId.new( _fb_bytes, field_start )
+		return SolarXR.TopicId.new( _fb_bytes, field_start )
 
 
 ## Builder class for TopicHandleRequest
@@ -16478,7 +16314,6 @@ static func create_TopicHandleRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class SubscriptionRequest extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_TOPIC_TYPE = 4,
@@ -16496,7 +16331,7 @@ class SubscriptionRequest extends FlatBuffer:
 			verify_table_start(verifier)
 			and verify_field_u8(verifier, VT_TOPIC_TYPE, 1)
 			and verify_offset(verifier, VT_TOPIC)
-			and _solar_xr_schema.topic_verify(verifier, topic(), topic_type())
+			and SolarXR.topic_verify(verifier, topic(), topic_type())
 			and verify_end_table(verifier)
 		)
 
@@ -16515,10 +16350,10 @@ class SubscriptionRequest extends FlatBuffer:
 		var field_start: int = get_offset_field_start( VT_TOPIC )
 		if not field_start: return null
 		match( topic_type() ):
-			_solar_xr_schema.Topic.TOPIC_HANDLE:
-				return _solar_xr_schema.TopicHandle.new( _fb_bytes, field_start )
-			_solar_xr_schema.Topic.TOPIC_ID:
-				return _solar_xr_schema.TopicId.new( _fb_bytes, field_start )
+			SolarXR.Topic.TOPIC_HANDLE:
+				return SolarXR.TopicHandle.new( _fb_bytes, field_start )
+			SolarXR.Topic.TOPIC_ID:
+				return SolarXR.TopicId.new( _fb_bytes, field_start )
 		return null
 
 
@@ -16556,7 +16391,6 @@ static func create_SubscriptionRequest( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class PubSubHeader extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_U_TYPE = 4,
@@ -16574,7 +16408,7 @@ class PubSubHeader extends FlatBuffer:
 			verify_table_start(verifier)
 			and verify_field_u8(verifier, VT_U_TYPE, 1)
 			and verify_offset(verifier, VT_U)
-			and _solar_xr_schema.pubsubunion_verify(verifier, u(), u_type())
+			and SolarXR.pub_sub_union_verify(verifier, u(), u_type())
 			and verify_end_table(verifier)
 		)
 
@@ -16593,14 +16427,14 @@ class PubSubHeader extends FlatBuffer:
 		var field_start: int = get_offset_field_start( VT_U )
 		if not field_start: return null
 		match( u_type() ):
-			_solar_xr_schema.PubSubUnion.MESSAGE:
-				return _solar_xr_schema.Message.new( _fb_bytes, field_start )
-			_solar_xr_schema.PubSubUnion.SUBSCRIPTION_REQUEST:
-				return _solar_xr_schema.SubscriptionRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.PubSubUnion.TOPIC_HANDLE_REQUEST:
-				return _solar_xr_schema.TopicHandleRequest.new( _fb_bytes, field_start )
-			_solar_xr_schema.PubSubUnion.TOPIC_MAPPING:
-				return _solar_xr_schema.TopicMapping.new( _fb_bytes, field_start )
+			SolarXR.PubSubUnion.MESSAGE:
+				return SolarXR.Message.new( _fb_bytes, field_start )
+			SolarXR.PubSubUnion.SUBSCRIPTION_REQUEST:
+				return SolarXR.SubscriptionRequest.new( _fb_bytes, field_start )
+			SolarXR.PubSubUnion.TOPIC_HANDLE_REQUEST:
+				return SolarXR.TopicHandleRequest.new( _fb_bytes, field_start )
+			SolarXR.PubSubUnion.TOPIC_MAPPING:
+				return SolarXR.TopicMapping.new( _fb_bytes, field_start )
 		return null
 
 
@@ -16638,7 +16472,6 @@ static func create_PubSubHeader( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class Message extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_TOPIC_TYPE = 4,
@@ -16658,10 +16491,10 @@ class Message extends FlatBuffer:
 			verify_table_start(verifier)
 			and verify_field_u8(verifier, VT_TOPIC_TYPE, 1)
 			and verify_offset(verifier, VT_TOPIC)
-			and _solar_xr_schema.topic_verify(verifier, topic(), topic_type())
+			and SolarXR.topic_verify(verifier, topic(), topic_type())
 			and verify_field_u8(verifier, VT_PAYLOAD_TYPE, 1)
 			and verify_offset(verifier, VT_PAYLOAD)
-			and _solar_xr_schema.payload_verify(verifier, payload(), payload_type())
+			and SolarXR.payload_verify(verifier, payload(), payload_type())
 			and verify_end_table(verifier)
 		)
 
@@ -16680,10 +16513,10 @@ class Message extends FlatBuffer:
 		var field_start: int = get_offset_field_start( VT_TOPIC )
 		if not field_start: return null
 		match( topic_type() ):
-			_solar_xr_schema.Topic.TOPIC_HANDLE:
-				return _solar_xr_schema.TopicHandle.new( _fb_bytes, field_start )
-			_solar_xr_schema.Topic.TOPIC_ID:
-				return _solar_xr_schema.TopicId.new( _fb_bytes, field_start )
+			SolarXR.Topic.TOPIC_HANDLE:
+				return SolarXR.TopicHandle.new( _fb_bytes, field_start )
+			SolarXR.Topic.TOPIC_ID:
+				return SolarXR.TopicId.new( _fb_bytes, field_start )
 		return null
 
 	## Return true if payload is present in the buffer, else false
@@ -16701,12 +16534,12 @@ class Message extends FlatBuffer:
 		var field_start: int = get_offset_field_start( VT_PAYLOAD )
 		if not field_start: return null
 		match( payload_type() ):
-			_solar_xr_schema.Payload.STRING_TABLE:
-				return _solar_xr_schema.StringTable.new( _fb_bytes, field_start )
-			_solar_xr_schema.Payload.BYTES:
-				return _solar_xr_schema.Bytes.new( _fb_bytes, field_start )
-			_solar_xr_schema.Payload.KEY_VALUES:
-				return _solar_xr_schema.KeyValues.new( _fb_bytes, field_start )
+			SolarXR.Payload.STRING_TABLE:
+				return SolarXR.StringTable.new( _fb_bytes, field_start )
+			SolarXR.Payload.BYTES:
+				return SolarXR.Bytes.new( _fb_bytes, field_start )
+			SolarXR.Payload.KEY_VALUES:
+				return SolarXR.KeyValues.new( _fb_bytes, field_start )
 		return null
 
 
@@ -16756,7 +16589,6 @@ static func create_Message( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class KeyValues extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_KEYS = 4,
@@ -16876,7 +16708,6 @@ static func create_KeyValues( _fbb: FlatBufferBuilder,
 	return builder.finish();
 
 class MessageBundle extends FlatBuffer:
-	const _solar_xr_schema : Object = preload( 'solar_xr.gd' )
 
 	enum {
 		VT_DATA_FEED_MSGS = 4,
@@ -16910,7 +16741,7 @@ class MessageBundle extends FlatBuffer:
 		return get_field_offset( VT_DATA_FEED_MSGS )
 
 	func data_feed_msgs_verify(verifier:FlatBufferVerifier) -> bool:
-		var tmp := _solar_xr_schema.DataFeedMessageHeader.new()
+		var tmp := SolarXR.DataFeedMessageHeader.new()
 		for i in data_feed_msgs_size():
 			if not data_feed_msgs_at(i, tmp).verify(verifier):
 				return false
@@ -16937,7 +16768,7 @@ class MessageBundle extends FlatBuffer:
 		if into:
 			into.assign_buffer(_fb_bytes, element_pos + element_offset)
 			return into
-		return _solar_xr_schema.DataFeedMessageHeader.new( _fb_bytes, element_pos + element_offset )
+		return SolarXR.DataFeedMessageHeader.new( _fb_bytes, element_pos + element_offset )
 
 	func data_feed_msgs() -> Array:
 		var array_start: int = get_offset_field_start( VT_DATA_FEED_MSGS )
@@ -16948,7 +16779,7 @@ class MessageBundle extends FlatBuffer:
 		if array.resize( array_size ) != OK: return []
 		for i: int in array_size:
 			var p: int = array_start + i * 4
-			array[i] = _solar_xr_schema.DataFeedMessageHeader.new( _fb_bytes, p + _fb_bytes.decode_u32( p ) )
+			array[i] = SolarXR.DataFeedMessageHeader.new( _fb_bytes, p + _fb_bytes.decode_u32( p ) )
 		return array
 
 	## Return true if rpc_msgs is present in the buffer, else false
@@ -16956,7 +16787,7 @@ class MessageBundle extends FlatBuffer:
 		return get_field_offset( VT_RPC_MSGS )
 
 	func rpc_msgs_verify(verifier:FlatBufferVerifier) -> bool:
-		var tmp := _solar_xr_schema.RpcMessageHeader.new()
+		var tmp := SolarXR.RpcMessageHeader.new()
 		for i in rpc_msgs_size():
 			if not rpc_msgs_at(i, tmp).verify(verifier):
 				return false
@@ -16983,7 +16814,7 @@ class MessageBundle extends FlatBuffer:
 		if into:
 			into.assign_buffer(_fb_bytes, element_pos + element_offset)
 			return into
-		return _solar_xr_schema.RpcMessageHeader.new( _fb_bytes, element_pos + element_offset )
+		return SolarXR.RpcMessageHeader.new( _fb_bytes, element_pos + element_offset )
 
 	func rpc_msgs() -> Array:
 		var array_start: int = get_offset_field_start( VT_RPC_MSGS )
@@ -16994,7 +16825,7 @@ class MessageBundle extends FlatBuffer:
 		if array.resize( array_size ) != OK: return []
 		for i: int in array_size:
 			var p: int = array_start + i * 4
-			array[i] = _solar_xr_schema.RpcMessageHeader.new( _fb_bytes, p + _fb_bytes.decode_u32( p ) )
+			array[i] = SolarXR.RpcMessageHeader.new( _fb_bytes, p + _fb_bytes.decode_u32( p ) )
 		return array
 
 	## Return true if pub_sub_msgs is present in the buffer, else false
@@ -17002,7 +16833,7 @@ class MessageBundle extends FlatBuffer:
 		return get_field_offset( VT_PUB_SUB_MSGS )
 
 	func pub_sub_msgs_verify(verifier:FlatBufferVerifier) -> bool:
-		var tmp := _solar_xr_schema.PubSubHeader.new()
+		var tmp := SolarXR.PubSubHeader.new()
 		for i in pub_sub_msgs_size():
 			if not pub_sub_msgs_at(i, tmp).verify(verifier):
 				return false
@@ -17029,7 +16860,7 @@ class MessageBundle extends FlatBuffer:
 		if into:
 			into.assign_buffer(_fb_bytes, element_pos + element_offset)
 			return into
-		return _solar_xr_schema.PubSubHeader.new( _fb_bytes, element_pos + element_offset )
+		return SolarXR.PubSubHeader.new( _fb_bytes, element_pos + element_offset )
 
 	func pub_sub_msgs() -> Array:
 		var array_start: int = get_offset_field_start( VT_PUB_SUB_MSGS )
@@ -17040,7 +16871,7 @@ class MessageBundle extends FlatBuffer:
 		if array.resize( array_size ) != OK: return []
 		for i: int in array_size:
 			var p: int = array_start + i * 4
-			array[i] = _solar_xr_schema.PubSubHeader.new( _fb_bytes, p + _fb_bytes.decode_u32( p ) )
+			array[i] = SolarXR.PubSubHeader.new( _fb_bytes, p + _fb_bytes.decode_u32( p ) )
 		return array
 
 

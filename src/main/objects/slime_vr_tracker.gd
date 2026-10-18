@@ -12,6 +12,8 @@ var status:int
 
 var old_rotation:Quaternion = Quaternion.IDENTITY
 
+var is_somatic:bool = false
+
 func _init(set_mac:String, set_index:int, info:Dictionary[String,Variant] = {}) -> void:
 	mac = set_mac
 	index = set_index

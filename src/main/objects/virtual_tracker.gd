@@ -1,4 +1,4 @@
-extends Node
+extends Object
 
 var server:PacketPeerUDP = PacketPeerUDP.new()
 var quat:Quaternion = Quaternion(Vector3.LEFT,deg_to_rad(-90))
@@ -6,7 +6,7 @@ var quat:Quaternion = Quaternion(Vector3.LEFT,deg_to_rad(-90))
 func _ready() -> void:
 	server.bind(0,"127.69.2.1")
 	server.set_dest_address("127.0.0.1",6969)
-	var packet:PacketUDP = PacketUDP.new()
+	var packet:UDP_PacketBuilder = UDP_PacketBuilder.new()
 	
 	packet.addType(3)
 	packet.addInt(0)
@@ -16,7 +16,7 @@ func _ready() -> void:
 	packet.addInt(0)
 	packet.addInt(0)
 	packet.addInt(22)
-	packet.addShortString("0.7.3")
+	packet.addShortString("ToolBox v1")
 	packet.addByte8(1)
 	packet.addByte8(2)
 	packet.addByte8(3)
@@ -24,27 +24,6 @@ func _ready() -> void:
 	packet.addByte8(5)
 	packet.addByte8(6)
 	packet.addByte8(0)
-	
-	var printy:PacketUDP = PacketUDP.new(packet.get_buffer(),
-		PacketUDP.TYPE,
-		PacketUDP.INT,
-		PacketUDP.INT,
-		PacketUDP.INT,
-		PacketUDP.INT,
-		PacketUDP.INT,
-		PacketUDP.INT,
-		PacketUDP.INT,
-		PacketUDP.SHORT_STRING,
-		PacketUDP.BYTE8,
-		PacketUDP.BYTE8,
-		PacketUDP.BYTE8,
-		PacketUDP.BYTE8,
-		PacketUDP.BYTE8,
-		PacketUDP.BYTE8,
-		PacketUDP.BYTE8,
-	)
-	
-	print(printy)
 	
 	server.put_packet(packet.get_buffer())
 	

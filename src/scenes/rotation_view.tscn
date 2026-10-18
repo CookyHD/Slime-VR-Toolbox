@@ -67,9 +67,9 @@ rings = 2
 
 [node name="Rotation View" type="Control" unique_id=715437127]
 layout_mode = 3
-anchors_preset = 0
-offset_right = 512.0
-offset_bottom = 512.0
+anchor_right = 0.4
+anchor_bottom = 0.683
+offset_bottom = -0.25
 script = ExtResource("1_d8atj")
 
 [node name="ViewportContainer" type="SubViewportContainer" parent="." unique_id=1372340606]

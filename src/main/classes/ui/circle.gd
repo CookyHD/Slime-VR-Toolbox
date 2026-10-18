@@ -24,6 +24,6 @@ func _draw() -> void:
 	var pos:Vector2 = size / 2
 	var r:float = min(size.x, size.y)
 	if filled:
-		draw_circle(pos,((r/2) - (width/2)) * clampf(radius, 0.0, 1.0),color,true)
+		draw_circle(pos, (r/2) * clampf(radius, 0.0, 1.0), color, true)
 	else:
-		draw_circle(pos,((r/2) - (width/2)) * clampf(radius, 0.0, 1.0),color,false,width)
+		draw_circle(pos, ((r/2) - (width/2)) * clampf(radius, 0.0, 1.0), color, false, width)

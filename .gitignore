@@ -5,5 +5,4 @@
 addons/**/
 addons/*.gd
 addons/*.uid
-
 addons/extension

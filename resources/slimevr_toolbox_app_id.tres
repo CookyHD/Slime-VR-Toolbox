@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="DiscordID" format=3 uid="uid://c74v66j3fxbjp"]
+
+[ext_resource type="Script" uid="uid://c5s0dgxwrhp2j" path="res://src/main/classes/discord_app_id.gd" id="1_wqqk7"]
+
+[resource]
+script = ExtResource("1_wqqk7")
+id = "1560109841832349716"
+metadata/_custom_type_script = "uid://c5s0dgxwrhp2j"

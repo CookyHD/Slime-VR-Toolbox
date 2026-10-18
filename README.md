@@ -10,10 +10,16 @@ Built using a modified version of the [Godot Engine](https://github.com/CookyHD/
 
 ## Other Projects Used
 
-[SolarXR-Protocol](https://github.com/SlimeVR/SolarXR-Protocol) by [SlimeVR](https://github.com/SlimeVR)
+[SolarXR Protocol](https://github.com/SlimeVR/SolarXR-Protocol) by [SlimeVR](https://github.com/SlimeVR)
 
-[godot-flatbuffers](https://github.com/enetheru/godot-flatbuffers) by [enetheru](https://github.com/enetheru)
+[Godot Flatbuffers](https://github.com/enetheru/godot-flatbuffers) by [Samuel Nicholas](https://github.com/enetheru)
 
-[godot-flatbuffers-addon](https://github.com/enetheru/godot-flatbuffers-addon) by [enetheru](https://github.com/enetheru)
+[Godot Flatbuffers Addon](https://github.com/enetheru/godot-flatbuffers-addon) by [Samuel Nicholas](https://github.com/enetheru)
 
-[discord-rich-presence-godot](https://github.com/SlayHorizon/discord-rich-presence-godot) by [SlayHorizon](https://github.com/SlayHorizon)
+[Discord Rich Presence Godot](https://github.com/SlayHorizon/discord-rich-presence-godot) by [horizon](https://github.com/SlayHorizon)
+
+## Inpiered by Projects Like
+
+[Everything To IMU SlimeVR](https://github.com/Sebane1/Everything_To_IMU_SlimeVR) by [Sebby](https://github.com/Sebane1)
+
+[SlimeVR Wrangler](https://github.com/carl-anders/slimevr-wrangler) by [Carl Andersson](https://github.com/carl-anders)

@@ -1,4 +1,3 @@
 * text=auto
 
-src/schema/solar_xr.gd linguist-vendored
-resources/schema/solar_xr.fbs linguist-vendored
+src/schema/** linguist-vendored

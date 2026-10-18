@@ -1,12 +1,19 @@
 [submodule "include/flatbuffers_extension"]
 	path = include/flatbuffers_extension
 	url = https://github.com/enetheru/godot-flatbuffers
+	branch = 308bcae121e1f1c14712ae4a7ed5dc676660a8ab
+
 [submodule "include/flatbuffers_plugin"]
 	path = include/flatbuffers_plugin
 	url = https://github.com/enetheru/godot-flatbuffers-addon
+	branch = 0e67808f565309321e0d238a6073c8c5ad985afa
+
 [submodule "include/discord_rich_presence"]
 	path = include/discord_rich_presence
 	url = https://github.com/SlayHorizon/discord-rich-presence-godot
+	branch = main
+
 [submodule "include/solar_xr"]
 	path = include/solar_xr
 	url = https://github.com/SlimeVR/SolarXR-Protocol
+	branch = 00c38a6dc28070b30850a89c26b17928e56245d4

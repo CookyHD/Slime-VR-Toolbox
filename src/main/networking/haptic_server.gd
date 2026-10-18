@@ -1,25 +1,32 @@
 extends Node
 
-const PORT:int = 6767
+var server:PacketPeerUDP = PacketPeerUDP.new()
 
-var Server:PacketPeerUDP = PacketPeerUDP.new()
+var timesetemp:int = 0
+var ip:String = ""
 
-var Haptics:Array[Haptic] = []
+func _ready() -> void:
+	server.bind(6767)
 
-var Vibrations:Array[VibrationPacket] = []
-
-func setup() -> void:
-	Input.joy_connection_changed.connect(on_con_connection)
-	Server.bind(PORT, "0.0.0.0")
-
-func update() -> void:
-	while Server.get_available_packet_count() > 0:
-		var buffer:PackedByteArray = Server.get_packet()
-		print(buffer)
-
-func send(address:String, data:PackedByteArray) -> void:
-	Server.set_dest_address(address, PORT)
-	Server.put_packet(data)
-
-func on_con_connection(id:int, aktive:bool) -> void:
-	print(id,aktive)
+func _process(_delta: float) -> void:
+	while server.get_available_packet_count() > 0:
+		var buffer:PackedByteArray = server.get_packet()
+		if (buffer[3] == 1):
+			timesetemp = Time.get_ticks_msec()
+			ip = server.get_packet_ip()
+			server.set_dest_address(ip,6767)
+			server.put_packet([0,0,0,2])
+		if (buffer[3] == 4):
+			timesetemp = Time.get_ticks_msec()
+	if (ip != ""):
+		if (Time.get_ticks_msec() - timesetemp > 1000):
+			server.put_packet([0,0,0,3])
+		var packet:PackedByteArray = [0,0,0,5]
+		var vibration:PackedByteArray = [0,0,0,0]
+		vibration.encode_float(0,0.5)
+		packet.append_array(vibration)
+		var duration:PackedByteArray = [0,0,0,0]
+		duration.encode_s32(0,10)
+		packet.append_array(duration)
+		packet.append(0)
+		server.put_packet(packet)
