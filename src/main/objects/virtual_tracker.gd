@@ -1,4 +1,4 @@
-extends Object
+extends Node
 
 var server:PacketPeerUDP = PacketPeerUDP.new()
 var quat:Quaternion = Quaternion(Vector3.LEFT,deg_to_rad(-90))
@@ -25,45 +25,32 @@ func _ready() -> void:
 	packet.addByte8(6)
 	packet.addByte8(0)
 	
-	server.put_packet(packet.get_buffer())
+	server.put_packet(packet.finish())
+	packet.reset()
 	
-	var buffer:PackedByteArray = []
+	packet.addType(15)
+	packet.addByte8(0)
+	packet.addByte8(1)
+	packet.addByte8(0)
 	
-	buffer.append_array([0,0,0,15])
-	buffer.append_array([0,0,0,0])
-	buffer.append_array([0,0,0,0])
-	buffer.append(0)
-	buffer.append(1)
-	buffer.append(0)
+	server.put_packet(packet.finish())
+	packet.reset()
 	
-	server.put_packet(buffer)
-	buffer.clear()
+	packet.addType(19)
+	packet.addByte8(255)
+	packet.addByte8(1)
 	
-	buffer.append_array([0,0,0,19])
-	buffer.append_array([0,0,0,0])
-	buffer.append_array([0,0,0,0])
-	buffer.append(255)
-	buffer.append(1)
+	server.put_packet(packet.finish())
+	packet.reset()
 	
-	server.put_packet(buffer)
-	buffer.clear()
+	packet.addType(12)
+	packet.addFloat(3.2)
+	packet.addFloat(1.0)
 	
-	buffer.append_array([0,0,0,12])
-	buffer.append_array([0,0,0,0])
-	buffer.append_array([0,0,0,0])
-	var v:PackedByteArray = [0,0,0,0]
-	v.encode_float(0,3.2)
-	v.reverse()
-	buffer.append_array(v)
-	var p:PackedByteArray = [0,0,0,0]
-	p.encode_float(0,1.0)
-	p.reverse()
-	buffer.append_array(p)
-	
-	server.put_packet(buffer)
+	server.put_packet(packet.finish())
 
 func _physics_process(_delta: float) -> void:
-	quat = (quat * Quaternion(Vector3.UP,deg_to_rad(1))).normalized()
+	quat = (quat * Quaternion(Vector3.UP,deg_to_rad(15)))
 
 
 func _process(_delta: float) -> void:
@@ -75,8 +62,6 @@ func _process(_delta: float) -> void:
 		if buffer.get(3) == 10:
 			server.put_packet(buffer)
 			continue
-		print(buffer.slice(1).get_string_from_utf8())
-		print(server.get_packet_ip(), ", ", server.get_packet_port(), ", ")
 	var buffer:PackedByteArray = []
 	buffer.append_array([0,0,0,17])
 	buffer.append_array([0,0,0,0])

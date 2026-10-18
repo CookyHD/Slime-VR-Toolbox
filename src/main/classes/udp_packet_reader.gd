@@ -7,10 +7,6 @@ var offset:int = 0
 func _init(data:PackedByteArray) -> void:
 	self.buffer = data
 
-func reset(data:PackedByteArray) -> void:
-	self.buffer = data
-	offset = 0
-
 func readByte8() -> int:
 	var value = buffer.get(offset)
 	offset += 1

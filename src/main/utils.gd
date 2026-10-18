@@ -1,5 +1,7 @@
 extends Node
 
+const localIP:String = "127.0.0.1"
+
 func millis() -> int:
 	return Time.get_ticks_msec()
 
@@ -10,7 +12,7 @@ func timer(time:float) -> Variant:
 class log:
 	
 	static func error(...args) -> void:
-		var string:String = "[color=red][ERROR ] "
+		var string:String = "[color=red][ERROR] "
 		for arg:Variant in args:
 			if typeof(arg) != TYPE_STRING: string += str(arg)
 			else: string += arg
@@ -18,7 +20,7 @@ class log:
 		print_rich(string)
 
 	static func warn(...args) -> void:
-		var string:String = "[color=yellow][WARN  ] "
+		var string:String = "[color=yellow][WARN ] "
 		for arg:Variant in args:
 			if typeof(arg) != TYPE_STRING: string += str(arg)
 			else: string += arg
@@ -26,7 +28,7 @@ class log:
 		print_rich(string)
 		
 	static func debug(...args) -> void:
-		var string:String = "[color=white][DEBUG] "
+		var string:String = "[color=white][INFO ] "
 		for arg:Variant in args:
 			if typeof(arg) != TYPE_STRING: string += str(arg)
 			else: string += arg

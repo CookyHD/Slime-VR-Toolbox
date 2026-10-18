@@ -1,6 +1,6 @@
 .godot/
 .editorconfig
-**.temp
+**.tmp
 
 addons/**/
 addons/*.gd

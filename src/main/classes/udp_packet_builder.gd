@@ -7,7 +7,7 @@ var offset:int = 0
 func finish() -> PackedByteArray:
 	return buffer
 
-func reset() -> void:
+func clear() -> void:
 	buffer = PackedByteArray()
 	offset = 0
 

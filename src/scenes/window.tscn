@@ -1,7 +1,8 @@
 [gd_scene format=3 uid="uid://2iecnu1y64x0"]
 
-[ext_resource type="Script" uid="uid://bm5bb4nuon5xy" path="res://src/scenes/scripts/window/window.gd" id="1_ufu5x"]
-[ext_resource type="Theme" uid="uid://c3rxbbu5o2xqp" path="res://resources/themes/window_buttons.tres" id="3_ry2ml"]
+[ext_resource type="Script" uid="uid://bm5bb4nuon5xy" path="res://src/scenes/scripts/window.gd" id="1_ufu5x"]
+[ext_resource type="Texture2D" uid="uid://luubuaio2t3n" path="res://assets/vectors/icon/icon_no_bg.svg" id="2_3a2pc"]
+[ext_resource type="Theme" uid="uid://c3rxbbu5o2xqp" path="res://resources/themes/button.tres" id="3_ry2ml"]
 [ext_resource type="FontFile" uid="uid://bmmcaynyj4rcp" path="res://assets/fonts/Comfortaa-VariableFont_wght.ttf" id="4_cg4e1"]
 [ext_resource type="Texture2D" uid="uid://qm6qifrhwtp2" path="res://assets/vectors/ui/buttons/pin_empty.svg" id="4_uq45k"]
 [ext_resource type="Texture2D" uid="uid://bfgj16xyafhij" path="res://assets/vectors/ui/buttons/minimize.svg" id="5_uq45k"]
@@ -11,16 +12,16 @@
 [sub_resource type="LabelSettings" id="LabelSettings_ry2ml"]
 font = ExtResource("4_cg4e1")
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_3a2pc"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_m3enb"]
-bg_color = Color(0.3, 0.3, 0.3, 1)
-
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ry2ml"]
 bg_color = Color(1, 0.5, 0.5, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_uq45k"]
 bg_color = Color(1, 0, 0, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_3a2pc"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_m3enb"]
+bg_color = Color(0.3, 0.3, 0.3, 1)
 
 [node name="Window" type="Control" unique_id=1352861961]
 layout_mode = 3
@@ -31,77 +32,93 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_ufu5x")
+WindowTitle = "SlimeVR Toolbox"
+WindowIcon = ExtResource("2_3a2pc")
+MinimumWindowSize = Vector2i(1280, 720)
 
-[node name="TopBar" type="ColorRect" parent="." unique_id=154125401]
+[node name="ColorRect" type="ColorRect" parent="." unique_id=979217369]
 z_index = -1
-custom_minimum_size = Vector2(-1, 30)
-custom_maximum_size = Vector2(-1, 30)
 layout_mode = 1
-anchors_preset = 10
+anchors_preset = 15
 anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
-mouse_filter = 1
-color = Color(0.2, 0.2, 0.2, 1)
-
-[node name="Title" type="HBoxContainer" parent="TopBar" unique_id=971640569]
-layout_mode = 1
-anchors_preset = 4
-anchor_top = 0.5
-anchor_bottom = 0.5
-offset_top = -15.0
-offset_right = 170.0
-offset_bottom = 15.0
 grow_vertical = 2
-theme_override_constants/separation = 0
-
-[node name="Icon" type="Control" parent="TopBar/Title" unique_id=672052533]
-custom_minimum_size = Vector2(30, 30)
-custom_maximum_size = Vector2(30, 30)
-layout_mode = 2
 mouse_filter = 2
+color = Color(0.09885003, 0.051, 0.15, 1)
 
-[node name="Text" type="Label" parent="TopBar/Title" unique_id=1660856138]
+[node name="Title" type="Label" parent="." unique_id=1660856138]
 custom_minimum_size = Vector2(-1, 30)
 custom_maximum_size = Vector2(-1, 30)
-layout_mode = 2
+layout_mode = 1
+anchors_preset = -1
+offset_left = 30.0
+offset_right = 173.0
+offset_bottom = 30.0
 text = " SlimeVR Toolbox"
 label_settings = SubResource("LabelSettings_ry2ml")
 vertical_alignment = 1
 
-[node name="ButtonTint" type="ColorRect" parent="TopBar" unique_id=9298421]
-layout_mode = 1
-anchors_preset = 6
-anchor_left = 1.0
-anchor_top = 0.5
-anchor_right = 1.0
-anchor_bottom = 0.5
-offset_left = -120.0
-offset_top = -15.0
-offset_bottom = 15.0
-grow_horizontal = 0
-grow_vertical = 2
-mouse_filter = 2
-color = Color(0.15, 0.15, 0.15, 1)
-
-[node name="Buttons" type="HBoxContainer" parent="TopBar" unique_id=2126217783]
-layout_mode = 1
-anchors_preset = 6
-anchor_left = 1.0
-anchor_top = 0.5
-anchor_right = 1.0
-anchor_bottom = 0.5
-offset_left = -120.0
-offset_top = -15.0
-offset_bottom = 15.0
-grow_horizontal = 0
-grow_vertical = 2
-theme_override_constants/separation = 0
-alignment = 2
-
-[node name="Pin" type="Button" parent="TopBar/Buttons" unique_id=2055030444]
+[node name="Close" type="Button" parent="." unique_id=1367266545]
 custom_minimum_size = Vector2(30, 30)
 custom_maximum_size = Vector2(30, 30)
-layout_mode = 2
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -30.0
+offset_bottom = 30.0
+grow_horizontal = 0
+theme = ExtResource("3_ry2ml")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_ry2ml")
+theme_override_styles/hover = SubResource("StyleBoxFlat_uq45k")
+icon = ExtResource("7_m3enb")
+icon_alignment = 1
+expand_icon = true
+
+[node name="Maxmize" type="Button" parent="." unique_id=1203430453]
+custom_minimum_size = Vector2(30, 30)
+custom_maximum_size = Vector2(30, 30)
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -60.0
+offset_right = -30.0
+offset_bottom = 30.0
+grow_horizontal = 0
+theme = ExtResource("3_ry2ml")
+icon = ExtResource("6_3a2pc")
+icon_alignment = 1
+expand_icon = true
+
+[node name="Minmize" type="Button" parent="." unique_id=1622606759]
+custom_minimum_size = Vector2(30, 30)
+custom_maximum_size = Vector2(30, 30)
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -90.0
+offset_right = -60.0
+offset_bottom = 30.0
+grow_horizontal = 0
+theme = ExtResource("3_ry2ml")
+icon = ExtResource("5_uq45k")
+icon_alignment = 1
+expand_icon = true
+
+[node name="Pin" type="Button" parent="." unique_id=2055030444]
+custom_minimum_size = Vector2(30, 30)
+custom_maximum_size = Vector2(30, 30)
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -120.0
+offset_right = -90.0
+offset_bottom = 30.0
+grow_horizontal = 0
 theme = ExtResource("3_ry2ml")
 theme_override_colors/icon_pressed_color = Color(0.5, 0.5, 1, 1)
 theme_override_colors/icon_hover_pressed_color = Color(0.5, 0.5, 1, 1)
@@ -112,36 +129,107 @@ icon = ExtResource("4_uq45k")
 icon_alignment = 1
 expand_icon = true
 
-[node name="Minmize" type="Button" parent="TopBar/Buttons" unique_id=1622606759]
-custom_minimum_size = Vector2(30, 30)
-custom_maximum_size = Vector2(30, 30)
-layout_mode = 2
-theme = ExtResource("3_ry2ml")
-icon = ExtResource("5_uq45k")
-icon_alignment = 1
-expand_icon = true
+[node name="DragZone" type="Control" parent="." unique_id=1744163624]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 5.0
+offset_top = 5.0
+offset_right = -120.0
+offset_bottom = 30.0
+grow_horizontal = 2
 
-[node name="Maxmize" type="Button" parent="TopBar/Buttons" unique_id=1203430453]
-custom_minimum_size = Vector2(30, 30)
-custom_maximum_size = Vector2(30, 30)
-layout_mode = 2
-theme = ExtResource("3_ry2ml")
-icon = ExtResource("6_3a2pc")
-icon_alignment = 1
-expand_icon = true
+[node name="ResizeZones" type="Control" parent="." unique_id=1111996554]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 
-[node name="Close" type="Button" parent="TopBar/Buttons" unique_id=1367266545]
-custom_minimum_size = Vector2(30, 30)
-custom_maximum_size = Vector2(30, 30)
-layout_mode = 2
-theme = ExtResource("3_ry2ml")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_ry2ml")
-theme_override_styles/hover = SubResource("StyleBoxFlat_uq45k")
-icon = ExtResource("7_m3enb")
-icon_alignment = 1
-expand_icon = true
+[node name="Top" type="Control" parent="ResizeZones" unique_id=1653253048]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 5.0
+offset_right = -5.0
+offset_bottom = 5.0
+grow_horizontal = 2
+mouse_default_cursor_shape = 9
 
-[connection signal="toggled" from="TopBar/Buttons/Pin" to="." method="_on_pin_toggled"]
-[connection signal="pressed" from="TopBar/Buttons/Minmize" to="." method="_on_minmize_pressed"]
-[connection signal="pressed" from="TopBar/Buttons/Maxmize" to="." method="_on_maxmize_pressed"]
-[connection signal="pressed" from="TopBar/Buttons/Close" to="." method="_on_close_pressed"]
+[node name="Right" type="Control" parent="ResizeZones" unique_id=1222557064]
+layout_mode = 1
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -5.0
+offset_top = 5.0
+offset_bottom = -5.0
+grow_horizontal = 0
+grow_vertical = 2
+mouse_default_cursor_shape = 10
+
+[node name="Left" type="Control" parent="ResizeZones" unique_id=696610882]
+layout_mode = 1
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_top = 5.0
+offset_right = 5.0
+offset_bottom = -5.0
+grow_vertical = 2
+mouse_default_cursor_shape = 10
+
+[node name="Bottom" type="Control" parent="ResizeZones" unique_id=722815734]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 5.0
+offset_top = -5.0
+offset_right = -5.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_default_cursor_shape = 9
+
+[node name="Top-Left" type="Control" parent="ResizeZones" unique_id=589360600]
+layout_mode = 1
+anchors_preset = 0
+offset_right = 5.0
+offset_bottom = 5.0
+mouse_default_cursor_shape = 12
+
+[node name="Bottom-Left" type="Control" parent="ResizeZones" unique_id=1460001454]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -5.0
+offset_right = 5.0
+grow_vertical = 0
+mouse_default_cursor_shape = 11
+
+[node name="Top-Right" type="Control" parent="ResizeZones" unique_id=1549029182]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -5.0
+offset_bottom = 5.0
+grow_horizontal = 0
+mouse_default_cursor_shape = 11
+
+[node name="Bottom-Right" type="Control" parent="ResizeZones" unique_id=646834477]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -5.0
+offset_top = -5.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_default_cursor_shape = 12
