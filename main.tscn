@@ -1,6 +1,13 @@
 [gd_scene format=3 uid="uid://bk6t8yil4exld"]
 
 [ext_resource type="Script" uid="uid://bogajnw16afyi" path="res://main.gd" id="1_ig7tw"]
+[ext_resource type="PackedScene" uid="uid://crto7nrf4iskh" path="res://src/scenes/rotation_view.tscn" id="2_0xm2m"]
 
 [node name="Main" type="Node" unique_id=998771959]
 script = ExtResource("1_ig7tw")
+
+[node name="Rotation View" parent="." unique_id=715437127 instance=ExtResource("2_0xm2m")]
+offset_left = 1.0
+offset_top = 87.0
+offset_right = 1.0
+offset_bottom = 86.75

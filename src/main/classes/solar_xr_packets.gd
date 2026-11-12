@@ -3,6 +3,31 @@ class_name SolarXRPackets
 
 @warning_ignore_start("static_called_on_instance")
 
+#INFO: NOT NEEDED!
+#static func test(id:SolarXR.TrackingChecklistStepId) -> PackedByteArray:
+	#var fbb:FlatBufferBuilder = FlatBufferBuilder.new()
+	#var offset = SolarXR.create_MessageBundle(
+		#fbb,
+		#0,
+		#fbb.create_vector_of_table(
+			#[
+				#[
+					#SolarXR.create_TransactionId(67),
+					#SolarXR.RpcMessage.IGNORE_TRACKING_CHECKLIST_STEP_REQUEST,
+					#SolarXR.create_IgnoreTrackingChecklistStepRequest(
+						#fbb,
+						#id,
+						#true
+					#)
+				#]
+			#],
+			#func (_fbb:FlatBufferBuilder, array:Array) -> int: return SolarXR.create_RpcMessageHeader(fbb, array[0], array[1], array[2])
+		#),
+		#0
+	#)
+	#fbb.finish(offset)
+	#return fbb.get_buffer()
+
 static func get_start_data_feed_package() -> PackedByteArray:
 	var fbb:FlatBufferBuilder = FlatBufferBuilder.new()
 	var offset = SolarXR.create_MessageBundle(
@@ -16,7 +41,7 @@ static func get_start_data_feed_package() -> PackedByteArray:
 						fbb.create_vector_of_table(
 							[
 								[
-									10,
+									20,
 									SolarXR.create_DeviceDataMask(
 										fbb,
 										SolarXR.create_TrackerDataMask(
@@ -70,6 +95,8 @@ static func get_devices(data:SolarXR.DataFeedMessageHeader) -> Array[SolarXR.Dev
 	return (data.message() as SolarXR.DataFeedUpdate).devices()
 
 static func get_trackers(data:SolarXR.DeviceData) -> Array[SolarXR.TrackerData]:
+	if data._fb_bytes.size() < int(SolarXR.DeviceData.VT_TRACKERS): return []
+	if !data.trackers_is_present(): return []
 	if data.trackers().is_empty(): return []
 	return data.trackers()
 
@@ -97,3 +124,16 @@ static func get_tracker_index(data:SolarXR.TrackerData) -> int:
 static func get_tracker_status(data:SolarXR.TrackerData) -> int:
 	if !data.status_is_present(): return 0
 	return int(data.status())
+
+static func get_device_ip(data:SolarXR.DeviceData) -> String:
+	if !data.hardware_info(): return ""
+	if !(data.hardware_info() as SolarXR.HardwareInfo).ip_address_is_present(): return ""
+	var pos:int = (data.hardware_info() as SolarXR.HardwareInfo).get_inline_field_start(SolarXR.HardwareInfo.VT_IP_ADDRESS)
+	var buffer:PackedByteArray = ((data.hardware_info() as SolarXR.HardwareInfo)._fb_bytes as PackedByteArray).slice(pos,pos+4)
+	buffer.reverse()
+	return str(buffer[0]) + "." + str(buffer[1]) + "." + str(buffer[2]) + "." + str(buffer[3])
+
+static func get_device_version(data:SolarXR.DeviceData) -> String:
+	if !data.hardware_info(): return ""
+	if !(data.hardware_info() as SolarXR.HardwareInfo).firmware_version_is_present(): return ""
+	return (data.hardware_info() as SolarXR.HardwareInfo).firmware_version()

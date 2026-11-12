@@ -17,6 +17,12 @@ func readByte16() -> Array[int]:
 	offset += 2
 	return value
 
+func addByte32() -> Array[int]:
+	var value = [buffer.get(offset), buffer.get(offset+3)]
+	offset += 4
+	return value
+
+
 func readInt() -> int:
 	var bytes:PackedByteArray = buffer.slice(offset,offset+4)
 	bytes.reverse()

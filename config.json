@@ -1,8 +1,19 @@
 {
-	"settings/array/test": [
-		"Hello World!",
-		"Hello World!",
-		"Hello World!",
-		"Hello World!"
-	]
+	"controller/identitys": [
+		"1356:2508-84:30:95:61:5E:1D",
+		"1406:8198-AC:FA:E4:DB:F1:7A"
+	],
+	"discord/enabled": false,
+	"haptic/address": "127.0.0.1",
+	"haptic/enabled": true,
+	"haptic/port": 6767.0,
+	"osc/port": 9001.0,
+	"osc/router/address": "127.0.0.1",
+	"osc/router/enabled": false,
+	"osc/router/port": 9002.0,
+	"slimevr/address": "127.0.0.1",
+	"slimevr/port": 6969.0,
+	"slimevr/saved_trackers": [],
+	"slimevr/webserver/address": "127.0.0.1",
+	"slimevr/webserver/port": 21110.0
 }

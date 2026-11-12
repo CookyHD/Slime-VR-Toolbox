@@ -4,5 +4,6 @@
 
 addons/**/
 addons/*.gd
+addons/*.fbs
 addons/*.uid
 addons/extension

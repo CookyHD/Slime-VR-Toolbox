@@ -24,27 +24,26 @@ func update() -> void:
 	for connection:Connection in Connections:
 		connection.update()
 
-func start(...ips) -> void:
+func start(...ips) -> Error:
 	if !isFileLoaded:
-		push_error("OTAUpdater: No File Loaded...")
-		return
-	if Server.listen(TCP_SERVER_PORT) != OK:
-		push_error("OTAUpdater: Couldn't Start Server...")
-		return
+		Utils.log.error("OTAUpdater: no file set!")
+		return FAILED
+	if Utils.err_warp(Server.listen(TCP_SERVER_PORT)):
+		return FAILED
 	for ip:String in ips:
 		Connections.append(Connection.new(ip))
+	return OK
 
 func finish() -> void:
 	Server.stop()
 	Connections.clear()
 	clear_file()
 
-func set_file(path:String) -> void:
+func set_file(path:String) -> Error:
 	
 	var file = FileAccess.open(path, FileAccess.READ)
-	if file.get_error() != OK:
-		push_error("OTAUpdater: Couldn't Open/Load File...")
-		return
+	if Utils.err_warp(FileAccess.get_open_error()):
+		return FAILED
 	
 	FileBuffer = file.get_buffer(file.get_length())
 	file.close()
@@ -53,6 +52,8 @@ func set_file(path:String) -> void:
 	FileMD5 = md5_hex_hash(FileBuffer)
 	
 	isFileLoaded = true
+	
+	return OK
 
 func clear_file() -> void:
 	FileMD5 = ""

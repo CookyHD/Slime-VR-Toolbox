@@ -11,19 +11,30 @@ func clear() -> void:
 	buffer = PackedByteArray()
 	offset = 0
 
-func addByte8(byte:int) -> UDP_PacketBuilder:
+func addByte8(byte:int = 0) -> UDP_PacketBuilder:
 	buffer.append(byte)
 	offset += 1
 	return self
 
-func addByte16(byte:int) -> UDP_PacketBuilder:
-	buffer.append_array([0,byte])
+func addByte16(byte:int = 0) -> UDP_PacketBuilder:
+	var value:PackedByteArray = [0,0]
+	value.encode_u16(0, byte)
+	value.reverse()
+	buffer.append_array(value)
 	offset += 2
+	return self
+
+func addByte32(byte:int = 0) -> UDP_PacketBuilder:
+	var value:PackedByteArray = [0,0,0,0]
+	value.encode_u32(0, byte)
+	value.reverse()
+	buffer.append_array(value)
+	offset += 4
 	return self
 
 func addInt(number:int) -> UDP_PacketBuilder:
 	var bytes:PackedByteArray = [0,0,0,0]
-	bytes.encode_s32(0,number)
+	bytes.encode_u32(0,number)
 	bytes.reverse()
 	buffer.append_array(bytes)
 	offset += 4

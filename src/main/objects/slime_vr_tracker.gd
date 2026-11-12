@@ -1,8 +1,7 @@
 extends Object
 class_name SlimeVRTracker
 
-var mac:String = "00:00:00:00:00:00"
-var index:int = 0
+var identity:String = "00:00:00:00:00:00-0"
 
 var rotation:Quaternion
 var acceleration:Vector3
@@ -12,11 +11,18 @@ var status:int
 
 var old_rotation:Quaternion = Quaternion.IDENTITY
 
-var is_somatic:bool = false
+var ip:String = "0.0.0.0"
 
-func _init(set_mac:String, set_index:int, info:Dictionary[String,Variant] = {}) -> void:
-	mac = set_mac
-	index = set_index
+var version:String = ""
+
+func get_mac() -> String:
+	return identity.split("-")[0]
+
+func get_index() -> int:
+	return int(identity.split("-")[1])
+
+func _init(mac:String, index:int, info:Dictionary[String,Variant] = {}) -> void:
+	identity = mac + "-" + str(index)
 	set_info(info)
 
 func set_info(info:Dictionary[String,Variant]) -> void:
@@ -29,17 +35,21 @@ func set_info(info:Dictionary[String,Variant]) -> void:
 		aligned_offset = info["aligned_offset"]
 	if info.has("status"):
 		status = info["status"]
+	if info.has("ip"):
+		ip = info["ip"]
+	if info.has("version"):
+		version = info["version"]
 
 func get_moveing_strength() -> float:
 	return old_rotation.angle_to(rotation)
 
 func is_moveing() -> bool:
-	if get_moveing_strength() > 0.01: return old_rotation != rotation
+	if get_moveing_strength() > 0.01: return true
 	return false
 
 func get_raw_rotation() -> Quaternion:
-	var yaw_rotation:Quaternion = Quaternion(Vector3.UP, aligned_offset)
-	return rotation-yaw_rotation
+	var yaw_rotation:Quaternion = Quaternion(Vector3.UP, -aligned_offset)
+	return (rotation * yaw_rotation)
 
 func get_status() -> String:
 	match status:
@@ -54,8 +64,9 @@ func _to_string() -> String:
 	var string:String = ""
 	
 	string += "\nTracker:\n"
-	string += "\tMac: "+mac+"\n"
-	string += "\tIndex: "+str(index)+"\n"
+	string += "\tVersion: "+version+"\n"
+	string += "\tIdentity: "+identity+"\n"
+	string += "\tIP: "+ip+"\n"
 	string += "\tStatus: "+str(get_status())+"\n"
 	string += "\tRotation: "+str(rotation)+"\n"
 	string += "\tRaw Rotation: "+str(get_raw_rotation())+"\n"

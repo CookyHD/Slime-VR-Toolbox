@@ -1,34 +1,45 @@
 extends Node
 
-var WINDOW := preload("res://src/scenes/window.tscn").instantiate()
-var DISCORD:DiscordRichPresence = DiscordRichPresence.new()
+var AppWindow := preload("res://src/scenes/window.tscn").instantiate()
+var Discord:DiscordRichPresence = DiscordRichPresence.new()
 
-var TIMESTEMP:int = int(Time.get_unix_time_from_system())
+const localIP:String = "127.0.0.1"
 
-var DISCORD_APP_ID:String = "1560109841832349716"
+const TRACKER_VERSION:String = "1.0"
+
+var VirtualConnectionCount:int = 0
+
+func newVirutalAddress() -> String:
+	VirtualConnectionCount += 1
+	return "127.67.67." + str(VirtualConnectionCount)
 
 func _ready() -> void:
-	DISCORD.name = "DiscordRichPresence"
-	DISCORD.presence_disconnected.connect(on_discord_disconnect)
-	DISCORD.presence_connected.connect(on_discord_connect)
-	DISCORD.app_id = DISCORD_APP_ID
-	DISCORD.set_activity({
-		"timestamps": {"start": TIMESTEMP},
-		"assets": {"large_image": "app_icon"}
-	})
+	setup_discord()
 	await get_tree().root.ready
-	get_tree().root.add_child(WINDOW,true)
-	get_tree().root.add_child(DISCORD,true)
-
-func set_discord_status(status:String) -> void:
-	DISCORD.set_activity({
-		"details": status,
-		"timestamps": {"start": TIMESTEMP},
-		"assets": {"large_image": "app_icon"}
-	})
+	get_tree().root.add_child(AppWindow,true)
+	if Settings.get_setting("discord/enabled"):
+		start_discord()
  
+#INFO: Stay's Constant For Now.
+func setup_discord() -> void:
+	Discord.name = "DiscordRichPresence"
+	Discord.presence_disconnected.connect(on_discord_disconnect)
+	Discord.presence_connected.connect(on_discord_connect)
+	Discord.app_id = "1560109841832349716"
+	Discord.set_activity({
+		"timestamps": {"start": int(Time.get_unix_time_from_system())},
+		"assets": {"large_image": "app_icon"},
+		"status": "Configuring SlimeVR."
+	})
+
+func start_discord() -> void:
+	get_tree().root.add_child(Discord)
+
+func stop_discord() -> void:
+	get_tree().root.remove_child(Discord)
+
 func on_discord_disconnect() -> void:
-	Utils.log.warn("Discord Disconnected...")
+	Utils.log.warn("Discord Disconnected.")
 
 func on_discord_connect(_user:Dictionary) -> void:
-	Utils.log.debug("Discord Connected!")
+	Utils.log.info("Discord Connected.")

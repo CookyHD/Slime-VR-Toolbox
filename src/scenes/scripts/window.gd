@@ -1,18 +1,25 @@
 @tool
 extends Control
 
-@export var WindowTitle:String = ""
-@export var WindowIcon:Texture2D = null
+@export var WindowTitle:String = "SlimeVR Toolbox"
+@export var WindowIcon:Texture2D = preload("res://assets/vectors/icon/icon_no_bg.svg")
 
-@export var MinimumWindowSize:Vector2i = Vector2i.ZERO
+@export var MinimumWindowSize:Vector2i = Vector2i(1280, 720)
+
+@export var TopBarColor:Color = Color(0.3,0.3,0.3)
+@export var TopBarButtonColor:Color = Color(0.2,0.2,0.2)
+@export var BackgroundColor:Color = Color(0.1,0.1,0.1)
+
+@export var PinButtonIconColor:Color = Color(0.5,0.5,1.0)
+
+@export var CloseButtonHoverColor:Color = Color8(255,0,0,255)
+@export var CloseButtonPressedColor:Color = Color8(255,127,127,255)
 
 @onready var MainWindow:Window = get_window()
 
-const BarColor:Color = Color(0.4, 0.204, 0.6, 1.0)
-const BarButtonColor:Color = Color(0.2, 0.102, 0.302, 1.0)
-
 var Status:String = ""
 
+var isPinned:bool = false
 var isMaximized:bool = false
 var isDraging:bool = false
 var isResizeing:bool = false
@@ -26,6 +33,11 @@ var WindowPastSize:Vector2i = Vector2i.ZERO
 
 func _ready() -> void:
 	if Engine.is_editor_hint(): return
+	
+	#Colors
+	RenderingServer.set_default_clear_color(BackgroundColor)
+	set_pin_button_color(Color.WHITE)
+	set_close_button_colors(CloseButtonPressedColor, CloseButtonHoverColor)
 	
 	#Drag Zones
 	$DragZone.gui_input.connect(on_drag)
@@ -45,6 +57,9 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	if Engine.is_editor_hint():
+		if ProjectSettings.get_setting("application/boot_splash/bg_color") != BackgroundColor:
+			ProjectSettings.set_setting("application/boot_splash/bg_color", BackgroundColor)
+			ProjectSettings.save()
 		$Title.set_text(" "+WindowTitle)
 		queue_redraw()
 		return
@@ -65,7 +80,7 @@ func _process(_delta: float) -> void:
 
 func on_button(button:Button) -> void:
 	if button == $Close:
-		get_tree().quit()
+		get_tree().root.propagate_notification(NOTIFICATION_WM_CLOSE_REQUEST)
 	if button == $Maxmize:
 		if isMaximized:
 			MainWindow.position = WindowOffset
@@ -84,12 +99,16 @@ func on_button(button:Button) -> void:
 	if button == $Minmize:
 		MainWindow.mode = Window.MODE_MINIMIZED
 	if button == $Pin:
-		if button.button_pressed:
-			MainWindow.set_flag(Window.FLAG_ALWAYS_ON_TOP, true)
-			button.icon = preload("res://assets/vectors/ui/buttons/pin_full.svg")
-		else:
+		if isPinned:
 			MainWindow.set_flag(Window.FLAG_ALWAYS_ON_TOP, false)
 			button.icon = preload("res://assets/vectors/ui/buttons/pin_empty.svg")
+			set_pin_button_color(Color.WHITE)
+			isPinned = false
+		else:
+			MainWindow.set_flag(Window.FLAG_ALWAYS_ON_TOP, true)
+			button.icon = preload("res://assets/vectors/ui/buttons/pin_full.svg")
+			set_pin_button_color(PinButtonIconColor)
+			isPinned = true
 
 func on_drag(event:InputEvent) -> void:
 	if not event is InputEventMouseButton: return
@@ -127,19 +146,27 @@ func get_screen_top() -> int:
 	return DisplayServer.screen_get_position(MainWindow.current_screen).y
 
 func _draw() -> void:
+	if Engine.is_editor_hint():
+		draw_rect(
+			Rect2(
+				position,
+				size
+			),
+			BackgroundColor
+		)
 	draw_rect(
 		Rect2(
 			Vector2.ZERO,
 			Vector2(size.x,30)
 		),
-		BarColor
+		TopBarColor
 	)
 	draw_rect(
 		Rect2(
 			Vector2(size.x - 120,0),
 			Vector2(120,30)
 		),
-		BarButtonColor
+		TopBarButtonColor
 	)
 	if WindowIcon:
 		draw_texture_rect_region(
@@ -148,3 +175,18 @@ func _draw() -> void:
 			Rect2(Vector2.ZERO,WindowIcon.get_size())
 		)
 	end
+
+func set_pin_button_color(color:Color) -> void:
+	$Pin.add_theme_color_override("icon_normal_color", color)
+	$Pin.add_theme_color_override("icon_hover_color", color)
+	$Pin.add_theme_color_override("icon_pressed_color", color)
+
+func set_close_button_colors(color_pressed:Color, color_hover:Color) -> void:
+	
+	var pressed_style_box:StyleBoxFlat = StyleBoxFlat.new()
+	pressed_style_box.bg_color = color_pressed
+	$Close.add_theme_stylebox_override("pressed", pressed_style_box)
+	
+	var hover_style_box:StyleBoxFlat = StyleBoxFlat.new()
+	hover_style_box.bg_color = color_hover
+	$Close.add_theme_stylebox_override("hover", hover_style_box)
